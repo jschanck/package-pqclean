@@ -1,0 +1,9 @@
+name: HQC-RMRS-192
+type: kem
+claimed-nist-level: 3
+claimed-security: IND-CCA2
+length-ciphertext: 9794
+length-public-key: 4906
+length-secret-key: 4946
+length-shared-secret: 64
+nistkat-sha256: 248c5e5d14f1722eeb39947c2f0065d49ff709d1cef146e4362cad27240754d3

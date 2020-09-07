@@ -1,0 +1,9 @@
+name: HQC-256
+type: kem
+claimed-nist-level: 5
+claimed-security: IND-CCA2
+length-ciphertext: 17379
+length-public-key: 8698
+length-secret-key: 8738
+length-shared-secret: 64
+nistkat-sha256: c940cddc7be19d005a23e7a0b3b4079250fec682d09d093dbcff0bc23a3b9dc4
