@@ -232,7 +232,7 @@
  	}
  
  	divByXplus1(W3,tmp,T_TM3_3W_256);
-@@ -503,19 +484,19 @@
+@@ -503,20 +484,19 @@
  	ro256[(T_TM3_3W_256 << 2) - 2] = W2[(T_TM3_3W_256 << 1) - 1] ^ W4[0];
  	ro256[(T_TM3_3W_256 * 6) - 3] = W4[(T_TM3_3W_256 << 1) - 1];
  
@@ -251,13 +251,15 @@
 +		_mm256_storeu_si256(&U2_256[i], W3[i] ^ _mm256_loadu_si256(&U2_256[i]));
  	}
  
- 	for (int32_t i = 0 ; i < 6 * T_TM3_3W_256 - 2 ; i++) {
+-	for (int32_t i = 0 ; i < 6 * T_TM3_3W_256 - 2 ; i++) {
 -		uint64_t *out64 = Out + (i << 2);
-+		uint64_t *out64 = ((uint64_t *)Out) + (i << 2);
- 		_mm256_storeu_si256((__m256i *)out64, ro256[i]);
+-		_mm256_storeu_si256((__m256i *)out64, ro256[i]);
++	for (int32_t i = 0 ; i < 2 * VEC_N_SIZE_256 + 1 ; i++) {
++		_mm256_storeu_si256(&Out[i], ro256[i]);
  	}
  }
-@@ -533,12 +514,12 @@
+ 
+@@ -533,12 +513,12 @@
   */
  void vect_mul(uint64_t *o, const uint64_t *a1, const uint64_t *a2) {
  	TOOM3Mult(a1_times_a2, a1, a2);

@@ -244,7 +244,7 @@
  	for (int32_t i = 0 ; i < (T_TM3_3W_256 << 1) - 1 ; i++) {
  		ro256[i] = W0[i];
  		ro256[i + 2 * T_TM3_3W_256 - 1] = W2[i];
-@@ -513,19 +491,19 @@
+@@ -513,20 +491,19 @@
  	ro256[(T_TM3_3W_256 << 2) - 2] = W2[(T_TM3_3W_256 << 1) - 1] ^ W4[0];
  	ro256[(T_TM3_3W_256 * 6) - 3] = W4[(T_TM3_3W_256 << 1) - 1];
  
@@ -265,11 +265,12 @@
  
  	for (int32_t i = 0 ; i < 6 * T_TM3_3W_256 - 2 ; i++) {
 -		uint64_t *out64 = Out + (i << 2);
-+		uint64_t *out64 = ((uint64_t *)Out) + (i << 2);
- 		_mm256_storeu_si256((__m256i *)out64, ro256[i]);
+-		_mm256_storeu_si256((__m256i *)out64, ro256[i]);
++		_mm256_storeu_si256(&Out[i], ro256[i]);
  	}
  }
-@@ -540,7 +518,7 @@
+ 
+@@ -540,7 +517,7 @@
   * @param[in] in Pointer to the polynomial A(x)
   * @param[in] size used to define the number of coeeficients of A
   */
@@ -278,7 +279,7 @@
  	out[0] = in[0];
  	for (int32_t i = 1 ; i < 2 * (size + 2) ; i++) {
  		out[i]= out[i - 1] ^ in[i];
-@@ -557,7 +535,7 @@
+@@ -557,7 +534,7 @@
   * @param[in] A Pointer to the polynomial A(x)
   * @param[in] B Pointer to the polynomial B(x)
   */
@@ -287,7 +288,7 @@
  	__m256i U0[T_TM3R_3W_256 + 2], V0[T_TM3R_3W_256 + 2], U1[T_TM3R_3W_256 + 2], V1[T_TM3R_3W_256 + 2], U2[T_TM3R_3W_256 + 2], V2[T_TM3R_3W_256 + 2];
  	__m256i W0[2 * (T_TM3R_3W_256 + 2)], W1[2 * (T_TM3R_3W_256 + 2)], W2[2 * (T_TM3R_3W_256 + 2)], W3[2 * (T_TM3R_3W_256 + 2)], W4[2 * (T_TM3R_3W_256 + 2)];
  	__m256i tmp[2 * (T_TM3R_3W_256 + 2) + 3];
-@@ -600,7 +578,7 @@
+@@ -600,7 +577,7 @@
  	}
  
  	//W1 = W2 * W3
@@ -296,7 +297,7 @@
  	//W0 =(U1 + U2*x)*x ; W4 =(V1 + V2*x)*x (SIZE = T_TM3_3W_256 + 2 !)
  	W0[0] = zero;
  	W4[0] = zero;
-@@ -628,17 +606,17 @@
+@@ -628,17 +605,17 @@
  	}
  
  	//W3 = W3 * W2      ; W2 = W0 * W4
@@ -318,7 +319,7 @@
  
  	//Interpolation phase
  	//9 add, 1 shift, 1 Smul, 2 Sdiv (2n)
-@@ -674,7 +652,7 @@
+@@ -674,7 +651,7 @@
  		tmp[i + 3] ^= W4[i];
      	}
  
@@ -327,7 +328,7 @@
  
  	//W3 =(W3 + W1)/(x*(x+1))
  	for (int32_t i = 0 ; i < 2 * (T_TM3R_3W_256 + 2) - 1 ; i++) {
-@@ -683,7 +661,7 @@
+@@ -683,7 +660,7 @@
     	 }
  
  	tmp[ 2 * (T_TM3R_3W_256 + 2) - 1] = zero;
@@ -336,16 +337,19 @@
  
  	//W1 = W1 + W4 + W2
  	for (int32_t i = 0 ; i < 2 * (T_TM3R_3W_256 + 2) ; i++) {
-@@ -720,7 +698,7 @@
+@@ -719,9 +696,8 @@
+ 	ro256[3 + 5 * T_TM3R_3W_256] ^= W3[3 + 2 * T_TM3R_3W_256];
  
  
- 	for (int32_t i = 0 ; i < 6 * T_TM3R_3W_256 - 2 ; i++) {
+-	for (int32_t i = 0 ; i < 6 * T_TM3R_3W_256 - 2 ; i++) {
 -		uint64_t *out64 = Out + (i << 2);
-+		uint64_t *out64 = ((uint64_t *)Out) + (i << 2);
- 		_mm256_storeu_si256((__m256i *)out64, ro256[i]);
+-		_mm256_storeu_si256((__m256i *)out64, ro256[i]);
++	for (int32_t i = 0 ; i < 2 * VEC_N_SIZE_256 + 1 ; i++) {
++		_mm256_storeu_si256(&Out[i], ro256[i]);
  	}
  }
-@@ -739,12 +717,12 @@
+ 
+@@ -739,12 +715,12 @@
   */
  void vect_mul(uint64_t *o, const uint64_t *a1, const uint64_t *a2) {
  	TOOM3RecMult(a1_times_a2, a1, a2);

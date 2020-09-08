@@ -156,9 +156,11 @@
  	static __m256i U0[T_TM3_3W_256], V0[T_TM3_3W_256], U1[T_TM3_3W_256], V1[T_TM3_3W_256], U2[T_TM3_3W_256], V2[T_TM3_3W_256];
  	static __m256i W0[2 * (T_TM3_3W_256)], W1[2 * (T_TM3_3W_256)], W2[2 * (T_TM3_3W_256)], W3[2 * (T_TM3_3W_256)], W4[2 * (T_TM3_3W_256)];
  	static __m256i tmp[2 * (T_TM3_3W_256)];
-@@ -426,28 +405,28 @@
+@@ -425,29 +404,30 @@
+ 
  	//W1 = W2 * W3
  	karat_mult_64( W1, W2, W3);
++
  	//W0 =(U1 + U2*x)*x ; W4 =(V1 + V2*x)*x (SIZE = T_TM3_3W_256 !)
 -	uint64_t *U1_64 = ((uint64_t *) U1);
 -	uint64_t *U2_64 = ((uint64_t *) U2);
@@ -199,7 +201,23 @@
  	}
  
  	//W3 = W3 + W0      ; W2 = W2 + W4
-@@ -487,35 +466,35 @@
+@@ -462,6 +442,7 @@
+ 		W4[i] ^= V0[i];
+ 	}
+ 
++
+ 	karat_mult_64(tmp, W3, W2);
+ 
+ 	for (int32_t i = 0 ; i < 2 * (T_TM3_3W_256) ; i++) {
+@@ -469,7 +450,6 @@
+ 	}
+ 
+ 	karat_mult_64( W2, W0, W4);
+-
+ 	//W4 = U2 * V2      ; W0 = U0 * V0
+ 	karat_mult_64(W4, U2, V2);
+ 	karat_mult_64(W0, U0, V0);
+@@ -487,35 +467,35 @@
  	}
  
  	//W2 =(W2 + W0)/x -> x = X^64
@@ -244,7 +262,7 @@
  	}
  
  	divByXplus1(W3,tmp,T_TM3_3W_256);
-@@ -544,19 +523,19 @@
+@@ -544,25 +524,23 @@
  	ro256[(T_TM3_3W_256 << 2) - 2] = W2[(T_TM3_3W_256 << 1) - 1] ^ W4[0];
  	ro256[(T_TM3_3W_256 * 6) - 3] = W4[(T_TM3_3W_256 << 1) - 1];
  
@@ -263,13 +281,20 @@
 +		_mm256_storeu_si256(&U2_256[i], W3[i] ^ _mm256_loadu_si256(&U2_256[i]));
  	}
  
- 	for (int32_t i = 0 ; i < 6 * T_TM3_3W_256 - 2 ; i++) {
+-	for (int32_t i = 0 ; i < 6 * T_TM3_3W_256 - 2 ; i++) {
 -		uint64_t *out64 = Out + (i << 2);
-+		uint64_t *out64 = ((uint64_t *)Out) + (i << 2);
- 		_mm256_storeu_si256((__m256i *)out64, ro256[i]);
+-		_mm256_storeu_si256((__m256i *)out64, ro256[i]);
++	for (int32_t i = 0 ; i < 2 * VEC_N_SIZE_256 + 1 ; i++) {
++		_mm256_storeu_si256(&Out[i], ro256[i]);
  	}
  }
-@@ -575,12 +554,12 @@
+ 
+ 
+-
+ /**
+  * @brief Multiply two polynomials modulo \f$ X^n - 1\f$.
+  *
+@@ -575,12 +553,12 @@
   */
  void vect_mul(uint64_t *o, const uint64_t *a1, const uint64_t *a2) {
  	TOOM3Mult(a1_times_a2, a1, a2);
