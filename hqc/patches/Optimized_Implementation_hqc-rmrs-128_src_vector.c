@@ -26,6 +26,15 @@
  	}
  
  	#undef LOOP_SIZE
+@@ -118,7 +116,7 @@
+ 	seedexpander(ctx, rand_bytes, VEC_N_SIZE_BYTES);
+ 
+ 	memcpy(v, rand_bytes, VEC_N_SIZE_BYTES);
+-	v[VEC_N_SIZE_64 - 1] &= BITMASK(PARAM_N, 64);
++	v[VEC_N_SIZE_64 - 1] &= RED_MASK;
+ }
+ 
+ 
 @@ -200,54 +198,3 @@
  		memcpy(o, v, CEIL_DIVIDE(size_v, 8));
  	}
