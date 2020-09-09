@@ -61,8 +61,16 @@
  	// Compute the distance between the primitive polynomial first two set bits
  	size_t lz1 = __builtin_clz(PARAM_GF_POLY);
  	size_t lz2 = __builtin_clz(PARAM_GF_POLY ^ 1<<PARAM_M);
-@@ -173,4 +130,4 @@
- 	int16_t mask = -(tmp >> 15);
+@@ -167,10 +124,10 @@
+  * @param[in] i The integer whose modulo is taken
+  */
+ uint16_t gf_mod(uint16_t i) {
+-	uint16_t tmp = i - PARAM_GF_MUL_ORDER;
++	uint16_t tmp = (uint16_t) (i - PARAM_GF_MUL_ORDER);
+ 
+ 	// mask = 0xffff if (i < GF_MUL_ORDER)
+-	int16_t mask = -(tmp >> 15);
++	uint16_t mask = -(tmp >> 15);
  
  	return tmp + (mask & PARAM_GF_MUL_ORDER);
 -}

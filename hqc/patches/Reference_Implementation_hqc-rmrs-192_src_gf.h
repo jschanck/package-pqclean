@@ -1,6 +1,6 @@
 --- hqc-2020-05-29/Reference_Implementation/hqc-rmrs-192/src/gf.h
 +++ hqc-2020-05-29-patched/Reference_Implementation/hqc-rmrs-192/src/gf.h
-@@ -21,18 +21,18 @@
+@@ -21,18 +21,15 @@
  
  /**
   * Logarithm of elements of GF(2^8) to the base alpha (root of 1 + x^2 + x^3 + x^4 + x^8).
@@ -12,11 +12,9 @@
  
  
 -void gf_generate(uint16_t *exp, uint16_t *log, const int16_t m);
-+void gf_generate(uint16_t *exp, uint16_t *log, int16_t m);
- 
+-
  uint16_t gf_log(uint16_t elt);
 -uint16_t gf_exp(uint16_t elt);
-+uint16_t gf_exp(uint16_t i);
  uint16_t gf_mul(uint16_t a, uint16_t b);
  uint16_t gf_square(uint16_t a);
  uint16_t gf_inverse(uint16_t a);
