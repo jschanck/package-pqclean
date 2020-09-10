@@ -139,7 +139,7 @@
  	__m256i D0[32],D1[32],D2[32],SAA[16],SBB[16];
  
  	karat_mult_16( D0, A, B);
-@@ -351,7 +330,7 @@
+@@ -351,12 +330,12 @@
   * @param[in] A Pointer to the polynomial A(x)
   * @param[in] B Pointer to the polynomial B(x)
   */
@@ -148,6 +148,31 @@
  	static __m256i U0[T_TM3_3W_256], V0[T_TM3_3W_256], U1[T_TM3_3W_256], V1[T_TM3_3W_256], U2[T_TM3_3W_256], V2[T_TM3_3W_256];
  	static __m256i W0[2 * (T_TM3_3W_256)], W1[2 * (T_TM3_3W_256)], W2[2 * (T_TM3_3W_256)], W3[2 * (T_TM3_3W_256)], W4[2 * (T_TM3_3W_256)];
  	static __m256i tmp[2 * (T_TM3_3W_256)];
+ 	static __m256i ro256[6 * (T_TM3_3W_256)];
+-	const __m256i zero = (__m256i){0ul,0ul,0ul,0ul};
++	const __m256i zero = _mm256_setzero_si256();
+ 	int32_t T2 = T_TM3_3W_64 << 1;
+ 
+ 	for (int32_t i = 0 ; i < T_TM3_3W_256 - 1 ; i++) {
+@@ -373,12 +352,12 @@
+ 	for (int32_t i = T_TM3_3W_256 - 1 ; i < T_TM3_3W_256 ; i++) {
+ 		int32_t i4 = i << 2;
+ 		int32_t i41 = i4 + 1;
+-		U0[i]= (__m256i){A[i4],A[i41],0x0ul,0x0ul};
+-		V0[i]= (__m256i){B[i4],B[i41],0x0ul,0x0ul};
+-		U1[i]= (__m256i){A[i4 + T_TM3_3W_64 - 2],A[i41 + T_TM3_3W_64 - 2],0x0ul,0x0ul};
+-		V1[i]= (__m256i){B[i4 + T_TM3_3W_64 - 2],B[i41 + T_TM3_3W_64 - 2],0x0ul,0x0ul};
+-		U2[i]= (__m256i){A[i4 - 4 + T2],A[i4 - 3 + T2],0x0ul,0x0ul};
+-		V2[i]= (__m256i){B[i4 - 4 + T2],B[i4 - 3 + T2],0x0ul,0x0ul};
++		U0[i]= _mm256_set_epi64x(0,0,A[i41],A[i4]);
++		V0[i]= _mm256_set_epi64x(0,0,B[i41],B[i4]);
++		U1[i]= _mm256_set_epi64x(0,0,A[i41+T_TM3_3W_64-2],A[i4+T_TM3_3W_64-2]);
++		V1[i]= _mm256_set_epi64x(0,0,B[i41+T_TM3_3W_64-2],B[i4+T_TM3_3W_64-2]);
++		U2[i]= _mm256_set_epi64x(0,0,A[i4-3+T2],A[i4-4+T2]);
++		V2[i]= _mm256_set_epi64x(0,0,B[i4-3+T2],B[i4-4+T2]);
+ 	}
+ 
+ 	// Evaluation phase : x= X^64
 @@ -394,28 +373,28 @@
  	karat_mult_32( W1, W2, W3);
  
@@ -211,7 +236,8 @@
 -	U1_64 = ((uint64_t *) W4);
 +	U1_64 = ((int64_t *) W4);
  	__m256i *U1_256 = (__m256i *) (U1_64+1);
- 	tmp[0] = W2[0]^W3[0]^W4[0]^(__m256i){0x0ul,0x0ul,0x0ul,U1_64[0]};
+-	tmp[0] = W2[0]^W3[0]^W4[0]^(__m256i){0x0ul,0x0ul,0x0ul,U1_64[0]};
++	tmp[0] = W2[0]^W3[0]^W4[0]^_mm256_set_epi64x(U1_64[0],0,0,0);
  
  	for (int32_t i = 1 ; i < (T_TM3_3W_256 << 1) - 1 ;i++) {
 -        	tmp[i] = W2[i] ^ W3[i] ^ W4[i] ^ U1_256[i - 1];
@@ -279,7 +305,7 @@
  	out[0] = in[0];
  	for (int32_t i = 1 ; i < 2 * (size + 2) ; i++) {
  		out[i]= out[i - 1] ^ in[i];
-@@ -557,7 +534,7 @@
+@@ -557,12 +534,12 @@
   * @param[in] A Pointer to the polynomial A(x)
   * @param[in] B Pointer to the polynomial B(x)
   */
@@ -288,6 +314,12 @@
  	__m256i U0[T_TM3R_3W_256 + 2], V0[T_TM3R_3W_256 + 2], U1[T_TM3R_3W_256 + 2], V1[T_TM3R_3W_256 + 2], U2[T_TM3R_3W_256 + 2], V2[T_TM3R_3W_256 + 2];
  	__m256i W0[2 * (T_TM3R_3W_256 + 2)], W1[2 * (T_TM3R_3W_256 + 2)], W2[2 * (T_TM3R_3W_256 + 2)], W3[2 * (T_TM3R_3W_256 + 2)], W4[2 * (T_TM3R_3W_256 + 2)];
  	__m256i tmp[2 * (T_TM3R_3W_256 + 2) + 3];
+ 	__m256i ro256[tTM3R / 2];
+-	const __m256i zero = (__m256i){0ul,0ul,0ul,0ul};
++	const __m256i zero = _mm256_setzero_si256();
+ 	int32_t T2 = T_TM3R_3W_64 << 1;
+ 
+ 	for (int32_t i = 0 ; i < T_TM3R_3W_256 ; i++) {
 @@ -600,7 +577,7 @@
  	}
  

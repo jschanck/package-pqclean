@@ -18,4 +18,25 @@
  	subset_sums[0] = 0;
  
  	for(size_t i = 0 ; i < set_size ; ++i) {
+@@ -316,16 +316,16 @@
+ 	compute_fft_betas(gammas);
+ 	compute_subset_sums(gammas_sums, gammas, PARAM_M-1);
+ 
+-	error[0] ^= 1 ^ ((uint16_t)-w[0] >> 15);
+-	error[0] ^= 1 ^ ((uint16_t)-w[k] >> 15);
++	error[0] ^= (uint8_t) (1 ^ ((uint16_t)-w[0] >> 15));
++	error[0] ^= (uint8_t) (1 ^ ((uint16_t)-w[k] >> 15));
+ 
+ 	size_t index = PARAM_GF_MUL_ORDER;
+ 
+ 	for (size_t i = 1 ; i < k ; ++i) {
+ 		index = PARAM_GF_MUL_ORDER - gf_log(gammas_sums[i]);
+-		error[index] ^= 1 ^ ((uint16_t)-w[i] >> 15);
++		error[index] ^= (uint8_t) (1 ^ ((uint16_t)-w[i] >> 15));
+ 
+ 		index = PARAM_GF_MUL_ORDER - gf_log(gammas_sums[i] ^ 1);
+-		error[index] ^= 1 ^ ((uint16_t)-w[k + i] >> 15);
++		error[index] ^= (uint8_t) (1 ^ ((uint16_t)-w[k + i] >> 15));
+ 	}
+ }
 
