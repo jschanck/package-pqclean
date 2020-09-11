@@ -32,7 +32,7 @@
   */
 -static void compute_subset_sums(uint16_t* subset_sums, uint16_t* set, size_t set_size) {
 +static void compute_subset_sums(uint16_t *subset_sums, const uint16_t *set, size_t set_size) {
-+  size_t i, j;
++  uint16_t i, j;
  	subset_sums[0] = 0;
  
 -	for(size_t i = 0 ; i < set_size ; ++i) {
@@ -264,7 +264,7 @@
  		w[i] = u[i] ^ gf_mul(betas_sums[i], v[i]);
  		w[k + i] ^= w[i];
  	}
-@@ -309,23 +322,22 @@
+@@ -309,23 +322,23 @@
   * @param[in] w Array of size 2^PARAM_M
   */
  void fft_retrieve_error_poly(uint8_t* error, const uint16_t* w) {
@@ -276,26 +276,30 @@
 -	compute_subset_sums(gammas_sums, gammas, PARAM_M-1);
 +	uint16_t gammas[PARAM_M - 1] = {0};
 +	uint16_t gammas_sums[1 << (PARAM_M - 1)] = {0};
-+	size_t i, k, index;
++	uint16_t k;
++	size_t i, index;
  
 -	error[0] ^= 1 ^ ((uint16_t)-w[0] >> 15);
 -	error[0] ^= 1 ^ ((uint16_t)-w[k] >> 15);
+-
+-	size_t index = PARAM_GF_MUL_ORDER;
 +	compute_fft_betas(gammas);
 +	compute_subset_sums(gammas_sums, gammas, PARAM_M - 1);
  
--	size_t index = PARAM_GF_MUL_ORDER;
+-	for (size_t i = 1 ; i < k ; ++i) {
+-		index = PARAM_GF_MUL_ORDER - gf_log(gammas_sums[i]);
+-		error[index] ^= 1 ^ ((uint16_t)-w[i] >> 15);
 +	k = 1 << (PARAM_M-1);
 +	error[0] ^= 1 ^ ((uint16_t) -w[0] >> 15);
 +	error[0] ^= 1 ^ ((uint16_t) -w[k] >> 15);
- 
--	for (size_t i = 1 ; i < k ; ++i) {
++
 +	for (i = 1 ; i < k ; ++i) {
- 		index = PARAM_GF_MUL_ORDER - gf_log(gammas_sums[i]);
--		error[index] ^= 1 ^ ((uint16_t)-w[i] >> 15);
++		index = PARAM_GF_MUL_ORDER - gf_log[gammas_sums[i]];
 +		error[index] ^= 1 ^ ((uint16_t) -w[i] >> 15);
  
- 		index = PARAM_GF_MUL_ORDER - gf_log(gammas_sums[i] ^ 1);
+-		index = PARAM_GF_MUL_ORDER - gf_log(gammas_sums[i] ^ 1);
 -		error[index] ^= 1 ^ ((uint16_t)-w[k + i] >> 15);
++		index = PARAM_GF_MUL_ORDER - gf_log[gammas_sums[i] ^ 1];
 +		error[index] ^= 1 ^ ((uint16_t) -w[k + i] >> 15);
  	}
  }

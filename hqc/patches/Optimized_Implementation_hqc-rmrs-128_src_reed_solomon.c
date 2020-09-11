@@ -78,4 +78,13 @@
  	z[0] = 1;
  
  	for (size_t i = 1 ; i < PARAM_DELTA + 1 ; ++i) {
+@@ -287,7 +235,7 @@
+ 		int16_t valuemask = ((int16_t) -(error[i] != 0)) >> 15;
+ 		for (size_t j = 0 ; j < PARAM_DELTA ; j++) {
+ 			int16_t indexmask = ((int16_t) -(j == delta_counter)) >> 15;
+-			beta_j[j] += indexmask & valuemask & exp[i];
++			beta_j[j] += indexmask & valuemask & gf_exp[i];
+ 			found += indexmask & valuemask & 1;
+ 		}
+ 		delta_counter += found;
 

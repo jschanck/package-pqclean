@@ -78,19 +78,21 @@
  	z[0] = 1;
  
  	for (size_t i = 1 ; i < PARAM_DELTA + 1 ; ++i) {
-@@ -284,9 +232,9 @@
+@@ -284,10 +232,10 @@
  	// Compute the beta_{j_i} page 31 of the documentation
  	for (size_t i = 0 ; i < PARAM_N1 ; i++) {
  		uint16_t found = 0;
 -		int16_t valuemask = ((int16_t) -(error[i] != 0)) >> 15;
 -		for (size_t j = 0 ; j < PARAM_DELTA ; j++) {
 -			int16_t indexmask = ((int16_t) -(j == delta_counter)) >> 15;
+-			beta_j[j] += indexmask & valuemask & exp[i];
 +		uint16_t valuemask = (uint16_t) (-((int32_t)error[i])>>31); // error[i] != 0
 +		for (uint16_t j = 0 ; j < PARAM_DELTA ; j++) {
 +      uint16_t indexmask = ~((uint16_t) (-((int32_t) j^delta_counter) >> 31)); // j == delta_counter
- 			beta_j[j] += indexmask & valuemask & exp[i];
++			beta_j[j] += indexmask & valuemask & gf_exp[i];
  			found += indexmask & valuemask & 1;
  		}
+ 		delta_counter += found;
 @@ -308,7 +256,7 @@
  		for (size_t k = 1 ; k < PARAM_DELTA ; ++k) {
  			tmp2 = gf_mul(tmp2, (1 ^ gf_mul(inverse, beta_j[(i+k) % PARAM_DELTA])));

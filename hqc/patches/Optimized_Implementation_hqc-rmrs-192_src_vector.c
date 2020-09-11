@@ -1,6 +1,14 @@
 --- hqc-2020-05-29/Optimized_Implementation/hqc-rmrs-192/src/vector.c
 +++ hqc-2020-05-29-patched/Optimized_Implementation/hqc-rmrs-192/src/vector.c
-@@ -37,7 +37,6 @@
+@@ -5,6 +5,7 @@
+ 
+ #include "rng.h"
+ #include "parameters.h"
++#include "parsing.h"
+ #include "vector.h"
+ #include <stdint.h>
+ #include <string.h>
+@@ -37,7 +38,6 @@
  	uint32_t tmp[PARAM_OMEGA_R] = {0};
  	uint8_t exist = 0;
  	size_t j = 0;
@@ -8,7 +16,7 @@
  	__m256i bit256[PARAM_OMEGA_R];
  	__m256i bloc256[PARAM_OMEGA_R];
  	static __m256i posCmp256 = (__m256i){0UL,1UL,2UL,3UL};
-@@ -87,15 +86,14 @@
+@@ -87,15 +87,14 @@
  	}
  
  	for (uint32_t i = 0 ; i < LOOP_SIZE ; i++) {
@@ -26,16 +34,27 @@
  	}
  
  	#undef LOOP_SIZE
-@@ -118,7 +116,7 @@
+@@ -117,8 +116,8 @@
+ 
  	seedexpander(ctx, rand_bytes, VEC_N_SIZE_BYTES);
  
- 	memcpy(v, rand_bytes, VEC_N_SIZE_BYTES);
+-	memcpy(v, rand_bytes, VEC_N_SIZE_BYTES);
 -	v[VEC_N_SIZE_64 - 1] &= BITMASK(PARAM_N, 64);
++  load8_arr(v, VEC_N_SIZE_64, rand_bytes, VEC_N_SIZE_BYTES);
 +	v[VEC_N_SIZE_64 - 1] &= RED_MASK;
  }
  
  
-@@ -200,54 +198,3 @@
+@@ -134,7 +133,7 @@
+ 	uint8_t rand_bytes [VEC_K_SIZE_BYTES] = {0};
+ 
+ 	randombytes(rand_bytes, VEC_K_SIZE_BYTES);
+-	memcpy(v, rand_bytes, VEC_K_SIZE_BYTES);
++	load8_arr(v, VEC_K_SIZE_64, rand_bytes, VEC_K_SIZE_BYTES);
+ }
+ 
+ 
+@@ -200,54 +199,3 @@
  		memcpy(o, v, CEIL_DIVIDE(size_v, 8));
  	}
  }

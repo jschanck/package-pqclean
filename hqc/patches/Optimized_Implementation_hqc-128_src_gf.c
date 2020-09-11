@@ -1,6 +1,6 @@
 --- hqc-2020-05-29/Optimized_Implementation/hqc-128/src/gf.c
 +++ hqc-2020-05-29-patched/Optimized_Implementation/hqc-128/src/gf.c
-@@ -9,70 +9,8 @@
+@@ -9,81 +9,8 @@
  #include <wmmintrin.h>
  #include <stdint.h>
  
@@ -68,12 +68,23 @@
 -uint16_t gf_exp(uint16_t i) {
 -	return exp[i];
 -}
+-
+-
+-
+-/**
+- * Returns the integer i such that elt = a^i
+- * where a is the primitive element of GF(2^GF_M).
+- *@returns the logarithm of the given element
+- */
+-uint16_t gf_log(uint16_t elt) {
+-	return log[elt];
+-}
 +static uint16_t gf_reduce(uint64_t x, size_t deg_x);
 +static uint16_t gf_quad(uint64_t a);
  
  
  
-@@ -93,30 +31,29 @@
+@@ -93,30 +20,29 @@
   * @param[in] x Polynomial of degree less than 64
   * @param[in] deg_x The degree of polynomial x
   */
@@ -119,7 +130,7 @@
  		}
  	}
  
-@@ -165,7 +102,7 @@
+@@ -165,7 +91,7 @@
   * @returns a^4
   * @param[in] a Element of GF(2^GF_M)
   */
@@ -128,7 +139,7 @@
  	uint64_t q = a & 1;
  	for (size_t i = 1; i < PARAM_M; ++i) {
  		a <<= 3;
-@@ -210,10 +147,10 @@
+@@ -210,10 +136,10 @@
   * @param[in] i The integer whose modulo is taken
   */
  uint16_t gf_mod(uint16_t i) {

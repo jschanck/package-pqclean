@@ -1,15 +1,25 @@
 --- hqc-2020-05-29/Reference_Implementation/hqc-rmrs-128/src/vector.c
 +++ hqc-2020-05-29-patched/Reference_Implementation/hqc-rmrs-128/src/vector.c
-@@ -150,7 +150,7 @@
+@@ -5,6 +5,7 @@
+ 
+ #include "rng.h"
+ #include "parameters.h"
++#include "parsing.h"
+ #include "vector.h"
+ #include <stdint.h>
+ #include <string.h>
+@@ -149,8 +150,8 @@
+ 
  	seedexpander(ctx, rand_bytes, VEC_N_SIZE_BYTES);
  
- 	memcpy(v, rand_bytes, VEC_N_SIZE_BYTES);
+-	memcpy(v, rand_bytes, VEC_N_SIZE_BYTES);
 -	v[VEC_N_SIZE_64 - 1] &= BITMASK(PARAM_N, 64);
++	load8_arr(v, VEC_N_SIZE_64, rand_bytes, VEC_N_SIZE_BYTES);
 +	v[VEC_N_SIZE_64 - 1] &= RED_MASK;
  }
  
  
-@@ -226,53 +226,3 @@
+@@ -226,53 +227,3 @@
  		memcpy(o, v, CEIL_DIVIDE(size_v, 8));
  	}
  }

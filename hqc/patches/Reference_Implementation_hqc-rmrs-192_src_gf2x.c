@@ -48,7 +48,7 @@
  }
  
  
-@@ -73,75 +66,65 @@
+@@ -73,75 +66,66 @@
   * @param[in] weight Hamming wifht of the sparse polynomial a2
   * @param[in] ctx Pointer to a seed expander used to randomize the multiplication process
   */
@@ -69,9 +69,10 @@
  	uint16_t permutation_sparse_vect[PARAM_OMEGA_E];
 +  uint64_t *pt;
 +  uint16_t *res_16;
++  uint16_t i, j;
  
 -	for (int32_t i = 0 ; i < TABLE ; i++) {
-+	for (uint32_t i = 0 ; i < 16; i++) {
++	for (i = 0 ; i < 16; i++) {
  		permuted_table[i] = i;
  	}
  
@@ -80,7 +81,7 @@
  
 -	for (int32_t i = 0 ; i < TABLE - 1 ; i++) {
 -		swap(permuted_table + i, 0, permutation_table[i] % (TABLE - i));
-+	for (uint32_t i = 0 ; i < 15 ; i++) {
++	for (i = 0 ; i < 15 ; i++) {
 +		swap(permuted_table + i, 0, permutation_table[i] % (16 - i));
  	}
  
@@ -90,8 +91,9 @@
 -
 -	uint64_t *pt = table + (permuted_table[0] * (VEC_N_SIZE_64 + 1));
 -
+-	for (int32_t j = 0 ; j < VEC_N_SIZE_64 ; j++) {
 +	pt = table + (permuted_table[0] * (VEC_N_SIZE_64 + 1));
- 	for (int32_t j = 0 ; j < VEC_N_SIZE_64 ; j++) {
++	for (j = 0 ; j < VEC_N_SIZE_64 ; j++) {
  		pt[j] = a2[j];
  	}
 +	pt[VEC_N_SIZE_64] = 0x0;
@@ -103,10 +105,10 @@
 -		int32_t idx = permuted_table[i] * (VEC_N_SIZE_64 + 1);
 -		uint64_t *pt = table + idx;
 -		for (int32_t j = 0 ; j < VEC_N_SIZE_64 ; j++) {
-+	for (uint32_t i = 1 ; i < 16 ; i++) {
++	for (i = 1 ; i < 16 ; i++) {
 +		carry = 0;
 +		pt = table + (permuted_table[i] * (VEC_N_SIZE_64 + 1));
-+		for (uint32_t j = 0 ; j < VEC_N_SIZE_64 ; j++) {
++		for (j = 0 ; j < VEC_N_SIZE_64 ; j++) {
  			pt[j] = (a2[j] << i) ^ carry;
 -			carry = (a2[j] >> ((WORD - i)));
 +			carry = (a2[j] >> ((64 - i)));
@@ -116,7 +118,7 @@
  	}
  
 -	for (int32_t i = 0 ; i < weight ; i++) {
-+	for (uint32_t i = 0 ; i < weight ; i++) {
++	for (i = 0 ; i < weight ; i++) {
  		permuted_sparse_vect[i] = i;
  	}
  
@@ -124,13 +126,13 @@
 +	seedexpander(ctx, (uint8_t *) permutation_sparse_vect, weight * sizeof(uint16_t));
  
 -	for (int32_t i = 0 ; i < weight - 1 ; i++) {
-+	for (uint32_t i = 0 ; i + 1 < weight ; i++) {
++	for (i = 0 ; i + 1 < weight ; i++) {
  		swap(permuted_sparse_vect + i, 0, permutation_sparse_vect[i] % (weight - i));
  	}
  
 -	for (int32_t i = 0 ; i < weight ; i++) {
 -		carry = 0x0UL;
-+	for (uint32_t i = 0 ; i < weight ; i++) {
++	for (i = 0 ; i < weight ; i++) {
  		dec = a1[permuted_sparse_vect[i]] & 0xf;
  		s = a1[permuted_sparse_vect[i]] >> 4;
 -		uint16_t *res_16 = (uint16_t *) o;
@@ -147,7 +149,7 @@
 +		res_16 = ((uint16_t *) o) + s;
 +		pt = table + (permuted_table[dec] * (VEC_N_SIZE_64 + 1));
 +
-+		for (uint32_t j = 0 ; j < VEC_N_SIZE_64 + 1 ; j++) {
++		for (j = 0 ; j < VEC_N_SIZE_64 + 1 ; j++) {
 +      *res_16++ ^= (uint16_t) pt[j];
 +      *res_16++ ^= (uint16_t) (pt[j] >> 16);
 +      *res_16++ ^= (uint16_t) (pt[j] >> 32);
@@ -155,7 +157,7 @@
  		}
  	}
  }
-@@ -160,8 +143,12 @@
+@@ -160,8 +144,12 @@
   * @param[in] weight Integer that is the weigt of the sparse polynomial
   * @param[in] ctx Pointer to the randomness context
   */

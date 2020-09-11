@@ -1,15 +1,42 @@
 --- hqc-2020-05-29/Reference_Implementation/hqc-128/src/vector.c
 +++ hqc-2020-05-29-patched/Reference_Implementation/hqc-128/src/vector.c
-@@ -150,7 +150,7 @@
+@@ -5,6 +5,7 @@
+ 
+ #include "rng.h"
+ #include "parameters.h"
++#include "parsing.h"
+ #include "vector.h"
+ #include <stdint.h>
+ #include <string.h>
+@@ -149,8 +150,8 @@
+ 
  	seedexpander(ctx, rand_bytes, VEC_N_SIZE_BYTES);
  
- 	memcpy(v, rand_bytes, VEC_N_SIZE_BYTES);
+-	memcpy(v, rand_bytes, VEC_N_SIZE_BYTES);
 -	v[VEC_N_SIZE_64 - 1] &= BITMASK(PARAM_N, 64);
++	load8_arr(v, VEC_N_SIZE_64, rand_bytes, VEC_N_SIZE_BYTES);
 +	v[VEC_N_SIZE_64 - 1] &= RED_MASK;
  }
  
  
-@@ -226,53 +226,3 @@
+@@ -166,7 +167,7 @@
+ 	uint8_t rand_bytes [VEC_K_SIZE_BYTES] = {0};
+ 
+ 	randombytes(rand_bytes, VEC_K_SIZE_BYTES);
+-	memcpy(v, rand_bytes, VEC_K_SIZE_BYTES);
++	load8_arr(v, VEC_K_SIZE_64, rand_bytes, VEC_K_SIZE_BYTES);
+ }
+ 
+ 
+@@ -186,6 +187,7 @@
+ }
+ 
+ 
++
+ /**
+  * @brief Compares two vectors
+  *
+@@ -226,53 +228,3 @@
  		memcpy(o, v, CEIL_DIVIDE(size_v, 8));
  	}
  }

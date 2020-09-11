@@ -1,9 +1,10 @@
 --- hqc-2020-05-29/Reference_Implementation/hqc-rmrs-192/src/gf.c
 +++ hqc-2020-05-29-patched/Reference_Implementation/hqc-rmrs-192/src/gf.c
-@@ -8,47 +8,6 @@
+@@ -7,110 +7,57 @@
+ #include "parameters.h"
  #include <stdint.h>
  
- 
+-
 -/**
 - * Generates exp and log lookup tables of GF(2^m).
 - * The logarithm of 0 is defined as 2^PARAM_M by convention. <br>
@@ -45,42 +46,73 @@
 -}
 -
 -
- 
+-
+-/**
+- * Returns the integer i such that elt = a^i
+- * where a is the primitive element of GF(2^PARAM_M).
+- * @returns the logarithm of the given element
+- */
+-uint16_t gf_log(uint16_t elt) {
+-	return log[elt];
+-}
+-
+-
+-
  /**
-  * Returns the integer i such that elt = a^i
-@@ -68,9 +27,9 @@
+- * Multiplies nonzero element 'a' by element 'b'.
++ * @brief Multiplies nonzero element a by element b
+  * @returns the product a*b
+  * @param[in] a First element of GF(2^PARAM_M) to multiply (cannot be zero)
   * @param[in] b Second element of GF(2^PARAM_M) to multiply (cannot be zero)
   */
  uint16_t gf_mul(uint16_t a, uint16_t b) {
 -	// mask = 0xffff if neither a nor b is zero. Otherwise mask is 0.
 -	// mask = 0xffff si ni a ni b n'est nul. sinon mask = 0
 -	int16_t mask = ((log[a]|log[b]) >> PARAM_M) - 1;
+-	return mask & exp[gf_mod(log[a] + log[b])];
 +  uint16_t mask;
 +  mask = (uint16_t) (-((int32_t) a) >> 31); // a != 0
 +  mask &= (uint16_t) (-((int32_t) b) >> 31); // b != 0
- 	return mask & exp[gf_mod(log[a] + log[b])];
++	return mask & gf_exp[gf_mod(gf_log[a] + gf_log[b])];
  }
  
-@@ -82,7 +41,7 @@
+ 
+ 
+ /**
+- * Squares an element of GF(2^PARAM_M).
++ * @brief Squares an element of GF(2^PARAM_M)
+  * @returns a^2
   * @param[in] a Element of GF(2^PARAM_M)
   */
  uint16_t gf_square(uint16_t a) {
 -	int16_t mask = (log[a] >> PARAM_M) - 1;
+-	return mask & exp[gf_mod(2 * log[a])];
 +	int16_t mask = (uint16_t) (-((int32_t) a) >> 31); // a != 0
- 	return mask & exp[gf_mod(2 * log[a])];
++	return mask & gf_exp[gf_mod(2 * gf_log[a])];
  }
  
-@@ -94,7 +53,8 @@
+ 
+ 
+ /**
+- * Computes the inverse of an element of GF(2^PARAM_M).
++ * @brief Computes the inverse of an element of GF(2^PARAM_M)
+  * @returns the inverse of a
   * @param[in] a Element of GF(2^PARAM_M)
   */
  uint16_t gf_inverse(uint16_t a) {
 -	return exp[PARAM_GF_MUL_ORDER - log[a]];
 +	int16_t mask = (uint16_t) (-((int32_t) a) >> 31); // a != 0
-+	return mask & exp[PARAM_GF_MUL_ORDER - log[a]];
++	return mask & gf_exp[PARAM_GF_MUL_ORDER - gf_log[a]];
  }
  
  
-@@ -107,10 +67,10 @@
+ 
+ /**
+- * Returns i modulo 2^PARAM_M-1.
++ * @brief Returns i modulo 2^PARAM_M-1
+  * i must be less than 2*(2^PARAM_M-1).
+  * Therefore, the return value is either i or i-2^PARAM_M+1.
+  * @returns i mod (2^PARAM_M-1)
   * @param[in] i The integer whose modulo is taken
   */
  uint16_t gf_mod(uint16_t i) {
