@@ -312,6 +312,7 @@ done
 endtask
 
 task 'Styling'
+sed -i -s 's/ ;/;/g' ${BUILD_CRYPTO_KEM}/*/*/*.{c,h}
 astyle \
   --style=google \
   --indent=spaces \
