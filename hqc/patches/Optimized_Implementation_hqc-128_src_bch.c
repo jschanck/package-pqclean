@@ -1,6 +1,6 @@
 --- hqc-2020-05-29/Optimized_Implementation/hqc-128/src/bch.c
 +++ hqc-2020-05-29-patched/Optimized_Implementation/hqc-128/src/bch.c
-@@ -17,105 +17,12 @@
+@@ -17,135 +17,12 @@
  #include <stdio.h>
  #endif
  
@@ -103,19 +103,40 @@
 -
 -
 -/**
-  * @brief Computes the values alpha^ij for decoding syndromes
-  *
-  * function to initialize a table which contains values alpha^ij for i in [0,N1[ and j in [1,2*PARAM_DELTA]
-@@ -138,7 +45,7 @@
- 		alpha_tmp = table_alpha_ij + i * (PARAM_DELTA << 1);
- 		for(uint16_t j = 0 ; j < (PARAM_DELTA << 1) ; j++) {
- 			tmp_value = gf_mod(tmp_value + i);
+- * @brief Computes the values alpha^ij for decoding syndromes
+- *
+- * function to initialize a table which contains values alpha^ij for i in [0,N1[ and j in [1,2*PARAM_DELTA]
+- * these values are used in order to compute the syndromes of the received word v(x)=v_0+v_1x+...+v_{n1-1}x^{n1-1}
+- * value alpha^ij is stored in alpha_ij_table[2*PARAM_DELTA*i+j-1]
+- * The syndromes are equal to v(alpha^k) for k in [1,2*PARAM_DELTA]
+- * Size of the table is fixed to match 256 bit representation
+- * Useless values are filled with 0.
+- *
+- * @param[in] exp Exp look-up-table of GF
+- */
+-void table_alphaij_generation(const uint16_t *exp) {
+-	int32_t tmp_value;
+-	int16_t* alpha_tmp;
+-
+-	// pre-computation of alpha^ij for i in [0, N1[ and j in [1, 2*PARAM_DELTA]
+-	// see comment of alpha_ij_table_init() function.
+-	for(uint16_t i = 0; i < PARAM_N1 ; ++i) {
+-		tmp_value = 0;
+-		alpha_tmp = table_alpha_ij + i * (PARAM_DELTA << 1);
+-		for(uint16_t j = 0 ; j < (PARAM_DELTA << 1) ; j++) {
+-			tmp_value = gf_mod(tmp_value + i);
 -			alpha_tmp[j] = exp[tmp_value];
-+			alpha_tmp[j] = gf_exp[tmp_value];
- 		}
- 	}
- }
-@@ -267,10 +174,10 @@
+-		}
+-	}
+-}
+-
+-
+-
+-/**
+  * @brief Computes the error locator polynomial (ELP) sigma
+  *
+  * This is a constant time implementation of Berlekamp's simplified algorithm (see @cite joiner1995decoding). <br>
+@@ -267,10 +144,10 @@
   * @param[in] rcv Array of size VEC_N1_SIZE_BYTES storing the received word
   */
  void compute_syndromes(__m256i *syndromes, const uint64_t *rcv) {
@@ -130,7 +151,7 @@
  
  	__m256i y;
  	__m256i S;
-@@ -298,11 +205,11 @@
+@@ -298,11 +175,11 @@
  	}
  
  	// Evaluation of the polynomial corresponding to the vector v in alpha^i for i in {1, ..., 2 * PARAM_DELTA}
