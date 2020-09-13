@@ -1,6 +1,14 @@
 --- hqc-2020-05-29/Optimized_Implementation/hqc-rmrs-256/src/reed_solomon.c
 +++ hqc-2020-05-29-patched/Optimized_Implementation/hqc-rmrs-256/src/reed_solomon.c
-@@ -15,67 +15,13 @@
+@@ -7,6 +7,7 @@
+ #include "gf.h"
+ #include "reed_solomon.h"
+ #include "parameters.h"
++#include "parsing.h"
+ #include <stdint.h>
+ #include <string.h>
+ #include <stdio.h>
+@@ -15,67 +16,13 @@
  #include <stdio.h>
  #endif
  
@@ -70,7 +78,53 @@
  
  
  /**
-@@ -156,55 +102,62 @@
+@@ -88,37 +35,31 @@
+  * @param[out] cdw Array of size VEC_N1_SIZE_64 receiving the encoded message
+  * @param[in] msg Array of size VEC_K_SIZE_64 storing the message
+  */
+-void reed_solomon_encode(uint64_t* cdw, const uint64_t* msg) {
++void reed_solomon_encode(uint8_t* cdw, const uint8_t* msg) {
+ 	uint8_t gate_value = 0;
+ 
+ 	uint16_t tmp[PARAM_G] = {0};
+ 	uint16_t PARAM_RS_POLY [] = {RS_POLY_COEFS};
+ 
+-	uint8_t msg_bytes[PARAM_K] = {0};
+-	uint8_t cdw_bytes[PARAM_N1] = {0};
+-
+-	for (size_t i = 0 ; i < VEC_K_SIZE_64 ; ++i) {
+-		for (size_t j = 0 ; j < 8 ; ++j) {
+-			msg_bytes[i * 8 + j] = (uint8_t) (msg[i] >> (j * 8));
+-		}
+-	}
++  for (size_t i = 0; i < PARAM_N1; i++) {
++    cdw[i] = 0;
++  }
+ 
+ 	for (int i = PARAM_K-1 ; i >= 0 ; --i) {
+-		gate_value = msg_bytes[i] ^ cdw_bytes[PARAM_N1 - PARAM_K - 1];
++		gate_value = msg[i] ^ cdw[PARAM_N1 - PARAM_K - 1];
+ 
+ 		for (size_t j = 0 ; j < PARAM_G ; ++j) {
+ 			tmp[j] = gf_mul(gate_value, PARAM_RS_POLY[j]);
+ 		}
+ 
+ 		for(size_t k = PARAM_N1 - PARAM_K - 1 ; k ; --k) {
+-			cdw_bytes[k] = cdw_bytes[k - 1] ^ tmp[k];
++			cdw[k] = cdw[k - 1] ^ tmp[k];
+ 		}
+ 
+-		cdw_bytes[0] = tmp[0];
++		cdw[0] = tmp[0];
+ 	}
+ 
+-	memcpy(cdw_bytes + PARAM_N1 - PARAM_K, msg_bytes, PARAM_K);
+-	memcpy(cdw, cdw_bytes, PARAM_N1);
++	memcpy(cdw + PARAM_N1 - PARAM_K, msg, PARAM_K);
+ }
+ 
+ 
+@@ -156,55 +97,62 @@
   * @param[out] sigma Array of size (at least) PARAM_DELTA receiving the ELP
   * @param[in] syndromes Array of size (at least) 2*PARAM_DELTA storing the syndromes
   */
@@ -153,7 +207,7 @@
  			d ^= gf_mul(sigma[i], syndromes[mu + 1 - i]);
  		}
  	}
-@@ -242,22 +195,25 @@
+@@ -242,22 +190,25 @@
   * @param[in] degree Integer that is the degree of polynomial sigma
   * @param[in] syndromes Array of 2 * PARAM_DELTA storing the syndromes
   */
@@ -188,7 +242,7 @@
  		}
  	}
  }
-@@ -284,10 +240,10 @@
+@@ -284,10 +235,10 @@
  	// Compute the beta_{j_i} page 31 of the documentation
  	for (size_t i = 0 ; i < PARAM_N1 ; i++) {
  		uint16_t found = 0;
@@ -203,7 +257,7 @@
  			found += indexmask & valuemask & 1;
  		}
  		delta_counter += found;
-@@ -308,7 +264,7 @@
+@@ -308,7 +259,7 @@
  		for (size_t k = 1 ; k < PARAM_DELTA ; ++k) {
  			tmp2 = gf_mul(tmp2, (1 ^ gf_mul(inverse, beta_j[(i+k) % PARAM_DELTA])));
  		}
@@ -212,7 +266,7 @@
  		e_j[i] = mask & gf_mul(tmp1,gf_inverse(tmp2));
  	}
  
-@@ -316,9 +272,9 @@
+@@ -316,9 +267,9 @@
  	delta_counter = 0;
  	for (size_t i = 0 ; i < PARAM_N1 ; ++i) {
  		uint16_t found = 0;
@@ -224,15 +278,26 @@
  			error_values[i] += indexmask & valuemask & e_j[j];
  			found += indexmask & valuemask & 1;
  		}
-@@ -367,6 +323,7 @@
+@@ -360,23 +311,20 @@
+  * @param[out] msg Array of size VEC_K_SIZE_64 receiving the decoded message
+  * @param[in] cdw Array of size VEC_N1_SIZE_64 storing the received word
+  */
+-void reed_solomon_decode(uint64_t* msg, uint64_t* cdw) {
+-	uint8_t cdw_bytes[PARAM_N1] = {0};
++void reed_solomon_decode(uint8_t* msg, uint8_t* cdw) {
+ 	uint16_t syndromes[2 * PARAM_DELTA] = {0};
+ 	uint16_t sigma[1 << PARAM_FFT] = {0};
  	uint8_t error[1 << PARAM_M] = {0};
  	uint16_t z[PARAM_N1] = {0};
  	uint16_t error_values[PARAM_N1] = {0};
+-
+-	// Copy the vector in an array of bytes
+-	memcpy(cdw_bytes, cdw, PARAM_N1);
 +	uint16_t deg;
  
- 	// Copy the vector in an array of bytes
- 	memcpy(cdw_bytes, cdw, PARAM_N1);
-@@ -376,7 +333,7 @@
+ 	// Calculate the 2*PARAM_DELTA syndromes
+-	compute_syndromes(syndromes, cdw_bytes);
++	compute_syndromes(syndromes, cdw);
  
  	// Compute the error locator polynomial sigma
  	// Sigma's degree is at most PARAM_DELTA but the FFT requires the extra room
@@ -241,4 +306,17 @@
  
  	// Compute the error polynomial error
  	compute_roots(error, sigma);
+@@ -388,10 +336,10 @@
+ 	compute_error_values(error_values, z, error);
+ 
+ 	// Correct the errors
+-	correct_errors(cdw_bytes, error_values);
++	correct_errors(cdw, error_values);
+ 
+ 	// Retrieve the message from the decoded codeword
+-	memcpy(msg, cdw_bytes + (PARAM_G - 1) , PARAM_K);
++	memcpy(msg, cdw + (PARAM_G - 1) , PARAM_K);
+ 
+ #ifdef VERBOSE
+ 	printf("\n\nThe syndromes: ");
 

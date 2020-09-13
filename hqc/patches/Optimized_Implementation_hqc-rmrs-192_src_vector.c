@@ -34,27 +34,34 @@
  	}
  
  	#undef LOOP_SIZE
-@@ -117,8 +116,8 @@
+@@ -117,24 +116,8 @@
  
  	seedexpander(ctx, rand_bytes, VEC_N_SIZE_BYTES);
  
 -	memcpy(v, rand_bytes, VEC_N_SIZE_BYTES);
 -	v[VEC_N_SIZE_64 - 1] &= BITMASK(PARAM_N, 64);
+-}
+-
+-
+-
+-/**
+- * @brief Generates a random vector
+- *
+- * This function generates a random binary vector. It uses the the randombytes function.
+- *
+- * @param[in] v Pointer to an array
+- */
+-void vect_set_random_from_randombytes(uint64_t *v) {
+-	uint8_t rand_bytes [VEC_K_SIZE_BYTES] = {0};
+-
+-	randombytes(rand_bytes, VEC_K_SIZE_BYTES);
+-	memcpy(v, rand_bytes, VEC_K_SIZE_BYTES);
 +  load8_arr(v, VEC_N_SIZE_64, rand_bytes, VEC_N_SIZE_BYTES);
 +	v[VEC_N_SIZE_64 - 1] &= RED_MASK;
  }
  
  
-@@ -134,7 +133,7 @@
- 	uint8_t rand_bytes [VEC_K_SIZE_BYTES] = {0};
- 
- 	randombytes(rand_bytes, VEC_K_SIZE_BYTES);
--	memcpy(v, rand_bytes, VEC_K_SIZE_BYTES);
-+	load8_arr(v, VEC_K_SIZE_64, rand_bytes, VEC_K_SIZE_BYTES);
- }
- 
- 
-@@ -200,54 +199,3 @@
+@@ -200,54 +183,3 @@
  		memcpy(o, v, CEIL_DIVIDE(size_v, 8));
  	}
  }

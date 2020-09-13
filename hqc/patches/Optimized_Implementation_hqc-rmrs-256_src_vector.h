@@ -8,5 +8,4 @@
 -void vect_print_sparse(const uint32_t *v, const uint16_t weight);
 -
  #endif
-Only in hqc-2020-05-29-patched/Reference_Implementation: blah
 

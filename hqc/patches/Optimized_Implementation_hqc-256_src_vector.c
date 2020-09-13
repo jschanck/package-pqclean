@@ -34,12 +34,23 @@
  	}
  
  	#undef LOOP_SIZE
-@@ -118,7 +117,7 @@
+@@ -117,8 +116,8 @@
+ 
  	seedexpander(ctx, rand_bytes, VEC_N_SIZE_BYTES);
  
- 	memcpy(v, rand_bytes, VEC_N_SIZE_BYTES);
+-	memcpy(v, rand_bytes, VEC_N_SIZE_BYTES);
 -	v[VEC_N_SIZE_64 - 1] &= BITMASK(PARAM_N, 64);
++  load8_arr(v, VEC_N_SIZE_64, rand_bytes, VEC_N_SIZE_BYTES);
 +	v[VEC_N_SIZE_64 - 1] &= RED_MASK;
+ }
+ 
+ 
+@@ -134,7 +133,7 @@
+ 	uint8_t rand_bytes [VEC_K_SIZE_BYTES] = {0};
+ 
+ 	randombytes(rand_bytes, VEC_K_SIZE_BYTES);
+-	memcpy(v, rand_bytes, VEC_K_SIZE_BYTES);
++	load8_arr(v, VEC_K_SIZE_64, rand_bytes, VEC_K_SIZE_BYTES);
  }
  
  
