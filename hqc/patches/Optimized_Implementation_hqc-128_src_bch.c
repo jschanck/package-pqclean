@@ -136,7 +136,48 @@
   * @brief Computes the error locator polynomial (ELP) sigma
   *
   * This is a constant time implementation of Berlekamp's simplified algorithm (see @cite joiner1995decoding). <br>
-@@ -267,10 +144,10 @@
+@@ -230,31 +107,23 @@
+  * @param[in] codeword Array of size VEC_N1_SIZE_BYTES storing the codeword
+  */
+ static void message_from_codeword(uint64_t *message, const uint64_t *codeword) {
+-	int32_t val = PARAM_N1 - PARAM_K;
+-
+-	uint64_t mask1 = (uint64_t) (0xffffffffffffffff << val % 64);
+-	uint64_t mask2 = (uint64_t) (0xffffffffffffffff >> (64 - val % 64));
+-	size_t index = val / 64;
++	uint64_t mask1 = (uint64_t) (0xffffffffffffffff << ((PARAM_N1 - PARAM_K)%64));
++	uint64_t mask2 = (uint64_t) (0xffffffffffffffff >> (64 - (PARAM_N1 - PARAM_K)%64));
++	size_t index = (PARAM_N1 - PARAM_K) / 64;
+ 
+ 	for (size_t i = 0 ; i < VEC_K_SIZE_64 - 1 ; ++i) {
+-		uint64_t message1 = (codeword[index] & mask1) >> val % 64;
+-		uint64_t message2 = (codeword[++index] & mask2) << (64 - val % 64);
+-		message[i] = message1 | message2;
++		message[i] = (codeword[index] & mask1) >> ((PARAM_N1 - PARAM_K) % 64);
++		message[i] |= (codeword[++index] & mask2) << (64 - (PARAM_N1 - PARAM_K)%64);
+ 	}
+ 
+ 	// Last byte (8-val % 8 is the number of bits given by message1)
+-	if ((PARAM_K % 64 == 0) || (64 - val % 64 < PARAM_K % 64)) {
+-		uint64_t message1 = (codeword[index] & mask1) >> val % 64;
+-		uint64_t message2 = (codeword[++index] & mask2) << (64 - val % 64);
+-		message[VEC_K_SIZE_64 - 1] = message1 | message2;
+-	} else {
+-		uint64_t message1 = (codeword[index] & mask1) >> val % 64;
+-		message[VEC_K_SIZE_64 - 1] = message1;
+-	}
++	message[VEC_K_SIZE_64 - 1] = (codeword[index] & mask1) >> ((PARAM_N1 - PARAM_K) % 64);
++	++index;
++	if (index < VEC_N1_SIZE_64)
++		message[VEC_K_SIZE_64 - 1] |= (codeword[index] & mask2) << (64 - (PARAM_N1 - PARAM_K)%64);
+ }
+ 
+ 
+-
+ /**
+  * @brief Computes the 2^PARAM_DELTA syndromes from the received vector vector
+  *
+@@ -267,10 +136,10 @@
   * @param[in] rcv Array of size VEC_N1_SIZE_BYTES storing the received word
   */
  void compute_syndromes(__m256i *syndromes, const uint64_t *rcv) {
@@ -151,7 +192,7 @@
  
  	__m256i y;
  	__m256i S;
-@@ -298,11 +175,11 @@
+@@ -298,11 +167,11 @@
  	}
  
  	// Evaluation of the polynomial corresponding to the vector v in alpha^i for i in {1, ..., 2 * PARAM_DELTA}
