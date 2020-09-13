@@ -8,7 +8,7 @@
 -static void compute_subset_sums(uint16_t* subset_sums, uint16_t* set, size_t set_size);
 -static void radix(uint16_t* f0, uint16_t* f1, const uint16_t* f, uint32_t m_f);
 +static void compute_fft_betas(uint16_t *betas);
-+static void compute_subset_sums(uint16_t *subset_sums, const uint16_t *set, size_t set_size);
++static void compute_subset_sums(uint16_t *subset_sums, const uint16_t *set, uint16_t set_size);
 +static void radix(uint16_t *f0, uint16_t *f1, const uint16_t *f, uint32_t m_f);
 +static void radix_big(uint16_t *f0, uint16_t *f1, const uint16_t *f, uint32_t m_f);
  static void fft_rec(uint16_t *w, uint16_t *f, size_t f_coeffs, uint8_t m, uint32_t m_f, const uint16_t *betas);
@@ -31,14 +31,14 @@
   * @param[in] set_size Size of the array set
   */
 -static void compute_subset_sums(uint16_t* subset_sums, uint16_t* set, size_t set_size) {
-+static void compute_subset_sums(uint16_t *subset_sums, const uint16_t *set, size_t set_size) {
-+  size_t i, j;
++static void compute_subset_sums(uint16_t *subset_sums, const uint16_t *set, uint16_t set_size) {
++  uint16_t i, j;
  	subset_sums[0] = 0;
  
 -	for(size_t i = 0 ; i < set_size ; ++i) {
 -		for(size_t j = 0 ; j < (1U << i) ; ++j) {
 +	for (i = 0 ; i < set_size ; ++i) {
-+		for (j = 0 ; j < (1U << i) ; ++j) {
++		for (j = 0 ; j < (1<<i) ; ++j) {
  			subset_sums[(1 << i) + j] = set[i] ^ subset_sums[j];
  		}
  	}
@@ -134,7 +134,7 @@
  }
  
  
-@@ -159,25 +167,27 @@
+@@ -159,27 +167,32 @@
   * @param[in] betas FFT constants
   */
  static void fft_rec(uint16_t *w, uint16_t *f, size_t f_coeffs, uint8_t m, uint32_t m_f, const uint16_t *betas) {
@@ -155,6 +155,7 @@
 +
 +	uint16_t beta_m_pow;
 +	size_t i, j, k;
++	size_t x;
  
  	// Step 1
  	if (m_f == 1) {
@@ -167,23 +168,29 @@
  		w[0] = f[0];
 -		for (size_t j = 0 ; j < m ; ++j) {
 -			for (size_t k = 0 ; k < (1U << j) ; ++k) {
+-				w[(1 << j) + k] = w[k] ^ tmp[j];
++		x = 1;
 +		for (j = 0 ; j < m ; ++j) {
-+			for (k = 0 ; k < (1U << j) ; ++k) {
- 				w[(1 << j) + k] = w[k] ^ tmp[j];
++			for (k = 0 ; k < x ; ++k) {
++				w[x + k] = w[k] ^ tmp[j];
  			}
++			x <<= 1;
  		}
-@@ -187,8 +197,8 @@
+ 
+ 		return;
+@@ -187,8 +200,9 @@
  
  	// Step 2: compute g
  	if (betas[m - 1] != 1) {
 -		uint16_t beta_m_pow = 1;
 -		for (size_t i = 1 ; i < (1U << m_f) ; ++i) {
 +		beta_m_pow = 1;
-+		for (i = 1 ; i < (1U << m_f) ; ++i) {
++		x = 1<<m_f;
++		for (i = 1 ; i < x ; ++i) {
  			beta_m_pow = gf_mul(beta_m_pow, betas[m - 1]);
  			f[i] = gf_mul(beta_m_pow, f[i]);
  		}
-@@ -198,7 +208,7 @@
+@@ -198,7 +212,7 @@
  	radix(f0, f1, f, m_f);
  
  	// Step 4: compute gammas and deltas
@@ -192,7 +199,7 @@
  		gammas[i] = gf_mul(betas[i], gf_inverse(betas[m - 1]));
  		deltas[i] = gf_square(gammas[i]) ^ gammas[i];
  	}
-@@ -209,10 +219,11 @@
+@@ -209,10 +223,11 @@
  	// Step 5
  	fft_rec(u, f0, (f_coeffs + 1) / 2, m - 1, m_f - 1, deltas);
  
@@ -205,7 +212,7 @@
  			w[i] = u[i] ^ gf_mul(gammas_sums[i], f1[0]);
  			w[k + i] = w[i] ^ f1[0];
  		}
-@@ -223,7 +234,7 @@
+@@ -223,7 +238,7 @@
  		memcpy(w + k, v, 2 * k);
  		w[0] = u[0];
  		w[k] ^= u[0];
@@ -214,7 +221,7 @@
  			w[i] = u[i] ^ gf_mul(gammas_sums[i], v[i]);
  			w[k + i] ^= w[i];
  		}
-@@ -252,14 +263,15 @@
+@@ -252,14 +267,15 @@
   * @param[in] f_coeffs Number coefficients of f (i.e. deg(f)+1)
   */
  void fft(uint16_t *w, const uint16_t *f, size_t f_coeffs) {
@@ -238,7 +245,7 @@
  
  	// Follows Gao and Mateer algorithm
  	compute_fft_betas(betas);
-@@ -275,7 +287,7 @@
+@@ -275,7 +291,7 @@
  	radix(f0, f1, f, PARAM_FFT);
  
  	// Step 4: Compute deltas
@@ -247,7 +254,7 @@
  		deltas[i] = gf_square(betas[i]) ^ betas[i];
  	}
  
-@@ -283,6 +295,7 @@
+@@ -283,6 +299,7 @@
  	fft_rec(u, f0, (f_coeffs + 1) / 2, PARAM_M - 1, PARAM_FFT - 1, deltas);
  	fft_rec(v, f1, f_coeffs / 2, PARAM_M - 1, PARAM_FFT - 1, deltas);
  
@@ -255,7 +262,7 @@
  	// Step 6, 7 and error polynomial computation
  	memcpy(w + k, v, 2 * k);
  
-@@ -293,7 +306,7 @@
+@@ -293,7 +310,7 @@
  	w[k] ^= u[0];
  
  	// Find other roots
@@ -264,7 +271,7 @@
  		w[i] = u[i] ^ gf_mul(betas_sums[i], v[i]);
  		w[k + i] ^= w[i];
  	}
-@@ -309,23 +322,23 @@
+@@ -309,23 +326,23 @@
   * @param[in] w Array of size 2^PARAM_M
   */
  void fft_retrieve_error_poly(uint8_t* error, const uint16_t* w) {

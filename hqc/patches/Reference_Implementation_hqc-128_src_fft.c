@@ -1,8 +1,11 @@
 --- hqc-2020-05-29/Reference_Implementation/hqc-128/src/fft.c
 +++ hqc-2020-05-29-patched/Reference_Implementation/hqc-128/src/fft.c
-@@ -19,8 +19,10 @@
+@@ -17,10 +17,12 @@
+ #include <stdio.h>
+ 
  static void compute_fft_betas(uint16_t *betas);
- static void compute_subset_sums(uint16_t *subset_sums, const uint16_t *set, size_t set_size);
+-static void compute_subset_sums(uint16_t *subset_sums, const uint16_t *set, size_t set_size);
++static void compute_subset_sums(uint16_t *subset_sums, const uint16_t *set, uint16_t set_size);
  static void radix_t(uint16_t *f, const uint16_t *f0, const uint16_t *f1, uint32_t m_f);
 +static void radix_t_big(uint16_t *f, const uint16_t *f0, const uint16_t *f1, uint32_t m_f);
  static void fft_t_rec(uint16_t *f, const uint16_t *w, size_t f_coeffs, uint8_t m, uint32_t m_f, const uint16_t *betas);
@@ -21,17 +24,19 @@
  		betas[i] = 1 << (PARAM_M - 1 - i);
  	}
  }
-@@ -48,10 +51,11 @@
+@@ -47,11 +50,12 @@
+  * @param[in] set Array of set_size elements
   * @param[in] set_size Size of the array set
   */
- static void compute_subset_sums(uint16_t *subset_sums, const uint16_t *set, size_t set_size) {
+-static void compute_subset_sums(uint16_t *subset_sums, const uint16_t *set, size_t set_size) {
++static void compute_subset_sums(uint16_t *subset_sums, const uint16_t *set, uint16_t set_size) {
 +  uint16_t i, j;
  	subset_sums[0] = 0;
  
 -	for (size_t i = 0 ; i < set_size ; ++i) {
 -		for (size_t j = 0 ; j < (1U << i) ; ++j) {
 +	for (i = 0 ; i < set_size ; ++i) {
-+		for (j = 0 ; j < (1U << i) ; ++j) {
++		for (j = 0 ; j < (1<<i) ; ++j) {
  			subset_sums[(1 << i) + j] = set[i] ^ subset_sums[j];
  		}
  	}
@@ -126,7 +131,7 @@
  	}
  }
  
-@@ -162,29 +171,31 @@
+@@ -162,37 +171,43 @@
   * @param[in] betas FFT constants
   */
  static void fft_t_rec(uint16_t *f, const uint16_t *w, size_t f_coeffs, uint8_t m, uint32_t m_f, const uint16_t *betas) {
@@ -145,12 +150,14 @@
 +  uint16_t beta_m_pow;
 +
 +	size_t i, j, k;
++	size_t x;
  
  	// Step 1
  	if (m_f == 1) {
  		f[0] = 0;
 -		for (size_t i = 0 ; i < (1U << m) ; ++i) {
-+		for (i = 0 ; i < (1U << m) ; ++i) {
++		x = 1<<m;
++		for (i = 0 ; i < x ; ++i) {
  			f[0] ^= w[i];
  		}
  		f[1] = 0;
@@ -162,14 +169,16 @@
 -				size_t index = (1 << j) + k;
 -				betas_sums[index] = betas_sums[k] ^ betas[j];
 -				f[1] ^= gf_mul(betas_sums[index], w[index]);
++		x = 1;
 +		for (j = 0 ; j < m ; ++j) {
-+			for (k = 0 ; k < (1U << j) ; ++k) {
-+				betas_sums[(1<<j)+k] = betas_sums[k] ^ betas[j];
-+				f[1] ^= gf_mul(betas_sums[(1<<j)+k], w[(1<<j)+k]);
++			for (k = 0 ; k < x ; ++k) {
++				betas_sums[x+k] = betas_sums[k] ^ betas[j];
++				f[1] ^= gf_mul(betas_sums[x+k], w[x+k]);
  			}
++			x <<= 1;
  		}
  
-@@ -192,7 +203,7 @@
+ 		return;
  	}
  
  	// Compute gammas and deltas
@@ -178,7 +187,7 @@
  		gammas[i] = gf_mul(betas[i], gf_inverse(betas[m - 1]));
  		deltas[i] = gf_square(gammas[i]) ^ gammas[i];
  	}
-@@ -206,23 +217,22 @@
+@@ -206,23 +221,22 @@
  	 * Transpose:
  	 * u[i] = w[i] + w[k+i]
  	 * v[i] = G[i].w[i] + (G[i]+1).w[k+i] = G[i].u[i] + w[k+i] */
@@ -205,18 +214,19 @@
  			u[i] = w[i] ^ w[k + i];
  			v[i] = gf_mul(gammas_sums[i], u[i]) ^ w[k + i];
  		}
-@@ -237,8 +247,8 @@
+@@ -237,8 +251,9 @@
  
  	// Step 2: compute f from g
  	if (betas[m - 1] != 1) {
 -		uint16_t beta_m_pow = 1;
 -		for (size_t i = 1 ; i < (1U << m_f) ; ++i) {
 +		beta_m_pow = 1;
-+		for (i = 1 ; i < (1U << m_f) ; ++i) {
++		x = 1<<m_f;
++		for (i = 1 ; i < x ; ++i) {
  			beta_m_pow = gf_mul(beta_m_pow, betas[m - 1]);
  			f[i] = gf_mul(beta_m_pow, f[i]);
  		}
-@@ -261,14 +271,15 @@
+@@ -261,14 +276,15 @@
   */
  void fft_t(uint16_t *f, const uint16_t *w, size_t f_coeffs) {
  	// Transposed from Gao and Mateer algorithm
@@ -238,7 +248,7 @@
  
  	compute_fft_betas(betas);
  	compute_subset_sums(betas_sums, betas, PARAM_M - 1);
-@@ -281,15 +292,16 @@
+@@ -281,15 +297,16 @@
  	 * Transpose:
  	 * u[i] = w[i] + w[k+i]
  	 * v[i] = G[i].w[i] + (G[i]+1).w[k+i] = G[i].u[i] + w[k+i] */
@@ -257,7 +267,7 @@
  		deltas[i] = gf_square(betas[i]) ^ betas[i];
  	}
  
-@@ -337,7 +349,7 @@
+@@ -337,7 +354,7 @@
  			f1[2] = f[3] ^ f1[1] ^ f0[3];
  			f0[1] = f[2] ^ f0[2] ^ f1[1];
  			f1[0] = f[1] ^ f0[1];
@@ -266,7 +276,7 @@
  
  		case 3:
  			f0[0] = f[0];
-@@ -348,51 +360,56 @@
+@@ -348,51 +365,56 @@
  			f1[3] = f[7];
  			f0[1] = f[2] ^ f0[2] ^ f1[1];
  			f1[0] = f[1] ^ f0[1];
@@ -353,7 +363,7 @@
  
  
  /**
-@@ -408,25 +425,27 @@
+@@ -408,27 +430,32 @@
   * @param[in] betas FFT constants
   */
  static void fft_rec(uint16_t *w, uint16_t *f, size_t f_coeffs, uint8_t m, uint32_t m_f, const uint16_t *betas) {
@@ -374,6 +384,7 @@
 +
 +	uint16_t beta_m_pow;
 +	size_t i, j, k;
++	size_t x;
  
  	// Step 1
  	if (m_f == 1) {
@@ -386,23 +397,29 @@
  		w[0] = f[0];
 -		for (size_t j = 0 ; j < m ; ++j) {
 -			for (size_t k = 0 ; k < (1U << j) ; ++k) {
+-				w[(1 << j) + k] = w[k] ^ tmp[j];
++		x = 1;
 +		for (j = 0 ; j < m ; ++j) {
-+			for (k = 0 ; k < (1U << j) ; ++k) {
- 				w[(1 << j) + k] = w[k] ^ tmp[j];
++			for (k = 0 ; k < x ; ++k) {
++				w[x + k] = w[k] ^ tmp[j];
  			}
++			x <<= 1;
  		}
-@@ -436,8 +455,8 @@
+ 
+ 		return;
+@@ -436,8 +463,9 @@
  
  	// Step 2: compute g
  	if (betas[m - 1] != 1) {
 -		uint16_t beta_m_pow = 1;
 -		for (size_t i = 1 ; i < (1U << m_f) ; ++i) {
 +		beta_m_pow = 1;
-+		for (i = 1 ; i < (1U << m_f) ; ++i) {
++		x = 1<<m_f;
++		for (i = 1 ; i < x ; ++i) {
  			beta_m_pow = gf_mul(beta_m_pow, betas[m - 1]);
  			f[i] = gf_mul(beta_m_pow, f[i]);
  		}
-@@ -447,7 +466,7 @@
+@@ -447,7 +475,7 @@
  	radix(f0, f1, f, m_f);
  
  	// Step 4: compute gammas and deltas
@@ -411,7 +428,7 @@
  		gammas[i] = gf_mul(betas[i], gf_inverse(betas[m - 1]));
  		deltas[i] = gf_square(gammas[i]) ^ gammas[i];
  	}
-@@ -458,10 +477,11 @@
+@@ -458,10 +486,11 @@
  	// Step 5
  	fft_rec(u, f0, (f_coeffs + 1) / 2, m - 1, m_f - 1, deltas);
  
@@ -424,7 +441,7 @@
  			w[i] = u[i] ^ gf_mul(gammas_sums[i], f1[0]);
  			w[k + i] = w[i] ^ f1[0];
  		}
-@@ -472,7 +492,7 @@
+@@ -472,7 +501,7 @@
  		memcpy(w + k, v, 2 * k);
  		w[0] = u[0];
  		w[k] ^= u[0];
@@ -433,7 +450,7 @@
  			w[i] = u[i] ^ gf_mul(gammas_sums[i], v[i]);
  			w[k + i] ^= w[i];
  		}
-@@ -501,14 +521,15 @@
+@@ -501,14 +530,15 @@
   * @param[in] f_coeffs Number coefficients of f (i.e. deg(f)+1)
   */
  void fft(uint16_t *w, const uint16_t *f, size_t f_coeffs) {
@@ -457,7 +474,7 @@
  
  	// Follows Gao and Mateer algorithm
  	compute_fft_betas(betas);
-@@ -524,7 +545,7 @@
+@@ -524,7 +554,7 @@
  	radix(f0, f1, f, PARAM_FFT);
  
  	// Step 4: Compute deltas
@@ -466,7 +483,7 @@
  		deltas[i] = gf_square(betas[i]) ^ betas[i];
  	}
  
-@@ -532,6 +553,7 @@
+@@ -532,6 +562,7 @@
  	fft_rec(u, f0, (f_coeffs + 1) / 2, PARAM_M - 1, PARAM_FFT - 1, deltas);
  	fft_rec(v, f1, f_coeffs / 2, PARAM_M - 1, PARAM_FFT - 1, deltas);
  
@@ -474,7 +491,7 @@
  	// Step 6, 7 and error polynomial computation
  	memcpy(w + k, v, 2 * k);
  
-@@ -542,7 +564,7 @@
+@@ -542,7 +573,7 @@
  	w[k] ^= u[0];
  
  	// Find other roots
@@ -483,7 +500,7 @@
  		w[i] = u[i] ^ gf_mul(betas_sums[i], v[i]);
  		w[k + i] ^= w[i];
  	}
-@@ -561,21 +583,20 @@
+@@ -561,21 +592,20 @@
   * @param[in] vector Array of size VEC_N1_SIZE_BYTES
   */
  void fft_t_preprocess_bch_codeword(uint16_t *w, const uint64_t *vector) {
@@ -511,7 +528,7 @@
  		r[64 * i + j] = (uint8_t) ((vector[i] >> j) & 1);
  	}
  
-@@ -586,11 +607,12 @@
+@@ -586,11 +616,12 @@
  	compute_subset_sums(gammas_sums, gammas, PARAM_M - 1);
  
  	// Twist and permute r adequately to obtain w
@@ -527,7 +544,7 @@
  	}
  }
  
-@@ -603,25 +625,29 @@
+@@ -603,25 +634,29 @@
   * @param[in] w Array of size 2^PARAM_M
   */
  void fft_retrieve_bch_error_poly(uint64_t *error, const uint16_t *w) {
