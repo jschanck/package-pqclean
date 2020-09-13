@@ -8,21 +8,55 @@
  #include "vector.h"
  #include <stdint.h>
  #include <string.h>
-@@ -149,8 +150,8 @@
+@@ -149,24 +150,8 @@
  
  	seedexpander(ctx, rand_bytes, VEC_N_SIZE_BYTES);
  
 -	memcpy(v, rand_bytes, VEC_N_SIZE_BYTES);
 -	v[VEC_N_SIZE_64 - 1] &= BITMASK(PARAM_N, 64);
+-}
+-
+-
+-
+-/**
+- * @brief Generates a random vector
+- *
+- * This function generates a random binary vector. It uses the the randombytes function.
+- *
+- * @param[in] v Pointer to an array
+- */
+-void vect_set_random_from_randombytes(uint64_t *v) {
+-	uint8_t rand_bytes [VEC_K_SIZE_BYTES] = {0};
+-
+-	randombytes(rand_bytes, VEC_K_SIZE_BYTES);
+-	memcpy(v, rand_bytes, VEC_K_SIZE_BYTES);
 +	load8_arr(v, VEC_N_SIZE_64, rand_bytes, VEC_N_SIZE_BYTES);
 +	v[VEC_N_SIZE_64 - 1] &= RED_MASK;
  }
  
  
-@@ -226,53 +227,3 @@
- 		memcpy(o, v, CEIL_DIVIDE(size_v, 8));
- 	}
+@@ -186,6 +171,7 @@
  }
+ 
+ 
++
+ /**
+  * @brief Compares two vectors
+  *
+@@ -217,62 +203,12 @@
+ 			val = 64 - (size_o % 64);
+ 		}
+ 		
+-		memcpy(o, v, VEC_N1N2_SIZE_BYTES);
++		memcpy(o, v, 8*VEC_N1N2_SIZE_64);
+ 
+ 		for (int8_t i = 0 ; i < val ; ++i) {
+ 			o[VEC_N1N2_SIZE_64 - 1] &= (mask >> i);
+ 		}
+ 	} else {
+-		memcpy(o, v, CEIL_DIVIDE(size_v, 8));
+-	}
+-}
 -
 -
 -
@@ -70,7 +104,8 @@
 -void vect_print_sparse(const uint32_t *v, const uint16_t weight) {
 -	for (uint16_t i = 0; i < weight-1; ++i) {
 -		printf("%d ,", v[i]);
--	}
++		memcpy(o, v, 8*CEIL_DIVIDE(size_v, 64));
+ 	}
 -	printf("%d", v[weight - 1]);
--}
+ }
 
