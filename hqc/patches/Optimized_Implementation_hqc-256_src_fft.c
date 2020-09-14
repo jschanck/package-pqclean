@@ -11,16 +11,18 @@
  static void fft_rec(uint16_t *w, uint16_t *f, size_t f_coeffs, uint8_t m, uint32_t m_f, const uint16_t *betas);
  
  
-@@ -28,7 +29,8 @@
+@@ -28,8 +29,9 @@
   * @param[out] betas Array of size PARAM_M-1
   */
  static void compute_fft_betas(uint16_t *betas) {
 -	for (size_t i = 0 ; i < PARAM_M - 1 ; ++i) {
+-		betas[i] = 1 << (PARAM_M - 1 - i);
 +	size_t i;
 +	for (i = 0 ; i < PARAM_M - 1 ; ++i) {
- 		betas[i] = 1 << (PARAM_M - 1 - i);
++		betas[i] = (uint16_t) (1 << (PARAM_M - 1 - i));
  	}
  }
+ 
 @@ -45,11 +47,12 @@
   * @param[in] set Array of set_size elements
   * @param[in] set_size Size of the array set
@@ -46,7 +48,7 @@
  
  		case 3:
  			f0[0] = f[0];
-@@ -100,49 +103,54 @@
+@@ -100,49 +103,55 @@
  			f1[3] = f[7];
  			f0[1] = f[2] ^ f0[2] ^ f1[1];
  			f1[0] = f[1] ^ f0[1];
@@ -102,7 +104,8 @@
 +
 +	size_t i, n;
 +
-+	n = 1 << (m_f - 2);
++	n = 1;
++	n <<= m_f - 2;
 +	memcpy(Q, f + 3 * n, 2 * n);
 +	memcpy(Q + n, f + 3 * n, 2 * n);
 +	memcpy(R, f, 4 * n);
@@ -129,7 +132,7 @@
  }
  
  
-@@ -160,27 +168,32 @@
+@@ -160,27 +169,32 @@
   * @param[in] betas FFT constants
   */
  static void fft_rec(uint16_t *w, uint16_t *f, size_t f_coeffs, uint8_t m, uint32_t m_f, const uint16_t *betas) {
@@ -173,19 +176,20 @@
  		}
  
  		return;
-@@ -188,8 +201,9 @@
+@@ -188,8 +202,10 @@
  
  	// Step 2: compute g
  	if (betas[m - 1] != 1) {
 -		uint16_t beta_m_pow = 1;
 -		for (size_t i = 1 ; i < (1U << m_f) ; ++i) {
 +		beta_m_pow = 1;
-+		x = 1<<m_f;
++		x = 1;
++		x <<= m_f;
 +		for (i = 1 ; i < x ; ++i) {
  			beta_m_pow = gf_mul(beta_m_pow, betas[m - 1]);
  			f[i] = gf_mul(beta_m_pow, f[i]);
  		}
-@@ -199,7 +213,7 @@
+@@ -199,7 +215,7 @@
  	radix(f0, f1, f, m_f);
  
  	// Step 4: compute gammas and deltas
@@ -194,11 +198,12 @@
  		gammas[i] = gf_mul(betas[i], gf_inverse(betas[m - 1]));
  		deltas[i] = gf_square(gammas[i]) ^ gammas[i];
  	}
-@@ -210,10 +224,11 @@
+@@ -210,10 +226,12 @@
  	// Step 5
  	fft_rec(u, f0, (f_coeffs + 1) / 2, m - 1, m_f - 1, deltas);
  
-+	k = 1 << ((m - 1)&0xf); // &0xf is to let the compiler know that m-1 is small.
++	k = 1;
++	k <<= ((m - 1)&0xf); // &0xf is to let the compiler know that m-1 is small.
  	if (f_coeffs <= 3) { // 3-coefficient polynomial f case: f1 is constant
  		w[0] = u[0];
  		w[k] = u[0] ^ f1[0];
@@ -207,7 +212,7 @@
  			w[i] = u[i] ^ gf_mul(gammas_sums[i], f1[0]);
  			w[k + i] = w[i] ^ f1[0];
  		}
-@@ -224,7 +239,7 @@
+@@ -224,7 +242,7 @@
  		memcpy(w + k, v, 2 * k);
  		w[0] = u[0];
  		w[k] ^= u[0];
@@ -216,7 +221,7 @@
  			w[i] = u[i] ^ gf_mul(gammas_sums[i], v[i]);
  			w[k + i] ^= w[i];
  		}
-@@ -253,14 +268,15 @@
+@@ -253,14 +271,15 @@
   * @param[in] f_coeffs Number coefficients of f (i.e. deg(f)+1)
   */
  void fft(uint16_t *w, const uint16_t *f, size_t f_coeffs) {
@@ -240,7 +245,7 @@
  
  	// Follows Gao and Mateer algorithm
  	compute_fft_betas(betas);
-@@ -276,7 +292,7 @@
+@@ -276,7 +295,7 @@
  	radix(f0, f1, f, PARAM_FFT);
  
  	// Step 4: Compute deltas
@@ -249,15 +254,16 @@
  		deltas[i] = gf_square(betas[i]) ^ betas[i];
  	}
  
-@@ -284,6 +300,7 @@
+@@ -284,6 +303,8 @@
  	fft_rec(u, f0, (f_coeffs + 1) / 2, PARAM_M - 1, PARAM_FFT - 1, deltas);
  	fft_rec(v, f1, f_coeffs / 2, PARAM_M - 1, PARAM_FFT - 1, deltas);
  
-+	k = 1 << (PARAM_M - 1);
++	k = 1;
++	k <<= PARAM_M - 1;
  	// Step 6, 7 and error polynomial computation
  	memcpy(w + k, v, 2 * k);
  
-@@ -294,7 +311,7 @@
+@@ -294,7 +315,7 @@
  	w[k] ^= u[0];
  
  	// Find other roots
@@ -266,7 +272,7 @@
  		w[i] = u[i] ^ gf_mul(betas_sums[i], v[i]);
  		w[k + i] ^= w[i];
  	}
-@@ -309,25 +326,29 @@
+@@ -309,25 +330,30 @@
   * @param[in] w Array of size 2^PARAM_M
   */
  void fft_retrieve_bch_error_poly(uint64_t *error, const uint16_t *w) {
@@ -287,7 +293,8 @@
 -	uint64_t bit = ((uint64_t) 1) ^ ((uint16_t) - w[k] >> 15);
 +	error[0] ^= 1 ^ ((uint16_t) - w[0] >> 15);
 +
-+	k = 1 << (PARAM_M - 1);
++	k = 1;
++	k <<= PARAM_M - 1;
 +	index = PARAM_GF_MUL_ORDER;
 +	bit = 1 ^ ((uint16_t) - w[k] >> 15);
  	error[index / 8] ^= bit << (index % 64);

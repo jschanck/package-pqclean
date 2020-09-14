@@ -38,7 +38,7 @@
 +	pos_r = 0;
 +	for (size_t i = 0 ; i < VEC_N1_SIZE_64 ; i++) {
 +		for (size_t j = 0 ; j < 64 && pos_r < PARAM_N1N2; j++) {
-+			bit = -((m[i] >> j) & 1);
++			bit = (uint64_t) (-(int64_t) ((m[i] >> j)&1));
 +			idx_r = (pos_r & 0x3f);
 +			idx2 = 41 - idx_r;
 +			idx2 &= (uint64_t) (-((int64_t)idx2) >> 63);
