@@ -43,7 +43,23 @@
  /**
   * @brief Compares two vectors
   *
-@@ -217,62 +203,12 @@
+@@ -194,8 +180,13 @@
+  * @param[in] size Integer that is the size of the vectors
+  * @returns 0 if the vectors are equals and a negative/psotive value otherwise
+  */
+-int vect_compare(const uint64_t *v1, const uint64_t *v2, uint32_t size) {
+-	return memcmp(v1, v2, size);
++uint8_t vect_compare(const uint8_t *v1, const uint8_t *v2, uint32_t size) {
++	uint64_t r = 0;
++	for(size_t i=0; i<size; i++) {
++		r |= v1[i] ^ v2[i];
++  }
++  r = (~r+1) >> 63;
++	return (uint8_t) r;
+ }
+ 
+ 
+@@ -217,62 +208,12 @@
  			val = 64 - (size_o % 64);
  		}
  		

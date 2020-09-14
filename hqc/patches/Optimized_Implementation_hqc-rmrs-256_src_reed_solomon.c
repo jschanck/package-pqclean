@@ -78,16 +78,18 @@
  
  
  /**
-@@ -88,37 +35,31 @@
+@@ -88,37 +35,34 @@
   * @param[out] cdw Array of size VEC_N1_SIZE_64 receiving the encoded message
   * @param[in] msg Array of size VEC_K_SIZE_64 storing the message
   */
 -void reed_solomon_encode(uint64_t* cdw, const uint64_t* msg) {
 +void reed_solomon_encode(uint8_t* cdw, const uint8_t* msg) {
++	size_t i, j, k;
  	uint8_t gate_value = 0;
  
  	uint16_t tmp[PARAM_G] = {0};
  	uint16_t PARAM_RS_POLY [] = {RS_POLY_COEFS};
++  uint8_t prev, x;
  
 -	uint8_t msg_bytes[PARAM_K] = {0};
 -	uint8_t cdw_bytes[PARAM_N1] = {0};
@@ -97,25 +99,30 @@
 -			msg_bytes[i * 8 + j] = (uint8_t) (msg[i] >> (j * 8));
 -		}
 -	}
-+  for (size_t i = 0; i < PARAM_N1; i++) {
++  for (i = 0; i < PARAM_N1; ++i) {
 +    cdw[i] = 0;
 +  }
  
- 	for (int i = PARAM_K-1 ; i >= 0 ; --i) {
+-	for (int i = PARAM_K-1 ; i >= 0 ; --i) {
 -		gate_value = msg_bytes[i] ^ cdw_bytes[PARAM_N1 - PARAM_K - 1];
-+		gate_value = msg[i] ^ cdw[PARAM_N1 - PARAM_K - 1];
++	for (i = 0 ; i < PARAM_K ; ++i) {
++		gate_value = (uint8_t) (msg[PARAM_K-1-i] ^ cdw[PARAM_N1 - PARAM_K - 1]);
  
- 		for (size_t j = 0 ; j < PARAM_G ; ++j) {
+-		for (size_t j = 0 ; j < PARAM_G ; ++j) {
++		for (j = 0 ; j < PARAM_G ; ++j) {
  			tmp[j] = gf_mul(gate_value, PARAM_RS_POLY[j]);
  		}
  
- 		for(size_t k = PARAM_N1 - PARAM_K - 1 ; k ; --k) {
+-		for(size_t k = PARAM_N1 - PARAM_K - 1 ; k ; --k) {
 -			cdw_bytes[k] = cdw_bytes[k - 1] ^ tmp[k];
-+			cdw[k] = cdw[k - 1] ^ tmp[k];
++    prev = 0;
++		for(k = 0 ; k < PARAM_N1-PARAM_K; k++) {
++      x = cdw[k];
++      cdw[k] = (uint8_t) (prev ^ tmp[k]);
++      prev = x;
  		}
- 
+-
 -		cdw_bytes[0] = tmp[0];
-+		cdw[0] = tmp[0];
  	}
  
 -	memcpy(cdw_bytes + PARAM_N1 - PARAM_K, msg_bytes, PARAM_K);
@@ -124,7 +131,7 @@
  }
  
  
-@@ -156,55 +97,62 @@
+@@ -156,55 +100,62 @@
   * @param[out] sigma Array of size (at least) PARAM_DELTA receiving the ELP
   * @param[in] syndromes Array of size (at least) 2*PARAM_DELTA storing the syndromes
   */
@@ -140,7 +147,7 @@
 -	size_t deg_sigma_copy = 0;
  	uint16_t X_sigma_p[PARAM_DELTA + 1] = {0,1};
 -	int32_t pp = -1; // 2*rho
-+	uint16_t pp = -1; // 2*rho
++	uint16_t pp = (uint16_t) -1; // 2*rho
  	uint16_t d_p = 1;
  	uint16_t d = syndromes[0];
  
@@ -207,7 +214,7 @@
  			d ^= gf_mul(sigma[i], syndromes[mu + 1 - i]);
  		}
  	}
-@@ -242,22 +190,25 @@
+@@ -242,22 +193,25 @@
   * @param[in] degree Integer that is the degree of polynomial sigma
   * @param[in] syndromes Array of 2 * PARAM_DELTA storing the syndromes
   */
@@ -242,7 +249,7 @@
  		}
  	}
  }
-@@ -284,10 +235,10 @@
+@@ -284,10 +238,10 @@
  	// Compute the beta_{j_i} page 31 of the documentation
  	for (size_t i = 0 ; i < PARAM_N1 ; i++) {
  		uint16_t found = 0;
@@ -257,7 +264,7 @@
  			found += indexmask & valuemask & 1;
  		}
  		delta_counter += found;
-@@ -308,7 +259,7 @@
+@@ -308,7 +262,7 @@
  		for (size_t k = 1 ; k < PARAM_DELTA ; ++k) {
  			tmp2 = gf_mul(tmp2, (1 ^ gf_mul(inverse, beta_j[(i+k) % PARAM_DELTA])));
  		}
@@ -266,7 +273,7 @@
  		e_j[i] = mask & gf_mul(tmp1,gf_inverse(tmp2));
  	}
  
-@@ -316,9 +267,9 @@
+@@ -316,9 +270,9 @@
  	delta_counter = 0;
  	for (size_t i = 0 ; i < PARAM_N1 ; ++i) {
  		uint16_t found = 0;
@@ -278,7 +285,7 @@
  			error_values[i] += indexmask & valuemask & e_j[j];
  			found += indexmask & valuemask & 1;
  		}
-@@ -360,23 +311,20 @@
+@@ -360,23 +314,20 @@
   * @param[out] msg Array of size VEC_K_SIZE_64 receiving the decoded message
   * @param[in] cdw Array of size VEC_N1_SIZE_64 storing the received word
   */
@@ -306,7 +313,7 @@
  
  	// Compute the error polynomial error
  	compute_roots(error, sigma);
-@@ -388,10 +336,10 @@
+@@ -388,10 +339,10 @@
  	compute_error_values(error_values, z, error);
  
  	// Correct the errors

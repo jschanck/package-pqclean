@@ -61,7 +61,33 @@
  }
  
  
-@@ -200,54 +183,3 @@
+@@ -163,17 +146,18 @@
+  * @param[in] size Integer that is the size of the vectors
+  * @returns 0 if the vectors are equals and a negative/psotive value otherwise
+  */
+-int vect_compare(const uint64_t *v1, const uint64_t *v2, uint32_t size) {
+-	unsigned char diff = 0;
+-
+-	for(uint32_t i=0 ; i < size ; i++) {
+-		diff |= ((uint8_t *) v1)[i] ^ ((uint8_t *) v2)[i];
+-	}
+-	return diff != 0;
++uint8_t vect_compare(const uint8_t *v1, const uint8_t *v2, uint32_t size) {
++	uint64_t r = 0;
++	for(size_t i=0; i<size; i++) {
++		r |= v1[i] ^ v2[i];
++  }
++  r = (~r+1) >> 63;
++	return (uint8_t) r;
+ }
+ 
+ 
+ 
++
+ /**
+  * @brief Resize a vector so that it contains <b>size_o</b> bits
+  *
+@@ -200,54 +184,3 @@
  		memcpy(o, v, CEIL_DIVIDE(size_v, 8));
  	}
  }
