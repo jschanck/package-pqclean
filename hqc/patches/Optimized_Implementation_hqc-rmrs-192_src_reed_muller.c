@@ -79,10 +79,10 @@
 +	e ^= BIT0MASK(message >> 4) & 0xffff0000;
  	// we can store this in the first quarter
 -	word->u32[0] = first_word;
-+  word[0+0] = (e >> 0x00) & 0xff;
-+  word[0+1] = (e >> 0x08) & 0xff;
-+  word[0+2] = (e >> 0x10) & 0xff;
-+  word[0+3] = (e >> 0x18) & 0xff;
++	word[0+0] = (e >> 0x00) & 0xff;
++	word[0+1] = (e >> 0x08) & 0xff;
++	word[0+2] = (e >> 0x10) & 0xff;
++	word[0+3] = (e >> 0x18) & 0xff;
  	// bit 5 flips entries 1 and 3; bit 6 flips 2 and 3
 -	first_word ^= BIT0MASK(message >> 5);
 -	word->u32[1] = first_word;
@@ -92,51 +92,49 @@
 -	word->u32[2] = first_word;
 -	return;
 +	e ^= BIT0MASK(message >> 5);
-+  word[4+0] = (e >> 0x00) & 0xff;
-+  word[4+1] = (e >> 0x08) & 0xff;
-+  word[4+2] = (e >> 0x10) & 0xff;
-+  word[4+3] = (e >> 0x18) & 0xff;
++	word[4+0] = (e >> 0x00) & 0xff;
++	word[4+1] = (e >> 0x08) & 0xff;
++	word[4+2] = (e >> 0x10) & 0xff;
++	word[4+3] = (e >> 0x18) & 0xff;
 +	e ^= BIT0MASK(message >> 6);
-+  word[12+0] = (e >> 0x00) & 0xff;
-+  word[12+1] = (e >> 0x08) & 0xff;
-+  word[12+2] = (e >> 0x10) & 0xff;
-+  word[12+3] = (e >> 0x18) & 0xff;
++	word[12+0] = (e >> 0x00) & 0xff;
++	word[12+1] = (e >> 0x08) & 0xff;
++	word[12+2] = (e >> 0x10) & 0xff;
++	word[12+3] = (e >> 0x18) & 0xff;
 +	e ^= BIT0MASK(message >> 5);
-+  word[8+0] = (e >> 0x00) & 0xff;
-+  word[8+1] = (e >> 0x08) & 0xff;
-+  word[8+2] = (e >> 0x10) & 0xff;
-+  word[8+3] = (e >> 0x18) & 0xff;
++	word[8+0] = (e >> 0x00) & 0xff;
++	word[8+1] = (e >> 0x08) & 0xff;
++	word[8+2] = (e >> 0x10) & 0xff;
++	word[8+3] = (e >> 0x18) & 0xff;
  }
  
  
-@@ -106,16 +87,19 @@
+@@ -106,15 +87,18 @@
   * @param[out] dst Structure that contain the expanded codeword
   * @param[in] src Structure that contain the codeword
   */
 -inline void expand_and_sum(expandedCodeword *dst, codeword src[]) {
 -	// start converting the first copy
 +inline void expand_and_sum(__m256i *dst, const uint64_t *src) {
-+  uint16_t v[16];
++	uint16_t v[16];
  	for (size_t part = 0 ; part < 8 ; part++) {
 -		dst->v[part] = src->u16[part] >> count_vector & 1;
-+    dst[part] = _mm256_setzero_si256();
++		dst[part] = _mm256_setzero_si256();
  	}
 -	// sum the rest of the copies
 -	for (size_t copy = 1 ; copy < MULTIPLICITY ; copy++) {
 -		for (size_t part = 0 ; part < 8 ; part++) {
 -			dst->v[part] += src[copy].u16[part] >> count_vector & 1;
--		}
 +	for (size_t copy = 0 ; copy < MULTIPLICITY ; copy++) {
 +		for (size_t part = 0; part < 8; part++) {
-+      for (size_t bit = 0; bit < 16; bit++) {
-+        v[bit] = (((uint16_t *)(&src[2*copy]))[part] >> bit) & 1;
-+      }
-+      dst[part] += _mm256_set_epi16(v[15],v[14],v[13],v[12],v[11],v[10],v[9],v[8],
-+                                    v[7],v[6],v[5],v[4],v[3],v[2],v[1],v[0]);
-+    }
++			for (size_t bit = 0; bit < 16; bit++) {
++				v[bit] = (((uint16_t *)(&src[2*copy]))[part] >> bit) & 1;
++			}
++			dst[part] += _mm256_set_epi16(v[15],v[14],v[13],v[12],v[11],v[10],v[9],v[8],
++				                            v[7],v[6],v[5],v[4],v[3],v[2],v[1],v[0]);
+ 		}
  	}
  }
- 
 @@ -152,21 +136,22 @@
   * @param[out] src Structure that contain the expanded codeword
   * @param[out] dst Structure that contain the expanded codeword
@@ -265,7 +263,7 @@
  		// fix the first entry to get the half Hadamard transform
 -		transform.i16[0] -= 64 * MULTIPLICITY;
 +		transform[0] -= _mm256_set_epi16(0,0,0,0, 0,0,0,0,
-+                                     0,0,0,0, 0,0,0,64 * MULTIPLICITY);
++				                             0,0,0,0, 0,0,0,64 * MULTIPLICITY);
  		// finish the decoding
 -		message_array[i] = find_peaks(&transform);
 +		msg[i] = find_peaks(transform);

@@ -53,8 +53,8 @@
 +	uint64_t r = 0;
 +	for(size_t i=0; i<size; i++) {
 +		r |= v1[i] ^ v2[i];
-+  }
-+  r = (~r+1) >> 63;
++	}
++	r = (~r+1) >> 63;
 +	return (uint8_t) r;
  }
  

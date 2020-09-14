@@ -138,7 +138,7 @@
 -		message[VEC_K_SIZE_64 - 1] = message1;
 -	}
 +	message[VEC_K_SIZE_64 - 1] = (codeword[index] & mask1) >> ((PARAM_N1 - PARAM_K) % 64);
-+  ++index;
++	++index;
 +	if (index < VEC_N1_SIZE_64)
 +		message[VEC_K_SIZE_64 - 1] |= (codeword[index] & mask2) << (64 - (PARAM_N1 - PARAM_K)%64);
  }

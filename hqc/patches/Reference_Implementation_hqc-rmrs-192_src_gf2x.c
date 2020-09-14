@@ -70,10 +70,10 @@
 +	uint16_t permutation_table[16];
  	uint16_t permuted_sparse_vect[PARAM_OMEGA_E];
  	uint16_t permutation_sparse_vect[PARAM_OMEGA_E];
-+  uint64_t tmp;
-+  uint64_t *pt;
-+  uint8_t *res;
-+  size_t i, j;
++	uint64_t tmp;
++	uint64_t *pt;
++	uint8_t *res;
++	size_t i, j;
  
 -	for (int32_t i = 0 ; i < TABLE ; i++) {
 -		permuted_table[i] = i;
@@ -157,9 +157,9 @@
 +		pt = table + (permuted_table[dec] * (VEC_N_SIZE_64 + 1));
 +
 +		for (j = 0 ; j < VEC_N_SIZE_64 + 1 ; j++) {
-+      tmp = load8(res);
-+      store8(res, tmp ^ pt[j]);
-+      res += 8;
++			tmp = load8(res);
++			store8(res, tmp ^ pt[j]);
++			res += 8;
  		}
  	}
  }
@@ -174,7 +174,7 @@
 +	uint64_t tmp[2*VEC_N_SIZE_64+1] = {0};
 +
 +	fast_convolution_mult((uint8_t *) tmp, a1, a2, weight, ctx);
-+  load8_arr(tmp, 2*VEC_N_SIZE_64+1, (uint8_t *) tmp, sizeof(tmp));
++	load8_arr(tmp, 2*VEC_N_SIZE_64+1, (uint8_t *) tmp, sizeof(tmp));
  	reduce(o, tmp);
  }
 

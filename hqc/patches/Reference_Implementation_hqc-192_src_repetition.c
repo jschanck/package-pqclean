@@ -56,7 +56,7 @@
 +	size_t t = 0;
 +	uint32_t b, bn, bi, c, cn, ci;
  	uint64_t cx, ones;
-+  uint64_t mask;
++	uint64_t mask;
 +
  	for (b = 0 ; b < PARAM_N1N2 - PARAM_N2 + 1 ; b += PARAM_N2) {
  		bn = b >> 6;

@@ -74,10 +74,10 @@
 +	e ^= BIT0MASK(message >> 4) & 0xffff0000;
  	// we can store this in the first quarter
 -	word->u32[0] = first_word;
-+  word[0+0] = (e >> 0x00) & 0xff;
-+  word[0+1] = (e >> 0x08) & 0xff;
-+  word[0+2] = (e >> 0x10) & 0xff;
-+  word[0+3] = (e >> 0x18) & 0xff;
++	word[0+0] = (e >> 0x00) & 0xff;
++	word[0+1] = (e >> 0x08) & 0xff;
++	word[0+2] = (e >> 0x10) & 0xff;
++	word[0+3] = (e >> 0x18) & 0xff;
  	// bit 5 flips entries 1 and 3; bit 6 flips 2 and 3
 -	first_word ^= BIT0MASK(message >> 5);
 -	word->u32[1] = first_word;
@@ -87,20 +87,20 @@
 -	word->u32[2] = first_word;
 -	return;
 +	e ^= BIT0MASK(message >> 5);
-+  word[4+0] = (e >> 0x00) & 0xff;
-+  word[4+1] = (e >> 0x08) & 0xff;
-+  word[4+2] = (e >> 0x10) & 0xff;
-+  word[4+3] = (e >> 0x18) & 0xff;
++	word[4+0] = (e >> 0x00) & 0xff;
++	word[4+1] = (e >> 0x08) & 0xff;
++	word[4+2] = (e >> 0x10) & 0xff;
++	word[4+3] = (e >> 0x18) & 0xff;
 +	e ^= BIT0MASK(message >> 6);
-+  word[12+0] = (e >> 0x00) & 0xff;
-+  word[12+1] = (e >> 0x08) & 0xff;
-+  word[12+2] = (e >> 0x10) & 0xff;
-+  word[12+3] = (e >> 0x18) & 0xff;
++	word[12+0] = (e >> 0x00) & 0xff;
++	word[12+1] = (e >> 0x08) & 0xff;
++	word[12+2] = (e >> 0x10) & 0xff;
++	word[12+3] = (e >> 0x18) & 0xff;
 +	e ^= BIT0MASK(message >> 5);
-+  word[8+0] = (e >> 0x00) & 0xff;
-+  word[8+1] = (e >> 0x08) & 0xff;
-+  word[8+2] = (e >> 0x10) & 0xff;
-+  word[8+3] = (e >> 0x18) & 0xff;
++	word[8+0] = (e >> 0x00) & 0xff;
++	word[8+1] = (e >> 0x08) & 0xff;
++	word[8+2] = (e >> 0x10) & 0xff;
++	word[8+3] = (e >> 0x18) & 0xff;
  }
  
  

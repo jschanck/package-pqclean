@@ -56,7 +56,7 @@
 -
 -	randombytes(rand_bytes, VEC_K_SIZE_BYTES);
 -	memcpy(v, rand_bytes, VEC_K_SIZE_BYTES);
-+  load8_arr(v, VEC_N_SIZE_64, rand_bytes, VEC_N_SIZE_BYTES);
++	load8_arr(v, VEC_N_SIZE_64, rand_bytes, VEC_N_SIZE_BYTES);
 +	v[VEC_N_SIZE_64 - 1] &= RED_MASK;
  }
  
@@ -70,14 +70,13 @@
 -
 -	for(uint32_t i=0 ; i < size ; i++) {
 -		diff |= ((uint8_t *) v1)[i] ^ ((uint8_t *) v2)[i];
--	}
--	return diff != 0;
 +uint8_t vect_compare(const uint8_t *v1, const uint8_t *v2, uint32_t size) {
 +	uint64_t r = 0;
 +	for(size_t i=0; i<size; i++) {
 +		r |= v1[i] ^ v2[i];
-+  }
-+  r = (~r+1) >> 63;
+ 	}
+-	return diff != 0;
++	r = (~r+1) >> 63;
 +	return (uint8_t) r;
  }
  

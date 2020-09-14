@@ -73,8 +73,8 @@
 -	size_t dist = lz2 - lz1;
 +static uint16_t gf_reduce(uint64_t x, size_t deg_x) {  
 +	uint16_t z1, z2, rmdr, dist;
-+  uint64_t mod;
-+  size_t steps, i, j;
++	uint64_t mod;
++	size_t steps, i, j;
  
  	// Deduce the number of steps of reduction
 -	size_t steps = CEIL_DIVIDE(deg_x - (PARAM_M-1), dist);

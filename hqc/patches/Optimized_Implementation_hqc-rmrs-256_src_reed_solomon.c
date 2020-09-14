@@ -89,7 +89,7 @@
  
  	uint16_t tmp[PARAM_G] = {0};
  	uint16_t PARAM_RS_POLY [] = {RS_POLY_COEFS};
-+  uint8_t prev, x;
++	uint8_t prev, x;
  
 -	uint8_t msg_bytes[PARAM_K] = {0};
 -	uint8_t cdw_bytes[PARAM_N1] = {0};
@@ -98,10 +98,9 @@
 -		for (size_t j = 0 ; j < 8 ; ++j) {
 -			msg_bytes[i * 8 + j] = (uint8_t) (msg[i] >> (j * 8));
 -		}
--	}
-+  for (i = 0; i < PARAM_N1; ++i) {
-+    cdw[i] = 0;
-+  }
++	for (i = 0; i < PARAM_N1; ++i) {
++		cdw[i] = 0;
+ 	}
  
 -	for (int i = PARAM_K-1 ; i >= 0 ; --i) {
 -		gate_value = msg_bytes[i] ^ cdw_bytes[PARAM_N1 - PARAM_K - 1];
@@ -115,11 +114,11 @@
  
 -		for(size_t k = PARAM_N1 - PARAM_K - 1 ; k ; --k) {
 -			cdw_bytes[k] = cdw_bytes[k - 1] ^ tmp[k];
-+    prev = 0;
++		prev = 0;
 +		for(k = 0 ; k < PARAM_N1-PARAM_K; k++) {
-+      x = cdw[k];
-+      cdw[k] = (uint8_t) (prev ^ tmp[k]);
-+      prev = x;
++			x = cdw[k];
++			cdw[k] = (uint8_t) (prev ^ tmp[k]);
++			prev = x;
  		}
 -
 -		cdw_bytes[0] = tmp[0];
@@ -152,12 +151,12 @@
  	uint16_t d = syndromes[0];
  
 -	for (size_t mu = 0 ; (mu < (2 * PARAM_DELTA)) ; ++mu) {
-+  uint16_t mask1, mask2, mask12;
-+  uint16_t deg_X, deg_X_sigma_p;
-+  uint16_t dd;
-+  uint16_t mu;
++	uint16_t mask1, mask2, mask12;
++	uint16_t deg_X, deg_X_sigma_p;
++	uint16_t dd;
++	uint16_t mu;
 +
-+  uint16_t i;
++	uint16_t i;
 +
 +	sigma[0] = 1;
 +	for (mu = 0 ; (mu < (2 * PARAM_DELTA)) ; ++mu) {
@@ -220,8 +219,8 @@
   */
 -static void compute_z_poly(uint16_t* z, const uint16_t* sigma, const uint8_t degree, const uint16_t* syndromes) {
 +static void compute_z_poly(uint16_t* z, const uint16_t* sigma, uint16_t degree, const uint16_t* syndromes) {
-+  size_t i, j;
-+  uint16_t mask;
++	size_t i, j;
++	uint16_t mask;
 +
  	z[0] = 1;
  
@@ -259,7 +258,7 @@
 -			beta_j[j] += indexmask & valuemask & exp[i];
 +		uint16_t valuemask = (uint16_t) (-((int32_t)error[i])>>31); // error[i] != 0
 +		for (uint16_t j = 0 ; j < PARAM_DELTA ; j++) {
-+      uint16_t indexmask = ~((uint16_t) (-((int32_t) j^delta_counter) >> 31)); // j == delta_counter
++			uint16_t indexmask = ~((uint16_t) (-((int32_t) j^delta_counter) >> 31)); // j == delta_counter
 +			beta_j[j] += indexmask & valuemask & gf_exp[i];
  			found += indexmask & valuemask & 1;
  		}
@@ -281,7 +280,7 @@
 +		uint16_t valuemask = (uint16_t) (-((int32_t)error[i])>>31); // error[i] != 0
  		for (size_t j = 0 ; j < PARAM_DELTA ; j++) {
 -			int16_t indexmask = ((int16_t) -(j == delta_counter)) >> 15;
-+      uint16_t indexmask = ~((uint16_t) (-((int32_t) j^delta_counter) >> 31)); // j == delta_counter
++			uint16_t indexmask = ~((uint16_t) (-((int32_t) j^delta_counter) >> 31)); // j == delta_counter
  			error_values[i] += indexmask & valuemask & e_j[j];
  			found += indexmask & valuemask & 1;
  		}

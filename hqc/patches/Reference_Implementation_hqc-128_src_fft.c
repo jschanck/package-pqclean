@@ -32,7 +32,7 @@
   */
 -static void compute_subset_sums(uint16_t *subset_sums, const uint16_t *set, size_t set_size) {
 +static void compute_subset_sums(uint16_t *subset_sums, const uint16_t *set, uint16_t set_size) {
-+  uint16_t i, j;
++	uint16_t i, j;
  	subset_sums[0] = 0;
  
 -	for (size_t i = 0 ; i < set_size ; ++i) {
@@ -150,7 +150,7 @@
  	uint16_t f1[1 << (PARAM_FFT_T - 2)] = {0};
 +	uint16_t betas_sums[1 << (PARAM_M - 1)] = {0};
 +	uint16_t v[1 << (PARAM_M - 2)] = {0};
-+  uint16_t beta_m_pow;
++	uint16_t beta_m_pow;
 +
 +	size_t i, j, k;
 +	size_t x;

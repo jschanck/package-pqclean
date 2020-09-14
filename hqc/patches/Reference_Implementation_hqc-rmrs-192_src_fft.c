@@ -32,7 +32,7 @@
   */
 -static void compute_subset_sums(uint16_t* subset_sums, uint16_t* set, size_t set_size) {
 +static void compute_subset_sums(uint16_t *subset_sums, const uint16_t *set, uint16_t set_size) {
-+  uint16_t i, j;
++	uint16_t i, j;
  	subset_sums[0] = 0;
  
 -	for(size_t i = 0 ; i < set_size ; ++i) {
@@ -108,7 +108,7 @@
 +	size_t i, n;
 +
 +	n = 1;
-+  n <<= (m_f - 2);
++	n <<= (m_f - 2);
 +	memcpy(Q, f + 3 * n, 2 * n);
 +	memcpy(Q + n, f + 3 * n, 2 * n);
 +	memcpy(R, f, 4 * n);

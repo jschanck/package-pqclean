@@ -29,7 +29,7 @@
   */
 -static void compute_subset_sums(uint16_t *subset_sums, const uint16_t *set, size_t set_size) {
 +static void compute_subset_sums(uint16_t *subset_sums, const uint16_t *set, uint16_t set_size) {
-+  uint16_t i, j;
++	uint16_t i, j;
  	subset_sums[0] = 0;
  
 -	for (size_t i = 0 ; i < set_size ; ++i) {

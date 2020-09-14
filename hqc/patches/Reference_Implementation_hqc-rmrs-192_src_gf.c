@@ -70,9 +70,9 @@
 -	// mask = 0xffff si ni a ni b n'est nul. sinon mask = 0
 -	int16_t mask = ((log[a]|log[b]) >> PARAM_M) - 1;
 -	return mask & exp[gf_mod(log[a] + log[b])];
-+  uint16_t mask;
-+  mask = (uint16_t) (-((int32_t) a) >> 31); // a != 0
-+  mask &= (uint16_t) (-((int32_t) b) >> 31); // b != 0
++	uint16_t mask;
++	mask = (uint16_t) (-((int32_t) a) >> 31); // a != 0
++	mask &= (uint16_t) (-((int32_t) b) >> 31); // b != 0
 +	return mask & gf_exp[gf_mod(gf_log[a] + gf_log[b])];
  }
  
