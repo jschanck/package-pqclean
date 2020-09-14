@@ -186,7 +186,7 @@ rm -rf ${MANIFEST}/*.xxx
 
 task 'Namespacing' 
 # Insert hooks for namespacing. These will be removed later.
-sed -i -s 's/^\(size_t\|int\|uint.._t\|void\) \([^(]*\)(.*);/#define \2 CRYPTO_NAMESPACE(\2)\n&\n/' ${BUILD_CRYPTO_KEM}/*/*/*.h
+sed -i -s 's/^\(size_t\|int\|uint.._t\|uint8_t\|void\) \([^(]*\)(.*);/#define \2 CRYPTO_NAMESPACE(\2)\n&\n/' ${BUILD_CRYPTO_KEM}/*/*/*.h
 
 for PARAM in {hqc,hqc-rmrs}-{128,192,256}
 do
