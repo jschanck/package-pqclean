@@ -161,17 +161,19 @@ consistency_checks:" > ${P1}_${OUT}.yml
       for IN in clean avx2
       do
         if ([ "${P1}" == "${P2}" ] && [ "${IN}" == "${OUT}" ]) || [ "${P1}" \> "${P2}" ]; then continue; fi
-        echo "\
-- source:
-    scheme: ${P2}
-    implementation: ${IN}
-  files:" >> ${P1}_${OUT}.yml
+        FIRST=1
         for HASH in $(cat ${P2}_${IN}.xxx | cut -d ' ' -f 1)
         do
           X=$(grep $HASH ${P1}_${OUT}.xxx | cut -d ' ' -f 3)
           if [ x${X} != 'x' ]
           then
-            [ -e ${BUILD_CRYPTO_KEM}/${P2}/${OUT}/$(basename $X) ] && \
+            [ $FIRST == '1' ] && FIRST=0 &&
+            echo "\
+    - source:
+        scheme: ${P2}
+        implementation: ${IN}
+      files:" >> ${P1}_${OUT}.yml
+            [ -e ${BUILD_CRYPTO_KEM}/${P2}/${OUT}/$(basename $X) ] &&
             echo "\
       - $(basename $X)" >> ${P1}_${OUT}.yml
           fi
