@@ -248,43 +248,81 @@
  		}
  	}
  }
-@@ -284,10 +238,10 @@
+@@ -278,17 +232,25 @@
+ 	uint16_t beta_j[PARAM_DELTA] = {0};
+ 	uint16_t e_j[PARAM_DELTA] = {0};
+ 
+-	uint16_t delta_counter = 0;
++	uint16_t delta_counter;
+ 	uint16_t delta_real_value;
++	uint16_t found;
++	uint16_t mask1;
++	uint16_t mask2;
++	uint16_t tmp1;
++	uint16_t tmp2;
++	uint16_t inverse;
++	uint16_t inverse_power_j;
+ 
  	// Compute the beta_{j_i} page 31 of the documentation
++	delta_counter = 0;
  	for (size_t i = 0 ; i < PARAM_N1 ; i++) {
- 		uint16_t found = 0;
+-		uint16_t found = 0;
 -		int16_t valuemask = ((int16_t) -(error[i] != 0)) >> 15;
--		for (size_t j = 0 ; j < PARAM_DELTA ; j++) {
++		found = 0;
++		mask1 = (uint16_t) (-((int32_t)error[i])>>31); // error[i] != 0
+ 		for (size_t j = 0 ; j < PARAM_DELTA ; j++) {
 -			int16_t indexmask = ((int16_t) -(j == delta_counter)) >> 15;
 -			beta_j[j] += indexmask & valuemask & exp[i];
-+		uint16_t valuemask = (uint16_t) (-((int32_t)error[i])>>31); // error[i] != 0
-+		for (uint16_t j = 0 ; j < PARAM_DELTA ; j++) {
-+			uint16_t indexmask = ~((uint16_t) (-((int32_t) j^delta_counter) >> 31)); // j == delta_counter
-+			beta_j[j] += indexmask & valuemask & gf_exp[i];
- 			found += indexmask & valuemask & 1;
+-			found += indexmask & valuemask & 1;
++			mask2 = ~((uint16_t) (-((int32_t) j^delta_counter) >> 31)); // j == delta_counter
++			beta_j[j] += mask1 & mask2 & gf_exp[i];
++			found += mask1 & mask2 & 1;
  		}
  		delta_counter += found;
-@@ -308,7 +262,7 @@
+ 	}
+@@ -296,10 +258,10 @@
+ 
+ 	// Compute the e_{j_i} page 31 of the documentation
+ 	for (size_t i = 0 ; i < PARAM_DELTA ; ++i) {
+-		uint16_t tmp1 = 1;
+-		uint16_t tmp2 = 1;
+-		uint16_t inverse = gf_inverse(beta_j[i]);
+-		uint16_t inverse_power_j = 1;
++		tmp1 = 1;
++		tmp2 = 1;
++		inverse = gf_inverse(beta_j[i]);
++		inverse_power_j = 1;
+ 
+ 		for (size_t j = 1 ; j <= PARAM_DELTA ; ++j) {
+ 			inverse_power_j = gf_mul(inverse_power_j, inverse);
+@@ -308,19 +270,19 @@
  		for (size_t k = 1 ; k < PARAM_DELTA ; ++k) {
  			tmp2 = gf_mul(tmp2, (1 ^ gf_mul(inverse, beta_j[(i+k) % PARAM_DELTA])));
  		}
 -		int16_t mask = ((int16_t) -(i<delta_real_value))>>15;
-+		uint16_t mask = (uint16_t) (((int16_t) i-delta_real_value)>>15); // i < delta_real_value
- 		e_j[i] = mask & gf_mul(tmp1,gf_inverse(tmp2));
+-		e_j[i] = mask & gf_mul(tmp1,gf_inverse(tmp2));
++		mask1 = (uint16_t) (((int16_t) i-delta_real_value)>>15); // i < delta_real_value
++		e_j[i] = mask1 & gf_mul(tmp1,gf_inverse(tmp2));
  	}
  
-@@ -316,9 +270,9 @@
+ 	// Place the delta e_{j_i} values at the right coordinates of the output vector
  	delta_counter = 0;
  	for (size_t i = 0 ; i < PARAM_N1 ; ++i) {
- 		uint16_t found = 0;
+-		uint16_t found = 0;
 -		int16_t valuemask = ((int16_t) -(error[i] !=0)) >> 15;
-+		uint16_t valuemask = (uint16_t) (-((int32_t)error[i])>>31); // error[i] != 0
++		found = 0;
++		mask1 = (uint16_t) (-((int32_t)error[i])>>31); // error[i] != 0
  		for (size_t j = 0 ; j < PARAM_DELTA ; j++) {
 -			int16_t indexmask = ((int16_t) -(j == delta_counter)) >> 15;
-+			uint16_t indexmask = ~((uint16_t) (-((int32_t) j^delta_counter) >> 31)); // j == delta_counter
- 			error_values[i] += indexmask & valuemask & e_j[j];
- 			found += indexmask & valuemask & 1;
+-			error_values[i] += indexmask & valuemask & e_j[j];
+-			found += indexmask & valuemask & 1;
++			mask2 = ~((uint16_t) (-((int32_t) j^delta_counter) >> 31)); // j == delta_counter
++			error_values[i] += mask1 & mask2 & e_j[j];
++			found += mask1 & mask2 & 1;
  		}
-@@ -360,23 +314,20 @@
+ 		delta_counter += found;
+ 	}
+@@ -360,23 +322,20 @@
   * @param[out] msg Array of size VEC_K_SIZE_64 receiving the decoded message
   * @param[in] cdw Array of size VEC_N1_SIZE_64 storing the received word
   */
@@ -312,7 +350,7 @@
  
  	// Compute the error polynomial error
  	compute_roots(error, sigma);
-@@ -388,10 +339,10 @@
+@@ -388,10 +347,10 @@
  	compute_error_values(error_values, z, error);
  
  	// Correct the errors

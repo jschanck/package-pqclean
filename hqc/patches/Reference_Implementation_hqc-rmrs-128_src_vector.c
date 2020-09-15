@@ -8,7 +8,114 @@
  #include "vector.h"
  #include <stdint.h>
  #include <string.h>
-@@ -149,24 +150,8 @@
+@@ -32,39 +33,33 @@
+ void vect_set_random_fixed_weight_by_coordinates(AES_XOF_struct *ctx, uint32_t *v, uint16_t weight) {
+ 	size_t random_bytes_size = 3 * weight;
+ 	uint8_t rand_bytes[3 * PARAM_OMEGA_R] = {0}; // weight is expected to be <= PARAM_OMEGA_R
+-	uint32_t random_data = 0;
+-	uint8_t exist = 0;
+-	size_t j = 0;
++	uint8_t inc;
++	size_t i, j;
+ 
+-	seedexpander(ctx, rand_bytes, random_bytes_size);
+-
+-	for (uint32_t i = 0 ; i < weight ; ++i) {
+-		exist = 0;
++	i=0;
++	j=random_bytes_size;
++	while(i < weight) {
+ 		do {
+ 			if (j == random_bytes_size) {
+ 				seedexpander(ctx, rand_bytes, random_bytes_size);
+ 				j = 0;
+ 			}
+ 
+-			random_data  = ((uint32_t) rand_bytes[j++]) << 16;
+-			random_data |= ((uint32_t) rand_bytes[j++]) << 8;
+-			random_data |= rand_bytes[j++];
+-
+-		} while (random_data >= UTILS_REJECTION_THRESHOLD);
+-
+-		random_data = random_data % PARAM_N;
+-
+-		for (uint32_t k = 0 ; k < i ; k++) {
+-			if (v[k] == random_data) {
+-				exist = 1;
++			v[i]  = ((uint32_t) rand_bytes[j++]) << 16;
++			v[i] |= ((uint32_t) rand_bytes[j++]) << 8;
++			v[i] |= rand_bytes[j++];
++
++		} while (v[i] >= UTILS_REJECTION_THRESHOLD);
++
++		v[i] = v[i] % PARAM_N;
++
++		inc = 1;
++		for (size_t k = 0 ; k < i ; k++) {
++			if (v[k] == v[i]) {
++				inc = 0;
+ 			}
+ 		}
+-
+-		if (exist == 1) {
+-			i--;
+-		} else {
+-			v[i] = random_data;
+-		}
++		i += inc;
+ 	}
+ }
+ 
+@@ -87,46 +82,11 @@
+  * @param[in] ctx Pointer to the context of the seed expander
+  */
+ void vect_set_random_fixed_weight(AES_XOF_struct *ctx, uint64_t *v, uint16_t weight) {
+-
+-	size_t random_bytes_size = 3 * weight;
+-	uint8_t rand_bytes[3 * PARAM_OMEGA_R] = {0}; // weight is expected to be <= PARAM_OMEGA_R
+-	uint32_t random_data = 0;
+ 	uint32_t tmp[PARAM_OMEGA_R] = {0};
+-	uint8_t exist = 0;
+-	size_t j = 0;
+-
+-	seedexpander(ctx, rand_bytes, random_bytes_size);
+-
+-	for (uint32_t i = 0 ; i < weight ; ++i) {
+-		exist = 0;
+-		do {
+-			if (j == random_bytes_size) {
+-				seedexpander(ctx, rand_bytes, random_bytes_size);
+-				j = 0;
+-			}
+-
+-			random_data  = ((uint32_t) rand_bytes[j++]) << 16;
+-			random_data |= ((uint32_t) rand_bytes[j++]) << 8;
+-			random_data |= rand_bytes[j++];
+-
+-		} while (random_data >= UTILS_REJECTION_THRESHOLD);
+-
+-		random_data = random_data % PARAM_N;
+-
+-		for (uint32_t k = 0 ; k < i ; k++) {
+-			if (tmp[k] == random_data) {
+-				exist = 1;
+-			}
+-		}
+ 
+-		if (exist == 1) {
+-			i--;
+-		} else {
+-			tmp[i] = random_data;
+-		}
+-	}
++	vect_set_random_fixed_weight_by_coordinates(ctx, tmp, weight);
+ 
+-	for (uint16_t i = 0 ; i < weight ; ++i) {
++	for (size_t i = 0 ; i < weight ; ++i) {
+ 		int32_t index = tmp[i] / 64;
+ 		int32_t pos = tmp[i] % 64;
+ 		v[index] |= ((uint64_t) 1) << pos;
+@@ -149,24 +109,8 @@
  
  	seedexpander(ctx, rand_bytes, VEC_N_SIZE_BYTES);
  
@@ -35,7 +142,7 @@
  }
  
  
-@@ -186,6 +171,7 @@
+@@ -186,6 +130,7 @@
  }
  
  
@@ -43,7 +150,7 @@
  /**
   * @brief Compares two vectors
   *
-@@ -194,8 +180,13 @@
+@@ -194,8 +139,13 @@
   * @param[in] size Integer that is the size of the vectors
   * @returns 0 if the vectors are equals and a negative/psotive value otherwise
   */
@@ -59,7 +166,7 @@
  }
  
  
-@@ -217,62 +208,12 @@
+@@ -217,62 +167,12 @@
  			val = 64 - (size_o % 64);
  		}
  		
