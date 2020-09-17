@@ -116,7 +116,7 @@ do
     do
       START=$(grep -n -m 1 '^#include' ${F} | cut -d: -f1)
       if [ x${START} == x ]; then continue; fi
-      GUARD=$(head -n ${START} ${F})
+      GUARD=$(head -n $((${START}-1)) ${F})
       INCL1=$(grep '^#include \"' ${F} | sort -u)
       INCL2=$(grep '^#include <' ${F} | sort -u)
       REST=$(tail -n+$((${START}+1)) ${F} | sed '/^#include/d')
