@@ -5,6 +5,7 @@ BASE=`cd ${BASE} && pwd`
 cd ${BASE}
 
 VERSION=$(cat ${BASE}/VERSION)
+PACKAGER=$(git rev-parse HEAD)
 ARCHIVE=hqc-submission_${VERSION}.zip
 
 BUILD=${BASE}/build
@@ -232,9 +233,9 @@ principal-submitters:
   - Loïc Bidoux
 implementations:
     - name: clean
-      version: ${VERSION}
+      version: ${VERSION} via https://github.com/jschanck/package-pqclean/tree/${PACKAGER:0:8}
     - name: avx2
-      version: ${VERSION}
+      version: ${VERSION} via https://github.com/jschanck/package-pqclean/tree/${PACKAGER:0:8}
       supported_platforms:
           - architecture: x86_64
             operating_systems:
