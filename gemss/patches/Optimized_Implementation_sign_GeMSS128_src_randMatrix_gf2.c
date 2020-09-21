@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Reference_Implementation/sign/GeMSS128/src/randMatrix_gf2.c
-+++ GeMSS-Round2_V2.a-patched/Reference_Implementation/sign/GeMSS128/src/randMatrix_gf2.c
+--- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/src/randMatrix_gf2.c
++++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/src/randMatrix_gf2.c
 @@ -135,92 +135,85 @@
  #endif
  

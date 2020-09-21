@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Reference_Implementation/sign/GeMSS128/src/vecMatProduct_gf2.c
-+++ GeMSS-Round2_V2.a-patched/Reference_Implementation/sign/GeMSS128/src/vecMatProduct_gf2.c
+--- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/src/vecMatProduct_gf2.c
++++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/src/vecMatProduct_gf2.c
 @@ -115,65 +115,134 @@
          res a vector of length n in GF(2)
          res = dotproduct(v,S) = v.S
@@ -188,3 +188,4 @@
  
  
  
+
