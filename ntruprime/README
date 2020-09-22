@@ -1,0 +1,6 @@
+Updating:
+  - Update `version' file.
+  - Run checkout.sh to create upstream and upstream-patched directories.
+  - Apply your changes to upstream-patched
+  - Run update_patches.sh to populate the patches/ directory.
+
