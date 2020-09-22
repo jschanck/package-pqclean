@@ -1,5 +1,41 @@
 --- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/src/vecMatProduct_gf2.c
 +++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/src/vecMatProduct_gf2.c
+@@ -9,7 +9,7 @@
+ 
+ /* for a block of bits of vec */
+ #define LOOPIR_M(NB_IT) \
+-    for(ir=0;ir<NB_IT;++ir)\
++    for(ir=0;ir<(NB_IT);++ir)\
+     {\
+         /* multiply the (iq*NB_BITS_UINT)+ir bit of vec
+             by the (iq*NB_BITS_UINT)+ir row of S */\
+@@ -22,7 +22,7 @@
+ 
+ /* for a block of bits of vec */
+ #define LOOPIR_N(NB_IT) \
+-    for(ir=0;ir<NB_IT;++ir)\
++    for(ir=0;ir<(NB_IT);++ir)\
+     {\
+         /* multiply the (iq*NB_BITS_UINT)+ir bit of vec
+             by the (iq*NB_BITS_UINT)+ir row of S */\
+@@ -35,7 +35,7 @@
+ 
+ /* for a block of bits of vec */
+ #define LOOPIR_START_N(NB_IT) \
+-    for(;ir<NB_IT;++ir)\
++    for(;ir<(NB_IT);++ir)\
+     {\
+         /* multiply the (iq*NB_BITS_UINT)+ir bit of vec
+             by the (iq*NB_BITS_UINT)+ir row of S */\
+@@ -48,7 +48,7 @@
+ 
+ /* for a block of bits of vec */
+ #define LOOPIR_NV(NB_IT) \
+-    for(ir=0;ir<NB_IT;++ir)\
++    for(ir=0;ir<(NB_IT);++ir)\
+     {\
+         /* multiply the (iq*NB_BITS_UINT)+ir bit of vec
+             by the (iq*NB_BITS_UINT)+ir row of S */\
 @@ -115,65 +115,134 @@
          res a vector of length n in GF(2)
          res = dotproduct(v,S) = v.S

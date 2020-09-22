@@ -250,6 +250,7 @@ do
   echo "#define LAST_ROW_Q $(((${NV}-${LOST_BITS})/64))" >> ${DFILE}
   echo "#define LAST_ROW_R $(((${NV}-${LOST_BITS})%64))" >> ${DFILE}
   echo "#define LOST_BITS ${LOST_BITS}" >> ${DFILE}
+  echo "#define NB_MONOMIAL_PK ${NB_MONOMIAL_PK}" >> ${DFILE}
   echo "#define NB_WHOLE_BLOCKS $(((${NV}-(64-((${NB_MONOMIAL_PK}-${LOST_BITS}-${NVR})%64))%64)>>6))" >> ${DFILE}
   echo "#define NB_WORD_GF2m ${NB_WORD_GF2m}" >> ${DFILE}
   echo "#define NB_WORD_GF2m_TMP ${NB_WORD_GF2m}" >> ${DFILE}
@@ -406,19 +407,19 @@ do
   do
     for F in ${BUILD_CRYPTO_SIGN}/${PARAM}/${IMPL}/*.h
     do
-      START=$(grep -n -m 1 '^#include' ${F} | cut -d: -f1)
+      START=$(grep -n -m 1 '^\s*#include' ${F} | cut -d: -f1)
       if [ x${START} == x ]; then continue; fi
       GUARD=$(head -n $((${START}-1)) ${F})
-      INCL1=$(grep '^#include \"' ${F} | sort -u)
-      INCL2=$(grep '^#include <' ${F} | sort -u)
-      REST=$(tail -n+$((${START}+1)) ${F} | sed '/^#include/d')
+      INCL1=$(grep '^\s*#include \"' ${F} | sed 's/^\s*//' | LC_ALL=C sort -u)
+      INCL2=$(grep '^\s*#include <' ${F} | sed 's/^\s*//' | LC_ALL=C sort -u)
+      REST=$(tail -n+$((${START}+1)) ${F} | sed '/^\s*#include/d')
       echo "${GUARD}\n${INCL1}\n${INCL2}\n${REST}" | sed 's/\\n/\n/g' > ${F}
     done
     for F in ${BUILD_CRYPTO_SIGN}/${PARAM}/${IMPL}/*.c
     do
-      INCL1=$(grep '^#include \"' ${F} | sort -u)
-      INCL2=$(grep '^#include <' ${F} | sort -u)
-      REST=$(sed '/^#include/d' ${F})
+      INCL1=$(grep '^\s*#include \"' ${F} | sed 's/^\s*//' | LC_ALL=C sort -u)
+      INCL2=$(grep '^\s*#include <' ${F} | sed 's/^\s*//' | LC_ALL=C sort -u)
+      REST=$(sed '/^\s*#include/d' ${F})
       echo "${INCL1}\n${INCL2}\n${REST}" | sed 's/\\n/\n/g' > ${F}
     done
   done
@@ -475,16 +476,9 @@ endtask
 #)
 #rm -rf ${MANIFEST}/*.xxx
 
-
 task 'Namespacing' 
 # XXX: figure out how to preserve define formatting.
 sed -s -i "${STRAIGHTEN_DEF[@]}" ${BUILD_CRYPTO_SIGN}/*/*/*.h
-
-# Fixup a few definitions
-#sed -i -s 's/#define.*void\(.*\)/void \1;/' ${BUILD_CRYPTO_SIGN}/*/*/{sqr_gf2n.h,mul_gf2n.h}
-#sed -i '/MUL_THEN_REM_GF2N;/d' ${BUILD_CRYPTO_SIGN}/*/*/mul_gf2n.h
-#sed -i '/SQR_THEN_REM_GF2N;/d' ${BUILD_CRYPTO_SIGN}/*/*/sqr_gf2n.h
-#sed -i '/SQR_NOCST_THEN_REM_GF2N;/d' ${BUILD_CRYPTO_SIGN}/*/*/sqr_gf2n.h
 
 # GeMSS has its own namespacing macro. We'll delete it and do it our way.
 sed -i -s '/include "prefix_name.h"/d' ${BUILD_CRYPTO_SIGN}/*/*/*.h
@@ -519,12 +513,17 @@ for PARAM in gemss-{,blue-,red-}{128,192,256}
 do
   ( cd ${BUILD_CRYPTO_SIGN}/${PARAM}/
 
-  echo "Public Domain" > clean/LICENSE
-  cp -Lp clean/LICENSE avx2/LICENSE
+  #echo "Public Domain" > clean/LICENSE
+  #cp -Lp clean/LICENSE avx2/LICENSE
   cp -Lp ${BASE}/meta/crypto_sign_${PARAM}_META.yml META.yml
   echo "\
 principal-submitters:
-  - people
+  - A. Casanova
+  - J.-C. Faugere
+  - G. Macario-Rat
+  - J. Patarin
+  - L. Perret
+  - J. Ryckeghem
 implementations:
     - name: clean
       version: ${VERSION}

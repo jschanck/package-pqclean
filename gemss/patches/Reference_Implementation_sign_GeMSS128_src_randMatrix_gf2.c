@@ -215,7 +215,7 @@
  #if HFEv
      /**
       * @brief   Generate a random invertible lower triangular matrix (n+v,n+v) L
-@@ -243,8 +276,46 @@
+@@ -243,15 +276,53 @@
       * the words equal to zero in the upper trigular part are not stored.
       * @remark  Constant-time implementation.
       */
@@ -264,7 +264,31 @@
  #endif
  
  
-@@ -280,23 +351,6 @@
+ #define LOOPJR(NB_IT) \
+     mini=MINI(iq,jq);\
+     *S=0;\
+-    for(jr=0;jr<NB_IT;++jr)\
++    for(jr=0;jr<(NB_IT);++jr)\
+     {\
+         /* Dot product */\
+         tmp=L_cp[0]&U_cp[0];\
+@@ -267,36 +338,19 @@
+ 
+ 
+ #define LOOPIR(NB_IT,nq,nr,REM) \
+-    for(ir=0;ir<NB_IT;++ir)\
++    for(ir=0;ir<(NB_IT);++ir)\
+     {\
+         U_cp=U;\
+         /* for each row of U (multiply by the transpose) */\
+-        for(jq=1;jq<=nq;++jq)\
++        for(jq=1;jq<=(nq);++jq)\
+         {\
+             LOOPJR(NB_BITS_UINT);\
+         }\
+-        REM;\
++        { REM };\
+         L_cp+=iq;\
      }
  
  
