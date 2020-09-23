@@ -1,6 +1,6 @@
 --- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/src/vecMatProduct_gf2.c
 +++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/src/vecMatProduct_gf2.c
-@@ -9,7 +9,7 @@
+@@ -9,12 +9,12 @@
  
  /* for a block of bits of vec */
  #define LOOPIR_M(NB_IT) \
@@ -9,6 +9,12 @@
      {\
          /* multiply the (iq*NB_BITS_UINT)+ir bit of vec
              by the (iq*NB_BITS_UINT)+ir row of S */\
+         vec_ir=-(bit_ir&1);\
+-        xorLoadMask1_gf2m(res,S_cp,vec_ir);\
++        XORLOADMASK1((unsigned char *)res,(unsigned char *)S_cp,vec_ir,8*NB_WORD_GF2m);\
+         /* next row of S */\
+         S_cp+=NB_WORD_GFqn;\
+         bit_ir>>=1;\
 @@ -22,7 +22,7 @@
  
  /* for a block of bits of vec */
@@ -36,7 +42,19 @@
      {\
          /* multiply the (iq*NB_BITS_UINT)+ir bit of vec
              by the (iq*NB_BITS_UINT)+ir row of S */\
-@@ -115,65 +115,134 @@
+@@ -69,7 +69,10 @@
+ #endif
+ 
+ #if HFEmr
+-    #define CLEAN_M (res)[NB_WORD_GF2m-1]&=MASK_GF2m;
++    #define CLEAN_M \
++      LOAD_UINT(vec_ir, (((unsigned char *)res)+(8*(NB_WORD_GF2m-1)))) \
++      vec_ir &= MASK_GF2m; \
++      STORE_UINT((((unsigned char *)res)+(8*(NB_WORD_GF2m-1))), vec_ir)
+ #else
+     #define CLEAN_M
+ #endif
+@@ -115,65 +118,134 @@
          res a vector of length n in GF(2)
          res = dotproduct(v,S) = v.S
  */

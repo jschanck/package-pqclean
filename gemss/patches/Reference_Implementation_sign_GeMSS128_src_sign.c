@@ -42,12 +42,12 @@
      *smlen=mlen+CRYPTO_BYTES;
 -    memcpy(sm+CRYPTO_BYTES,m,(size_t)mlen);
 -    return signHFE(sm,m,(size_t)mlen,(UINT*)sk);
-+    memcpy(sm+CRYPTO_BYTES,m,mlen);
++    memmove(sm+CRYPTO_BYTES,m,mlen);
 +    return signHFE(sm,m,mlen,(UINT*)sk);
  }
  
  
-@@ -58,14 +49,10 @@
+@@ -58,21 +49,35 @@
   * @param[in]   pk  The public-key.
   * @return  Zero if the function runs correctly, non-zero else.
   */
@@ -65,7 +65,11 @@
  {
      int result;
      *mlen=smlen-CRYPTO_BYTES;
-@@ -76,3 +63,21 @@
+     result=sign_openHFE(sm+CRYPTO_BYTES,(size_t)(*mlen),sm,pk);
+     /* For compatibily with SUPERCOP, the memcpy is done only after sign_open */
+-    memcpy(m,sm+CRYPTO_BYTES,(size_t)(*mlen));
++    memmove(m,sm+CRYPTO_BYTES,(size_t)(*mlen));
+     return result;
  }
  
  

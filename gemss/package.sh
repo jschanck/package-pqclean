@@ -501,7 +501,7 @@ do
     sed -i -s "s/CRYPTO_/${NAMESPACE}_CRYPTO_/" *.{c,h}
     sed -i "s/API_H/${NAMESPACE}_API_H/" api.h
 
-    sed -i -s "s/f_/${NAMESPACE}_/" tools_gf2n.h
+    sed -i -s "s/f_/${NAMESPACE}_/" tools_gf2n.h tools_gf2m.h hash.h
     )
   done
 done
