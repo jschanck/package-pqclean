@@ -8,8 +8,9 @@
 +    (l)=gcd_gf2nx(&(i),poly2,d2,poly,l);
  
  
- int PREFIX_NAME(findRootsHFE_gf2nx)(vec_gf2n* roots,
+-int PREFIX_NAME(findRootsHFE_gf2nx)(vec_gf2n* roots,
 -                                    const complete_sparse_monic_gf2nx F,
++int PREFIX_NAME(findRootsHFE_gf2nx)(vec_gf2n roots,
 +                                    complete_sparse_monic_gf2nx F,
                                      cst_gf2n U);
  int PREFIX_NAME(findUniqRootHFE_gf2nx)(gf2n root,

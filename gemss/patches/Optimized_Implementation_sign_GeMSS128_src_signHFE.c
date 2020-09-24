@@ -13,7 +13,43 @@
  
              /* First byte of sm8 */
              if(nb_bits&7U)
-@@ -351,11 +353,11 @@
+@@ -193,10 +195,6 @@
+ 
+ 
+     #if GEN_INVERTIBLE_MATRIX_LU
+-        ALIGNED_GFqn_MALLOC(sk_HFE->sk_uncomp,UINT*,NB_UINT_HFEVPOLY
+-                                  +(LTRIANGULAR_NV_SIZE<<1)
+-                                  +(LTRIANGULAR_N_SIZE<<1)+SIZE_VECTOR_t
+-                                  +MATRIXnv_SIZE+MATRIXn_SIZE,sizeof(UINT));
+         expandSeed((uint8_t*)(sk_HFE->sk_uncomp),(NB_UINT_HFEVPOLY
+                                      +(LTRIANGULAR_NV_SIZE<<1)
+                                      +(LTRIANGULAR_N_SIZE<<1)+SIZE_VECTOR_t)<<3,
+@@ -313,7 +311,8 @@
+ {
+     #if HFEv
+         cst_sparse_monic_gf2nx F_HFEv;
+-        UINT* F;
++        sparse_monic_gf2nx F;
++        sparse_monic_gf2nx F_cp;
+         unsigned int i;
+     #endif
+ 
+@@ -333,13 +332,10 @@
+     #endif
+ 
+     #if HFEv
++        F=sk_HFE->F_struct.poly;
+         F_HFEv=sk_HFE->F_HFEv;
+ 
+-        ALIGNED_GFqn_MALLOC(F,UINT*,NB_UINT_HFEPOLY,sizeof(UINT));
+-        VERIFY_ALLOC_RET(F);
+-
+         #if (HFEDeg>1)
+-        UINT *F_cp;
+         unsigned int j;
+ 
+         /* X^(2^0) */
+@@ -351,11 +347,11 @@
          {
              /* Copy i quadratic terms */
  
@@ -28,7 +64,7 @@
              {
                  /* X^(2^i + 2^j) */
                  copy_gf2n(F_cp,F_HFEv);
-@@ -370,11 +372,11 @@
+@@ -370,11 +366,11 @@
          }
          #if HFEDegJ
              /* X^(2^HFEDegI + 2^j) */
@@ -43,7 +79,25 @@
              {
                  copy_gf2n(F_cp,F_HFEv);
                  F_HFEv+=NB_WORD_GFqn;
-@@ -677,7 +679,7 @@
+@@ -382,7 +378,6 @@
+             }
+         #endif
+         #endif
+-        sk_HFE->F_struct.poly=F;
+     #else
+         sk_HFE->F_struct.poly=sk_HFE->F_HFEv;
+     #endif
+@@ -666,9 +661,6 @@
+             if(nb_root<0)
+             {
+                 /* Error from chooseRootHFE */
+-                #if HFEv
+-                    ALIGNED_GFqn_FREE(F);
+-                #endif
+                 return nb_root;
+             }
+ 
+@@ -677,7 +669,7 @@
                  /* Add the v bits to DR */
                  #if HFEnr
                      DR[NB_WORD_GFqn-1]^=V[0]<<HFEnr;
@@ -52,7 +106,7 @@
                      {
                          DR[NB_WORD_GFqn+i]=(V[i]>>(64-HFEnr))^(V[i+1]<<HFEnr);
                      }
-@@ -685,7 +687,7 @@
+@@ -685,7 +677,7 @@
                          DR[NB_WORD_GFqn+i]=V[i]>>(64-HFEnr);
                      #endif
                  #else
@@ -61,7 +115,22 @@
                      {
                          DR[NB_WORD_GFqn+i]=V[i];
                      }
-@@ -770,9 +772,10 @@
+@@ -728,14 +720,6 @@
+         }
+     } while(b);
+ 
+-    #if ENABLED_SEED_SK
+-        free(sk_HFE.sk_uncomp);
+-    #endif
+-    #if HFEv
+-        ALIGNED_GFqn_FREE(F);
+-    #endif
+-
+-
+     /* Copy the salt in the signature */
+     for(k=0;k<SIZE_SALT_WORD;++k)
+     {
+@@ -770,9 +754,10 @@
  {
      UINT sm[SIZE_SIGN_UNCOMPRESSED-SIZE_SALT_WORD]={0};
  
@@ -75,7 +144,7 @@
      UINT *tmp, *Hi=Hi_tab,*Hi1=Hi1_tab;
      unsigned int k;
      #if (HFEnv!=HFEm)
-@@ -824,13 +827,6 @@
+@@ -824,13 +809,6 @@
      /* Compute H1 = H(m) */
      HASH((unsigned char*)Hi,m,len);
  
@@ -89,7 +158,17 @@
      for(k=1;k<=NB_ITE;++k)
      {
          #ifdef KAT_INT
-@@ -981,7 +977,7 @@
+@@ -967,9 +945,6 @@
+             if(nb_root<0)
+             {
+                 /* Error from chooseRootHFE */
+-                #if HFEv
+-                    ALIGNED_GFqn_FREE(F);
+-                #endif
+                 return nb_root;
+             }
+ 
+@@ -981,7 +956,7 @@
              /* Add the v bits to DR */
              #if HFEnr
                  DR[NB_WORD_GFqn-1]^=V[0]<<HFEnr;
@@ -98,7 +177,7 @@
                  {
                      DR[NB_WORD_GFqn+i]=(V[i]>>(64-HFEnr))^(V[i+1]<<HFEnr);
                  }
-@@ -989,7 +985,7 @@
+@@ -989,7 +964,7 @@
                      DR[NB_WORD_GFqn+i]=V[i]>>(64-HFEnr);
                  #endif
              #else
@@ -107,4 +186,17 @@
                  {
                      DR[NB_WORD_GFqn+i]=V[i];
                  }
+@@ -1026,12 +1001,6 @@
+         }
+     }
+ 
+-    #if ENABLED_SEED_SK
+-        free(sk_HFE.sk_uncomp);
+-    #endif
+-    #if HFEv
+-        ALIGNED_GFqn_FREE(F);
+-    #endif
+     #ifdef KAT_INT
+         CLOSE_KAT_INT_FILE;
+     #endif
 

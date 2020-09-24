@@ -1,8 +1,15 @@
 --- upstream/Reference_Implementation/sign/GeMSS128/src/chooseRootHFE_gf2nx.c
 +++ upstream-patched/Reference_Implementation/sign/GeMSS128/src/chooseRootHFE_gf2nx.c
-@@ -49,71 +49,70 @@
+@@ -44,76 +44,74 @@
+             unsigned int j,i,ind=0;
+         #endif
  
-         l=findRootsHFE_gf2nx(&roots,F,U);
+-        vec_gf2n roots;
++        UINT roots[HFEDeg] = {0}; /* XXX: unnecessarily large (?) */
+         int l;
+ 
+-        l=findRootsHFE_gf2nx(&roots,F,U);
++        l=findRootsHFE_gf2nx(roots,F,U);
  
 -        if(!l)
 +        if(l==0)
@@ -118,7 +125,6 @@
 -            return l;
 +            #endif
          }
-+        free(roots);
 +        return l;
      #endif
  }

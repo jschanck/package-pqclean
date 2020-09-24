@@ -1,5 +1,5 @@
---- upstream/Reference_Implementation/sign/GeMSS128/src/sign_keypairHFE.c
-+++ upstream-patched/Reference_Implementation/sign/GeMSS128/src/sign_keypairHFE.c
+--- upstream/Optimized_Implementation/sign/GeMSS128/src/sign_keypairHFE.c
++++ upstream-patched/Optimized_Implementation/sign/GeMSS128/src/sign_keypairHFE.c
 @@ -112,10 +112,16 @@
      #if (ENABLED_SEED_SK&&GEN_INV_MATRIX_TRIAL_ERROR)
          expandSeedCxtDeclaration;

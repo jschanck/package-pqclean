@@ -165,7 +165,94 @@
      }
  
  
-@@ -482,16 +482,13 @@
+@@ -322,6 +322,11 @@
+ int PREFIX_NAME(genSecretMQS_gf2_ref)(mqsnv_gf2n MQS, cst_sparse_monic_gf2nx F)
+ {
+     /* if there is not quadratic terms X^(2^i + 2^j) */
++    mqsnv_gf2n MQS_cp;
++    UINT lin[HFEn*NB_WORD_GFqn]={0};
++    UINT *lin_cp;
++    cst_vec_gf2n a_vec;
++    unsigned int i,j;
+     #if (HFEDeg<3)
+         #if (HFEDeg==2)
+             cst_vec_gf2n a_veci;
+@@ -329,63 +334,41 @@
+         #if ((HFEDeg==2)||(HFEv))
+             cst_sparse_monic_gf2nx F_cp;
+         #endif
+-        mqsnv_gf2n MQS_cp;
+-        vecn_gf2n lin,lin_cp;
+-        cst_vec_gf2n a_vec;
+-        unsigned int i,j;
+     #else
+-        mqsnv_gf2n MQS_cp;
+-        vecn_gf2n lin,lin_cp;
+         static_gf2n tmp1[NB_WORD_GFqn];
+         #if (HFEDeg!=3)
+             static_gf2n tmp_i[NB_WORD_GFqn],tmp_j[NB_WORD_GFqn];
+         #endif
+         cst_sparse_monic_gf2nx F_cp;
+-        cst_vec_gf2n a_vec,a_veci,a_vecj;
+-        unsigned int i,j,ia,ja;
+-    #endif
+-
+-    #if(HFEDeg<3)
+-        /* there are not quadratic terms X^(2^i + 2^j) */
+-        for(i=0;i<MQnv_GFqn_SIZE;++i)
+-        {
+-            MQS[i]=0;
+-        }
++        cst_vec_gf2n a_veci,a_vecj;
++        unsigned int ia,ja;
+     #endif
+ 
+     /* Precompute alpha_vec is disabled in the submission */
+     #if PRECOMPUTED_CBASIS
+         static cst_vec_gf2n alpha_vec=cbasis_h;
+     #else
+-        vec_gf2n alpha_vec;
+-
+         /* Matrix in GF(2^n) with (HFEDegI+1) rows and HFEn-1 columns */
+         /* calloc is useful when it initialises a multiple precision element
+            to 1 */
+         #if(HFEDegI!=HFEDegJ)
+-            alpha_vec=(UINT*)calloc((HFEDegI+1)*(HFEn-1)*NB_WORD_GFqn,
+-                                    sizeof(UINT));
++            UINT alpha_vec[(HFEDegI+1)*(HFEn-1)*NB_WORD_GFqn] = {0};
+         #else
+             /* An additional row for the leading term X^(2^i + 2^j)
+                                                     = X^(2^(i+1)) */
+-            alpha_vec=(UINT*)calloc((HFEDegI+2)*(HFEn-1)*NB_WORD_GFqn,
+-                                    sizeof(UINT));
++            UINT alpha_vec[(HFEDegI+2)*(HFEn-1)*NB_WORD_GFqn] = {0};
+         #endif
+-        VERIFY_ALLOC_RET(alpha_vec);
+ 
+         genCanonicalBasis_gf2n(alpha_vec);
+     #endif
+ 
+-    /* Temporary linear vector */
+-    lin=(UINT*)calloc(HFEn*NB_WORD_GFqn,sizeof(UINT));
+-    if(!lin)
+-    {
+-        #if (!PRECOMPUTED_CBASIS)
+-            free(alpha_vec);
+-        #endif
+-        return ERROR_ALLOC;
+-    }
+-
++    #if(HFEDeg<3)
++        /* there are not quadratic terms X^(2^i + 2^j) */
++        for(i=0;i<MQnv_GFqn_SIZE;++i)
++        {
++            MQS[i]=0;
++        }
++    #endif
+ 
+     /* Constant : copy the first coefficient of F in MQS */
+     copy_gf2n(MQS,F);
+@@ -482,16 +465,13 @@
      /* The current term is X^(q^i + q^j) */
      for(i=2;i<HFEDegI;++i)
      {
@@ -186,7 +273,7 @@
          {
              a_veci=a_vec;
              QUADRATIC_CASE_REF(a_veci,a_vecj);
-@@ -509,19 +506,19 @@
+@@ -509,19 +489,19 @@
      /* The current term is X^(q^HFEDegi + q^j) */
  
      /* Here a_vec = row i */
@@ -213,4 +300,23 @@
      /* Here a_veci = row i+1 */
  
      /* j=HFEDegJ */
+@@ -539,10 +519,6 @@
+     #endif
+     #endif
+ 
+-    #if (!PRECOMPUTED_CBASIS)
+-        free(alpha_vec);
+-    #endif
+-
+     /* Put linear part on "diagonal" of MQS */
+     lin_cp=lin;
+     MQS_cp=MQS+NB_WORD_GFqn;
+@@ -553,7 +529,6 @@
+         MQS_cp+=i*NB_WORD_GFqn;
+     }
+ 
+-    free(lin);
+     return 0;
+ }
+ 
 
