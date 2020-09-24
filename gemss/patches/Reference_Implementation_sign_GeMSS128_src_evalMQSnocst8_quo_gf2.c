@@ -11,7 +11,7 @@
  #endif
  
 -#define MASK_EQ mask64(NB_EQ&63)
-+#define MASK_EQ ((1<<(NB_EQ&63))-1)
++#define MASK_EQ ((UINT_1<<(NB_EQ&63))-UINT_1)
  #if (NB_EQ&63)
      #define MASK_64(c) (c)&=MASK_EQ;
      #define MASK2_64(c,a) (c)=(a)&MASK_EQ;
