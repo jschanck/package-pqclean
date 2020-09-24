@@ -4,8 +4,8 @@ BASE=`dirname $0`
 BASE=`cd ${BASE} && pwd`
 
 VERSION=$(cat ${BASE}/VERSION)
-V1=${VERSION}
-V2=${VERSION}-patched
+V1=upstream
+V2=upstream-patched
 
 ARCHIVE=${VERSION/.a/.zip}
 
@@ -34,15 +34,15 @@ then
   rm -rf ${V2}
 fi
 
-mkdir -p ${V1}
-mkdir -p ${V2}
-
-
 if [ ! -f ${BASE}/${ARCHIVE} ]
 then
   wget -P ${BASE} http://www-polsys.lip6.fr/~ryckeghem/packages/${ARCHIVE}
 fi
 unzip -qq -d ${BASE} ${BASE}/${ARCHIVE}
+
+mv ${VERSION} ${V1}
+mkdir -p ${V2}
+
 
 # De-duplicate files with symlinks. All patches are applied to
 # Reference_Implementation/GeMSS-128 and Optimized_Implementation/GeMSS-128

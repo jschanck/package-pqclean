@@ -7,8 +7,8 @@ cd ${BASE}
 PATCHES=${BASE}/patches
 
 VERSION=$(cat ${BASE}/VERSION)
-V1=${VERSION}
-V2=${VERSION}-patched
+V1=upstream
+V2=upstream-patched
 
 if [ ! -e "${V1}" ]
 then

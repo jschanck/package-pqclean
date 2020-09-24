@@ -14,7 +14,12 @@ BUILD_TEST=${BUILD}/test
 
 SCRIPTS=${BASE}/scripts
 
-#set -o errexit
+# some useful sed arguments
+GRAB=( -e '/\#define/!d' -e '/\#define _.*_H$/d' -e 's/\(define .*\)U$/\1/' )
+STRAIGHTEN_IF=( -e :a -e '/#if.*\\$/N; s/\\\n//; ta' )
+STRAIGHTEN_DEF=( -e :a -e '/#define.*\\$/N; s/\\\n//; ta' )
+
+set -eu
 
 function task {
   echo -e "[ ]" $1
@@ -28,7 +33,6 @@ function cleanup {
   rm -rf ${BUILD_UPSTREAM}
 }
 trap cleanup EXIT
-
 
 if [ -e "${BUILD_CRYPTO_SIGN}" ]
 then
@@ -47,7 +51,7 @@ then
 fi
 
 task "Unpacking ${ARCHIVE}"
-unzip -qq -d ${BUILD} ${BASE}/${ARCHIVE}
+( unzip -qq -d ${BUILD} ${BASE}/${ARCHIVE}
 mv ${BUILD}/${VERSION}* ${BUILD_UPSTREAM}
 cd ${BUILD_UPSTREAM}
 for X in {Ref*,Opt*}/sign/*/*/*
@@ -56,20 +60,20 @@ do
   if [ ${PARAM} == 'GeMSS128' ]; then continue; fi 
   if [ ${FILE} == 'choice_crypto.h' ]; then continue; fi 
   ln -sf ../../GeMSS128/${SUB}/${FILE} ${X}
-done
+done )
 endtask
 
 task 'Applying patches to upstream source code'
-cd ${BUILD_UPSTREAM}
+( cd ${BUILD_UPSTREAM}
 
 for X in ${BASE}/patches/*
 do
   patch -s -p1 < ${X}
-done
+done )
 endtask
 
 task 'Copying files'
-for COLOR in '' 'Blue' 'Red'
+( for COLOR in '' 'Blue' 'Red'
 do
   for SECURITY in 128 192 256
   do
@@ -86,15 +90,11 @@ do
     done
     sed -i -s '/include "KAT_int.h"/d' ${BUILD_CRYPTO_SIGN}/*/*/*.h
   done
-done
+done )
 endtask
 
 task 'Removing ifdefs'
-# some useful sed arguments
-GRAB=( -e '/\#define/!d' -e '/\#define _.*_H$/d' -e 's/\(define .*\)U$/\1/' )
-STRAIGHTEN_IF=( -e :a -e '/#if.*\\$/N; s/\\\n//; ta' )
-STRAIGHTEN_DEF=( -e :a -e '/#define.*\\$/N; s/\\\n//; ta' )
-
+(
 UNIFDEFOPTS="-B -k -m \
 -D__x86_64__ -U__cplusplus \
 -U__AVX2__ -U__AVX__ -U__PCLMUL__ -U__POPCNT__ -U__SSE2__ -U__SSE4_1__ -U__SSE__ -U__SSSE3__ \
@@ -106,9 +106,9 @@ UNIFDEFOPTS="-B -k -m \
 
 # All of the compilation decisions are set by choice_crypto.h
 sed -s -i "${STRAIGHTEN_IF[@]}" ${BUILD_CRYPTO_SIGN}/*/*/choice_crypto.h
-unifdef ${UNIFDEFOPTS} -DBlueGeMSS ${BUILD_CRYPTO_SIGN}/gemss-blue-{128,192,256}/*/choice_crypto.h
-unifdef ${UNIFDEFOPTS} -DGeMSS ${BUILD_CRYPTO_SIGN}/gemss-{128,192,256}/*/choice_crypto.h
-unifdef ${UNIFDEFOPTS} -DRedGeMSS ${BUILD_CRYPTO_SIGN}/gemss-red-{128,192,256}/*/choice_crypto.h
+unifdef ${UNIFDEFOPTS} -DBlueGeMSS ${BUILD_CRYPTO_SIGN}/gemss-blue-{128,192,256}/*/choice_crypto.h || true
+unifdef ${UNIFDEFOPTS} -DGeMSS ${BUILD_CRYPTO_SIGN}/gemss-{128,192,256}/*/choice_crypto.h || true
+unifdef ${UNIFDEFOPTS} -DRedGeMSS ${BUILD_CRYPTO_SIGN}/gemss-red-{128,192,256}/*/choice_crypto.h || true
 
 # We'll build without libgf2x
 sed -i 's/ENABLED_GF2X 1/ENABLED_GF2X 0/' ${BUILD_CRYPTO_SIGN}/*/*/arch.h
@@ -136,57 +136,52 @@ do
 
   cat choice_crypto.h | sed "${GRAB[@]}" >> ${DFILE}
 
-  unifdef ${UNIFDEFOPTS} -f ${DFILE} parameters_HFE.h
+  unifdef ${UNIFDEFOPTS} -f ${DFILE} parameters_HFE.h || true
   cat parameters_HFE.h | sed "${GRAB[@]}" >> ${DFILE}
 
-  unifdef ${UNIFDEFOPTS} -f ${DFILE} arch.h
+  unifdef ${UNIFDEFOPTS} -f ${DFILE} arch.h || true
   cat arch.h | sed "${STRAIGHTEN_DEF[@]}" | sed "${GRAB[@]}" >> ${DFILE}
 
-  unifdef ${UNIFDEFOPTS} -f ${DFILE} chooseRootHFE_gf2nx.h
+  unifdef ${UNIFDEFOPTS} -f ${DFILE} chooseRootHFE_gf2nx.h || true
   cat chooseRootHFE_gf2nx.h | sed "${GRAB[@]}" >> ${DFILE}
 
   FILE=config_gf2n.h
-  unifdef ${UNIFDEFOPTS} -f ${DFILE} ${FILE}
+  unifdef ${UNIFDEFOPTS} -f ${DFILE} ${FILE} || true
   grep "#define K[123]" ${FILE} | sed "${GRAB[@]}" >> ${DFILE}
-  unifdef ${UNIFDEFOPTS} -UK2 -UK3 -f ${DFILE} ${FILE}
+  unifdef ${UNIFDEFOPTS} -UK2 -UK3 -f ${DFILE} ${FILE} || true
   grep "#define __.*NOMIAL_GF2N__" ${FILE} | sed "${GRAB[@]}" >> ${DFILE}
-  unifdef ${UNIFDEFOPTS} -U__TRINOMIAL_GF2N__ -U__PENTANOMIAL_GF2N__ -f ${DFILE} ${FILE}
+  unifdef ${UNIFDEFOPTS} -U__TRINOMIAL_GF2N__ -U__PENTANOMIAL_GF2N__ -f ${DFILE} ${FILE} || true
   UNIFDEFOPTS="${UNIFDEFOPTS} -UK2 -UK3 -U__TRINOMIAL_GF2N__ -U__PENTANOMIAL_GF2N__"
 
   FILE=config_HFE.h
-  unifdef ${UNIFDEFOPTS} -f ${DFILE} ${FILE}
+  unifdef ${UNIFDEFOPTS} -f ${DFILE} ${FILE} || true
   cat ${FILE} | sed "${GRAB[@]}" >> ${DFILE}
 
   FILE=frobeniusMap_gf2nx.h
-  unifdef ${UNIFDEFOPTS} -f ${DFILE} ${FILE}
+  unifdef ${UNIFDEFOPTS} -f ${DFILE} ${FILE} || true
   grep "#define.*II" ${FILE} | sed "${GRAB[@]}" >> ${DFILE}
 
   K=$(grep 'define K [0-9]' ${DFILE} | awk '{print $(NF)}')
   N=$(grep 'define HFEn [0-9]' ${DFILE} | awk '{print $(NF)}')
   V=$(grep 'define HFEv [0-9]' ${DFILE} | awk '{print $(NF)}')
   DELTA=$(grep 'define HFEDELTA [0-9]' ${DFILE} | awk '{print $(NF)}')
-  HFEDeg=$(grep 'define HFEDeg [0-9]' ${DFILE} | awk '{print $(NF)}')
+  HFEDEG=$(grep 'define HFEDeg [0-9]' ${DFILE} | awk '{print $(NF)}')
   HFEDEGI=$(grep 'define HFEDegI [0-9]' ${DFILE} | awk '{print $(NF)}')
   HFEDEGJ=$(grep 'define HFEDegJ [0-9]' ${DFILE} | awk '{print $(NF)}')
   NB_ITE=$(grep 'define NB_ITE [0-9]' ${DFILE} | awk '{print $(NF)}')
   II=$(grep 'define II [0-9]' ${DFILE} | awk '{print $(NF)}')
 
-  # remove unsigned (U) qualifiers
-  K=${K}
-  N=${N}
-  V=${V}
-  DELTA=${DELTA}
-  HFEDeg=${HFEDeg}
-  HFEDegI=${HFEDegI}
-  HFEDegJ=${HFEDegJ}
-
   NR=$((${N}%64))
   NQ=$((${N}/64))
+  NR8=$((${N}%8))
+  NQ8=$((${N}/8))
   NB_WORD_MUL=$(((2*(${N}-1))/64+1))
   NB_WORD_MMUL=$(((2*(${N}-1))/64+1))
 
   VR=$((${V}%64))
   VQ=$((${V}/64))
+  VR8=$((${V}%8))
+  VQ8=$((${V}/8))
 
   M=$((${N}-${DELTA}))
   MR=$((${M}%64))
@@ -197,6 +192,8 @@ do
   NV=$((${N}+${V}))
   NVR=$((${NV}%64))
   NVQ=$((${NV}/64))
+  NVR8=$((${NV}%8))
+  NVQ8=$((${NV}/8))
 
   NB_MONOMIAL_PK=$(((${NV}*(${NV}+1))/2+1))
 
@@ -226,6 +223,10 @@ do
   NB_WORD_GF2nvm=$((${NB_WORD_GF2nv}-${NB_WORD_GF2m}))
   [ ${MR} -ne 0 ] && ((NB_WORD_GF2nvm+=1))
 
+  [ $((${DELTA}+${V})) -lt $((8-${MR8})) ] &&
+    VAL_BITS_M=$((${DELTA}+${V})) ||
+    VAL_BITS_M=$((8-${MR8}))
+
   echo "#define HFENq $((${NB_MONOMIAL_PK}/64))" >> ${DFILE}
   echo "#define HFENq8 $((${NB_MONOMIAL_PK}/8))" >> ${DFILE}
   echo "#define HFENr $((${NB_MONOMIAL_PK}%64))" >> ${DFILE}
@@ -241,11 +242,11 @@ do
   echo "#define HFEnr8 $((${N}%8))" >> ${DFILE}
   echo "#define HFEnv ${NV}" >> ${DFILE}
   echo "#define HFEnvr ${NVR}" >> ${DFILE}
-  echo "#define HFEnvr8 $((${NV}%8))" >> ${DFILE}
+  echo "#define HFEnvr8 ${NVR8}" >> ${DFILE}
   echo "#define HFEnvrm1 $(((${NV}-1)%64))" >> ${DFILE}
   echo "#define HFEv ${V}" >> ${DFILE}
   echo "#define HFEvr ${VR}" >> ${DFILE}
-  echo "#define HFEvr8 $((${VR}%8))" >> ${DFILE}
+  echo "#define HFEvr8 ${VR8}" >> ${DFILE}
   echo "#define KI ${NR}" >> ${DFILE} 
   echo "#define LAST_ROW_Q $(((${NV}-${LOST_BITS})/64))" >> ${DFILE}
   echo "#define LAST_ROW_R $(((${NV}-${LOST_BITS})%64))" >> ${DFILE}
@@ -269,13 +270,13 @@ do
   echo "#define SIZE_ALIGNED_GFqn 0" >> ${DFILE}
 
   FILE=gf2nx.h
-  sed -i "s/(HFEDeg&1U\?)/($((${HFEDeg}%2)))/" ${FILE}
-  unifdef ${UNIFDEFOPTS} -f ${DFILE} ${FILE}
+  sed -i "s/(HFEDeg&1U\?)/($((${HFEDEG}%2)))/" ${FILE}
+  unifdef ${UNIFDEFOPTS} -f ${DFILE} ${FILE} || true
   grep 'define ENABLED_REMOVE_ODD_DEGREE' ${FILE} >> ${DFILE}
 
   # Done extracting defines. Do a full pass to simplify later work.
 
-  unifdef ${UNIFDEFOPTS} -f ${DFILE} *.{c,h}
+  unifdef ${UNIFDEFOPTS} -f ${DFILE} *.{c,h} || true
 
   # Clean up some arithmetic that unifdef cannot handle.
 
@@ -295,7 +296,7 @@ do
   unifdef ${UNIFDEFOPTS} -DNB_VAR=${V} -DNB_VARq=${VQ} -DNB_VARr=${VR} -DNB_EQr=${NR}\
           -DNB_WORD_EQ_TMP=${NB_WORD_EQ} -DNB_WORD_EQ=${NB_WORD_EQ}\
           -DHYBRID_FUNCTIONS=0\
-          -f ${DFILE} ${FILE}
+          -f ${DFILE} ${FILE} || true
 
   FILE=evalMQSnocst8_gf2.c
   NB_BYTES_EQ=${MQ8}
@@ -307,7 +308,7 @@ do
   unifdef ${UNIFDEFOPTS} -DNB_VAR=${NV} -DNB_VARq=${NVQ} -DNB_VARr=${NVR} -DNB_EQr=${MR}\
           -DNB_BYTES_EQ=${NB_BYTES_EQ} -DNB_WORD_EQ=$((NB_WORD_EQ_NOCST8))\
           -DLEN_UNROLLED_64=${LEN_UNROLLED_64}\
-          -f ${DFILE} ${FILE}
+          -f ${DFILE} ${FILE} || true
 
   FILE=evalMQSnocst8_quo_gf2.c
   [ ${MQ8} == 0 ] && NB_EQ=${M} || NB_EQ=$((8*${MQ8}))
@@ -322,11 +323,12 @@ do
           -DNB_EQq_orig=${MQ8} -DNB_EQr=$((${NB_EQ}%8)) \
           -DNB_BYTES_EQ=${NB_BYTES_EQ} -DNB_WORD_EQ=${NB_WORD_EQ} \
           -DLEN_UNROLLED_64=${LEN_UNROLLED_64} \
-          -f ${DFILE} ${FILE}
+          -f ${DFILE} ${FILE} || true
 
   FILE=frobeniusMap_gf2nx.c
   [ ${IMPL} == "avx2" ] &&
     sed -i "s/(HFEn-HFEDegI)%II/$(((${N} - ${HFEDEGI})%${II}))/" ${FILE}
+    #sed -i "s/((HFEDeg%POW_II)?1:0)/$(((${HFEDEG}%(1<<${II}))?1:0))/" ${FILE}
 
   FILE=inv_gf2n.c
   sed -i "s/HFEn&63/$((${N}%64))/" ${FILE}
@@ -345,12 +347,14 @@ do
   sed -i "s/(NB_WORD_MMUL&1)/$((${NB_WORD_MMUL}%2))/" ${FILE}
 
   FILE=signHFE.c
+  sed -i "s/#define VAL_BITS_M.*/#define VAL_BITS_M ${VAL_BITS_M}/" ${FILE}
   sed -i "s/HFEDELTA+HFEv/$((${DELTA}+${V}))/" ${FILE}
   sed -i "s/(HFEm&7)/(${MR8})/" ${FILE}
   sed -i "s/HFEn&7/$((${N}%8))/" ${FILE}
   sed -i "s/NB_WORD_GFqn+NB_WORD_GFqv/$((${NB_WORD_GFqn}+${NB_WORD_GFqv}))/" ${FILE}
 
   FILE=sign_openHFE.c
+  sed -i "s/#define VAL_BITS_M.*/#define VAL_BITS_M ${VAL_BITS_M}/" ${FILE}
   sed -i "s/HFEDELTA+HFEv/$((${DELTA}+${V}))/" ${FILE}
   sed -i "s/HFEm&7/${MR8}/" ${FILE}
 
@@ -360,14 +364,24 @@ do
   FILE=tools_gf2m.h
   sed -i "s/NB_WORD_GF2m&3/$((${NB_WORD_GF2m}%4))/" ${FILE}
   sed -i "s/NB_WORD_GF2m&1/$((${NB_WORD_GF2m}%2))/" ${FILE}
+  sed -i "s/((HFEmr8)?1:0)/$((${MR8}?1:0))/" ${FILE}
 
   FILE=tools_gf2n.h
   sed -i "s/NB_WORD_GFqn&3/$((${NB_WORD_GFqn}%4))/" ${FILE}
   sed -i "s/NB_WORD_GFqn&1/$((${NB_WORD_GFqn}%2))/" ${FILE}
   sed -i "s/HFEn%NB_BITS_UINT/$((${N}%64))/" ${FILE}
+  sed -i "s/((HFEnr8)?1:0)/$((${NR8}?1:0))/" ${FILE}
+
+  FILE=tools_gf2nv.h
+  sed -i "s/((HFEnvr8)?1:0)/$((${NVR8}?1:0))/" ${FILE}
+  sed -i "s/(HFEmr?1:0)/$((${MR}?1:0))/" ${FILE}
+
+  FILE=tools_gf2v.h
+  sed -i "s/((HFEvr8)?1:0)/$((${VR8}?1:0))/" ${FILE}
+
 
   # final pass
-  unifdef ${UNIFDEFOPTS} -f ${DFILE} *.{c,h}
+  unifdef ${UNIFDEFOPTS} -f ${DFILE} *.{c,h} || true
 
   rm ${DFILE}
 
@@ -397,11 +411,11 @@ int crypto_sign_verify(const uint8_t *sig, size_t siglen, const uint8_t *m, size
 #endif
 " > api.h
 )
-done
+done )
 endtask
 
 task 'Sorting #includes'
-for PARAM in gemss-{,blue-,red-}{128,192,256}
+( for PARAM in gemss-{,blue-,red-}{128,192,256}
 do
   for IMPL in clean avx2
   do
@@ -423,7 +437,7 @@ do
       echo "${INCL1}\n${INCL2}\n${REST}" | sed 's/\\n/\n/g' > ${F}
     done
   done
-done
+done )
 endtask
 
 #MANIFEST=${BUILD_TEST}/duplicate_consistency
@@ -477,8 +491,8 @@ endtask
 #rm -rf ${MANIFEST}/*.xxx
 
 task 'Namespacing' 
-# XXX: figure out how to preserve define formatting.
-sed -s -i "${STRAIGHTEN_DEF[@]}" ${BUILD_CRYPTO_SIGN}/*/*/*.h
+( # XXX: figure out how to preserve define formatting.
+sed -i -s "${STRAIGHTEN_DEF[@]}" ${BUILD_CRYPTO_SIGN}/*/*/*.h
 
 # GeMSS has its own namespacing macro. We'll delete it and do it our way.
 sed -i -s '/include "prefix_name.h"/d' ${BUILD_CRYPTO_SIGN}/*/*/*.h
@@ -504,11 +518,11 @@ do
     sed -i -s "s/f_/${NAMESPACE}_/" tools_gf2n.h tools_gf2m.h hash.h
     )
   done
-done
+done )
 endtask
 
 task 'Copying metadata'
-# Makefiles and other metadata
+( # Makefiles and other metadata
 for PARAM in gemss-{,blue-,red-}{128,192,256}
 do
   ( cd ${BUILD_CRYPTO_SIGN}/${PARAM}/
@@ -604,7 +618,7 @@ clean:
 	\$(RM) \$(LIB)" > avx2/Makefile
 
   )
-done
+done )
 endtask
 
 task 'Styling'
