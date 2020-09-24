@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Reference_Implementation/sign/GeMSS128/include/dotProduct_gf2.h
-+++ GeMSS-Round2_V2.a-patched/Reference_Implementation/sign/GeMSS128/include/dotProduct_gf2.h
+--- upstream/Reference_Implementation/sign/GeMSS128/include/dotProduct_gf2.h
++++ upstream-patched/Reference_Implementation/sign/GeMSS128/include/dotProduct_gf2.h
 @@ -10,50 +10,50 @@
  
  /* Dot product of vector of bits */

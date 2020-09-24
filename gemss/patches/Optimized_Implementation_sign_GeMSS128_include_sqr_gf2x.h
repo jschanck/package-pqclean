@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/include/sqr_gf2x.h
-+++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/include/sqr_gf2x.h
+--- upstream/Optimized_Implementation/sign/GeMSS128/include/sqr_gf2x.h
++++ upstream-patched/Optimized_Implementation/sign/GeMSS128/include/sqr_gf2x.h
 @@ -66,7 +66,7 @@
      SQR64_NO_SIMD_GF2X(C,(A)[0]);
  

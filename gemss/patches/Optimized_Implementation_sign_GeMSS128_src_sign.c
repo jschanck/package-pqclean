@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/src/sign.c
-+++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/src/sign.c
+--- upstream/Optimized_Implementation/sign/GeMSS128/src/sign.c
++++ upstream-patched/Optimized_Implementation/sign/GeMSS128/src/sign.c
 @@ -1,7 +1,6 @@
  #include "api.h"
 -#if SUPERCOP

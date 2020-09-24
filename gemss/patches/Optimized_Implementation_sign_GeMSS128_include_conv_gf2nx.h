@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/include/conv_gf2nx.h
-+++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/include/conv_gf2nx.h
+--- upstream/Optimized_Implementation/sign/GeMSS128/include/conv_gf2nx.h
++++ upstream-patched/Optimized_Implementation/sign/GeMSS128/include/conv_gf2nx.h
 @@ -10,7 +10,7 @@
  
  

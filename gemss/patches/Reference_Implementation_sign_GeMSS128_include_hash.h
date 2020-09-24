@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Reference_Implementation/sign/GeMSS128/include/hash.h
-+++ GeMSS-Round2_V2.a-patched/Reference_Implementation/sign/GeMSS128/include/hash.h
+--- upstream/Reference_Implementation/sign/GeMSS128/include/hash.h
++++ upstream-patched/Reference_Implementation/sign/GeMSS128/include/hash.h
 @@ -1,311 +1,40 @@
  #ifndef _HASH_H
  #define _HASH_H

@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/include/frobeniusMap_gf2nx.h
-+++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/include/frobeniusMap_gf2nx.h
+--- upstream/Optimized_Implementation/sign/GeMSS128/include/frobeniusMap_gf2nx.h
++++ upstream-patched/Optimized_Implementation/sign/GeMSS128/include/frobeniusMap_gf2nx.h
 @@ -9,7 +9,7 @@
  #include "gf2nx.h"
  

@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/include/add_gf2nx.h
-+++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/include/add_gf2nx.h
+--- upstream/Optimized_Implementation/sign/GeMSS128/include/add_gf2nx.h
++++ upstream-patched/Optimized_Implementation/sign/GeMSS128/include/add_gf2nx.h
 @@ -14,7 +14,7 @@
   * @remark  Constant-time implementation when len is not secret.
   */

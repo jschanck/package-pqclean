@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Reference_Implementation/sign/GeMSS128/src/convMQ_gf2.c
-+++ GeMSS-Round2_V2.a-patched/Reference_Implementation/sign/GeMSS128/src/convMQ_gf2.c
+--- upstream/Reference_Implementation/sign/GeMSS128/src/convMQ_gf2.c
++++ upstream-patched/Reference_Implementation/sign/GeMSS128/src/convMQ_gf2.c
 @@ -98,7 +98,7 @@
      /* i == HFEnv */
      nb_bits=HFEnv;

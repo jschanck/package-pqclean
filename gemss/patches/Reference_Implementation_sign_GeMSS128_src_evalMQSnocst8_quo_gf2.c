@@ -1,11 +1,20 @@
---- GeMSS-Round2_V2.a/Reference_Implementation/sign/GeMSS128/src/evalMQSnocst8_quo_gf2.c
-+++ GeMSS-Round2_V2.a-patched/Reference_Implementation/sign/GeMSS128/src/evalMQSnocst8_quo_gf2.c
+--- upstream/Reference_Implementation/sign/GeMSS128/src/evalMQSnocst8_quo_gf2.c
++++ upstream-patched/Reference_Implementation/sign/GeMSS128/src/evalMQSnocst8_quo_gf2.c
 @@ -1,4 +1,4 @@
 -#include "evalMQSnocst8_gf2.h"
 +#include "evalMQSnocst8_quo_gf2.h"
  #include "add_gf2x.h"
  #include "init.h"
  #include "simd.h"
+@@ -49,7 +49,7 @@
+     #define NB_BYTES_EQ NB_EQq
+ #endif
+ 
+-#define MASK_EQ mask64(NB_EQ&63)
++#define MASK_EQ ((1<<(NB_EQ&63))-1)
+ #if (NB_EQ&63)
+     #define MASK_64(c) (c)&=MASK_EQ;
+     #define MASK2_64(c,a) (c)=(a)&MASK_EQ;
 @@ -89,68 +89,45 @@
  
  #define CONCAT_NB_WORD_EQ_SUP(name) CONCAT(name,NB_WORD_EQ)
@@ -36,7 +45,7 @@
 -#endif
 -
 -
-+#define XOR_ELEM(a,b) ADD_2_GF2X((unsigned char *)a,(unsigned char *)b,8*NB_WORD_EQ);
++#define XOR_ELEM(a,b) ADD_2_GF2X((unsigned char *)(a),(unsigned char *)(b),8*NB_WORD_EQ);
  
  #define LOOPJR_NOCST_64(START,NB_IT) \
 -    for(jr=START;jr<NB_IT;++jr)\

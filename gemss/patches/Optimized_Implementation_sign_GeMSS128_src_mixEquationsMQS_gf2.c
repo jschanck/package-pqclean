@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/src/mixEquationsMQS_gf2.c
-+++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/src/mixEquationsMQS_gf2.c
+--- upstream/Optimized_Implementation/sign/GeMSS128/src/mixEquationsMQS_gf2.c
++++ upstream-patched/Optimized_Implementation/sign/GeMSS128/src/mixEquationsMQS_gf2.c
 @@ -51,11 +51,10 @@
  
          for(i=0;i<HFEmq;++i)

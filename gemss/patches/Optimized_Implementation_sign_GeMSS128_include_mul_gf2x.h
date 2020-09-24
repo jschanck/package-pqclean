@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/include/mul_gf2x.h
-+++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/include/mul_gf2x.h
+--- upstream/Optimized_Implementation/sign/GeMSS128/include/mul_gf2x.h
++++ upstream-patched/Optimized_Implementation/sign/GeMSS128/include/mul_gf2x.h
 @@ -76,9 +76,9 @@
  /* Classical, 189 = 31×6+3 instructions */
  #define MUL32_NO_UNROLLED_NO_SIMD_GF2X(C,A,B,i) \

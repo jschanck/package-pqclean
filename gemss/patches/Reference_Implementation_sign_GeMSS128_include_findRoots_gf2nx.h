@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Reference_Implementation/sign/GeMSS128/include/findRoots_gf2nx.h
-+++ GeMSS-Round2_V2.a-patched/Reference_Implementation/sign/GeMSS128/include/findRoots_gf2nx.h
+--- upstream/Reference_Implementation/sign/GeMSS128/include/findRoots_gf2nx.h
++++ upstream-patched/Reference_Implementation/sign/GeMSS128/include/findRoots_gf2nx.h
 @@ -19,14 +19,14 @@
      convHFEpolynomialSparseToDense_gf2nx(poly2,F);\
      /* Initialize to F-U */\

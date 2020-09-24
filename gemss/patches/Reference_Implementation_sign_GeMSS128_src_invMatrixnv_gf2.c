@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Reference_Implementation/sign/GeMSS128/src/invMatrixnv_gf2.c
-+++ GeMSS-Round2_V2.a-patched/Reference_Implementation/sign/GeMSS128/src/invMatrixnv_gf2.c
+--- upstream/Reference_Implementation/sign/GeMSS128/src/invMatrixnv_gf2.c
++++ upstream-patched/Reference_Implementation/sign/GeMSS128/src/invMatrixnv_gf2.c
 @@ -49,7 +49,7 @@
  
  #define LOOPIR(NB_IT,LOOPK1,LOOPK2) \

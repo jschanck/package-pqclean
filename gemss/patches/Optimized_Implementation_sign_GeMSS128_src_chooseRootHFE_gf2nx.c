@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/src/chooseRootHFE_gf2nx.c
-+++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/src/chooseRootHFE_gf2nx.c
+--- upstream/Optimized_Implementation/sign/GeMSS128/src/chooseRootHFE_gf2nx.c
++++ upstream-patched/Optimized_Implementation/sign/GeMSS128/src/chooseRootHFE_gf2nx.c
 @@ -49,71 +49,70 @@
  
          l=findRootsHFE_gf2nx(&roots,F,U);

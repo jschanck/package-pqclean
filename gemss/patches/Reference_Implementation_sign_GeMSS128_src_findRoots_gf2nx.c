@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Reference_Implementation/sign/GeMSS128/src/findRoots_gf2nx.c
-+++ GeMSS-Round2_V2.a-patched/Reference_Implementation/sign/GeMSS128/src/findRoots_gf2nx.c
+--- upstream/Reference_Implementation/sign/GeMSS128/src/findRoots_gf2nx.c
++++ upstream-patched/Reference_Implementation/sign/GeMSS128/src/findRoots_gf2nx.c
 @@ -81,12 +81,10 @@
          free(poly);
          free(poly2);

@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/src/vecMatProduct_gf2.c
-+++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/src/vecMatProduct_gf2.c
+--- upstream/Optimized_Implementation/sign/GeMSS128/src/vecMatProduct_gf2.c
++++ upstream-patched/Optimized_Implementation/sign/GeMSS128/src/vecMatProduct_gf2.c
 @@ -9,12 +9,12 @@
  
  /* for a block of bits of vec */

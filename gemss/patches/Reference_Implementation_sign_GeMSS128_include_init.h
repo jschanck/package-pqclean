@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Reference_Implementation/sign/GeMSS128/include/init.h
-+++ GeMSS-Round2_V2.a-patched/Reference_Implementation/sign/GeMSS128/include/init.h
+--- upstream/Reference_Implementation/sign/GeMSS128/include/init.h
++++ upstream-patched/Reference_Implementation/sign/GeMSS128/include/init.h
 @@ -116,23 +116,23 @@
  
  #define SET1_2(c) \

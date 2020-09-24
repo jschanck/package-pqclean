@@ -1,6 +1,6 @@
---- GeMSS-Round2_V2.a/Reference_Implementation/sign/GeMSS128/src/vecMatProduct_gf2.c
-+++ GeMSS-Round2_V2.a-patched/Reference_Implementation/sign/GeMSS128/src/vecMatProduct_gf2.c
-@@ -9,12 +9,12 @@
+--- upstream/Reference_Implementation/sign/GeMSS128/src/vecMatProduct_gf2.c
++++ upstream-patched/Reference_Implementation/sign/GeMSS128/src/vecMatProduct_gf2.c
+@@ -9,7 +9,7 @@
  
  /* for a block of bits of vec */
  #define LOOPIR_M(NB_IT) \
@@ -9,12 +9,6 @@
      {\
          /* multiply the (iq*NB_BITS_UINT)+ir bit of vec
              by the (iq*NB_BITS_UINT)+ir row of S */\
-         vec_ir=-(bit_ir&1);\
--        xorLoadMask1_gf2m(res,S_cp,vec_ir);\
-+        XORLOADMASK1((unsigned char *)res,(unsigned char *)S_cp,vec_ir,8*NB_WORD_GF2m);\
-         /* next row of S */\
-         S_cp+=NB_WORD_GFqn;\
-         bit_ir>>=1;\
 @@ -22,7 +22,7 @@
  
  /* for a block of bits of vec */

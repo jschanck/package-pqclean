@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/src/inv_gf2n.c
-+++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/src/inv_gf2n.c
+--- upstream/Optimized_Implementation/sign/GeMSS128/src/inv_gf2n.c
++++ upstream-patched/Optimized_Implementation/sign/GeMSS128/src/inv_gf2n.c
 @@ -222,7 +222,7 @@
      /* res=res * res^(2^((HFEn-1)>>i)) */\
      /* res^(2^((HFEn-1)>>i)) */\

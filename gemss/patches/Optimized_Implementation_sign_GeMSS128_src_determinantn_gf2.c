@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/src/determinantn_gf2.c
-+++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/src/determinantn_gf2.c
+--- upstream/Optimized_Implementation/sign/GeMSS128/src/determinantn_gf2.c
++++ upstream-patched/Optimized_Implementation/sign/GeMSS128/src/determinantn_gf2.c
 @@ -44,7 +44,7 @@
  
  #define LOOPIR(NB_IT,LOOPK1,LOOPK2) \

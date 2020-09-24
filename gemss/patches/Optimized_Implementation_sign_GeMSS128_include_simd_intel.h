@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/include/simd_intel.h
-+++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/include/simd_intel.h
+--- upstream/Optimized_Implementation/sign/GeMSS128/include/simd_intel.h
++++ upstream-patched/Optimized_Implementation/sign/GeMSS128/include/simd_intel.h
 @@ -16,7 +16,7 @@
      #define PSHUFFLE_PS(A,B,i) \
                  ((__m128i)_mm_shuffle_ps((__m128)(A),(__m128)(B),i))

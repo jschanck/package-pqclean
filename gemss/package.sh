@@ -328,7 +328,10 @@ do
   FILE=frobeniusMap_gf2nx.c
   [ ${IMPL} == "avx2" ] &&
     sed -i "s/(HFEn-HFEDegI)%II/$(((${N} - ${HFEDEGI})%${II}))/" ${FILE}
-    #sed -i "s/((HFEDeg%POW_II)?1:0)/$(((${HFEDEG}%(1<<${II}))?1:0))/" ${FILE}
+
+  FILE=frobeniusMap_gf2nx.h
+  [ ${IMPL} == "avx2" ] &&
+    sed -i "s/((HFEDeg%POW_II)?1:0)/$(((${HFEDEG}%(1<<${II}))?1:0))/" ${FILE}
 
   FILE=inv_gf2n.c
   sed -i "s/HFEn&63/$((${N}%64))/" ${FILE}

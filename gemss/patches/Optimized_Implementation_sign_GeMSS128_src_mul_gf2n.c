@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/src/mul_gf2n.c
-+++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/src/mul_gf2n.c
+--- upstream/Optimized_Implementation/sign/GeMSS128/src/mul_gf2n.c
++++ upstream-patched/Optimized_Implementation/sign/GeMSS128/src/mul_gf2n.c
 @@ -132,44 +132,6 @@
  /***********************************************************************/
  /***********************************************************************/

@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/src/mul_gf2x.c
-+++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/src/mul_gf2x.c
+--- upstream/Optimized_Implementation/sign/GeMSS128/src/mul_gf2x.c
++++ upstream-patched/Optimized_Implementation/sign/GeMSS128/src/mul_gf2x.c
 @@ -45,6 +45,7 @@
      MUL128_NO_SIMD_GF2X(C,A,B,tmp,AA,BB);
  }

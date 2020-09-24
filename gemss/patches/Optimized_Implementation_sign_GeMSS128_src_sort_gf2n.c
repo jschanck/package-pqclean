@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/src/sort_gf2n.c
-+++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/src/sort_gf2n.c
+--- upstream/Optimized_Implementation/sign/GeMSS128/src/sort_gf2n.c
++++ upstream-patched/Optimized_Implementation/sign/GeMSS128/src/sort_gf2n.c
 @@ -111,7 +111,7 @@
  
      /* The power of 2 before l, which is 1<<position(MSB(l-1)). */
@@ -9,7 +9,23 @@
      {
          pow2_prev<<=1;
      }
-@@ -171,7 +171,7 @@
+@@ -123,7 +123,14 @@
+         /* Size of the remainder block */
+         rem=l-(pa<<1)*quo;
+         /* Impact on the sort */
+-        rem=(rem<=pa)?0:(rem-pa);
++        if (rem<=pa)
++        {
++            rem=0;
++        }
++        else
++        {
++            rem=rem-pa;
++        }
+ 
+         tab_i=tab;
+         tab_ipa=tab+pa*NB_WORD_GFqn;
+@@ -171,7 +178,7 @@
      /* pa=1 */
      tab_i=tab;
      tab_ipa=tab+NB_WORD_GFqn;

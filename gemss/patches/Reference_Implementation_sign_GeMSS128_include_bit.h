@@ -1,15 +1,26 @@
---- GeMSS-Round2_V2.a/Reference_Implementation/sign/GeMSS128/include/bit.h
-+++ GeMSS-Round2_V2.a-patched/Reference_Implementation/sign/GeMSS128/include/bit.h
-@@ -19,7 +19,7 @@
+--- upstream/Reference_Implementation/sign/GeMSS128/include/bit.h
++++ upstream-patched/Reference_Implementation/sign/GeMSS128/include/bit.h
+@@ -8,18 +8,8 @@
  
+ /* Tools for the bits manipulation */
  
+-
+-/* (2^k) - 1, k<64, and -1 for k=0  */
+-#define mask64(k) ((k)?(ONE64<<(k))-ONE64:MONE64)
+-
+-/* (2^k) - 1, k<32, and -1 for k=0 */
+-#define mask32(k) ((k)?(ONE32<<(k))-ONE32:MONE32)
+-
+-#define maskUINT(k) ((k)?(UINT_1<<(k))-UINT_1:UINT_M1)
+-
+-
  /** The i-th bit of the UINT val. */
 -#define ITHBIT(val,i) ((val>>i)&UINT_1)
 +#define ITHBIT(val,i) (((val)>>(i))&UINT_1)
  
  
  /** Compute the MSB position of one UINT. */
-@@ -27,14 +27,14 @@
+@@ -27,14 +17,14 @@
      Output: res the MSB position of U. If U is zero, res=0
  */
  #define MSB_SP(res,U,j) \
@@ -28,7 +39,7 @@
          }\
      }
  
-@@ -43,15 +43,15 @@
+@@ -43,15 +33,15 @@
      Output: res the MSB position of U. If U is zero, res=0
  */
  #define MSB_MP(res,U,i,j,nb_word) \
@@ -49,7 +60,7 @@
  
  
  
-@@ -78,18 +78,18 @@
+@@ -78,18 +68,18 @@
  
  /* 5 logical operations */
  #define ORBITS64_SHORT(n) \
@@ -76,7 +87,7 @@
  
  
  /* The third fastest method, based on the variable-precision SWAR algorithm */
-@@ -99,95 +99,95 @@
+@@ -99,95 +89,95 @@
  
  /* 12 logical operations */
  #define COUNTBITS64_SWAR(n) \
@@ -201,7 +212,7 @@
  
  
  /* The slowest method, based on the "dichotomic xor/or" */
-@@ -196,55 +196,55 @@
+@@ -196,55 +186,55 @@
  /* A generic method using the dichotomic principle */
  #define ORBITS(n,SIZE) \
      FOR_LOOP_COMPLETE(SIZE,RESERVED_VARIABLE>0,RESERVED_VARIABLE>>1U,\
@@ -286,4 +297,26 @@
  
  
  /* Choose the best method */
+@@ -254,17 +244,10 @@
+ #define   XORBITS64   XORBITS64_DICHO
+ 
+ 
+-#if (NB_BITS_UINT==64U)
+-    #define COUNTBITS_UINT CONCAT(COUNTBITS,NB_BITS_UINT)
+-    #define    ORBITS_UINT CONCAT(   ORBITS,NB_BITS_UINT)
+-    #define   NORBITS_UINT CONCAT(  NORBITS,NB_BITS_UINT)
+-    #define   XORBITS_UINT CONCAT(  XORBITS,NB_BITS_UINT)
+-#else
+-    #define COUNTBITS_UINT  COUNTBITS64_SWAR
+-    #define  ORBITS_UINT(n)  ORBITS(n,NB_BITS_UINT)
+-    #define NORBITS_UINT(n) NORBITS(n,NB_BITS_UINT)
+-    #define XORBITS_UINT(n) XORBITS(n,NB_BITS_UINT)
+-#endif
++#define COUNTBITS_UINT COUNTBITS64
++#define    ORBITS_UINT    ORBITS64
++#define   NORBITS_UINT   NORBITS64
++#define   XORBITS_UINT   XORBITS64
+ 
+ 
+ 
 

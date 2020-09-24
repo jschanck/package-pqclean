@@ -1,10 +1,27 @@
---- GeMSS-Round2_V2.a/Reference_Implementation/sign/GeMSS128/include/tools_gf2n.h
-+++ GeMSS-Round2_V2.a-patched/Reference_Implementation/sign/GeMSS128/include/tools_gf2n.h
+--- upstream/Reference_Implementation/sign/GeMSS128/include/tools_gf2n.h
++++ upstream-patched/Reference_Implementation/sign/GeMSS128/include/tools_gf2n.h
+@@ -52,13 +52,13 @@
+ /* The number of word that an element of GF(2^n) needs */
+ #if (HFEnr)
+     #define NB_WORD_GFqn_TMP (HFEnq+1)
++    /* Mask for arithmetic in GF(2^n) */
++    #define MASK_GF2n ((UINT_1<<(HFEnr))-UINT_1)
+ #else
+     #define NB_WORD_GFqn_TMP HFEnq
++    #define MASK_GF2n UINT_M1
+ #endif
+ 
+-/* Mask for arithmetic in GF(2^n) */
+-#define MASK_GF2n maskUINT(HFEnr)
+-
+ #define HFEnr8 (HFEn&7)
+ #define MASK8_GF2n ((1U<<HFEnr8)-1)
+ /* Number of bytes that an element of GF(2^n) needs */
 @@ -112,16 +112,16 @@
  #define cmp_lt_gf2n(a,b) f_CMP_LT(a,b,NB_WORD_GFqn)
  #define cmp_gt_gf2n(a,b) f_CMP_GT(a,b,NB_WORD_GFqn)
  
-+#define set0_gf2n(c) SET0((unsigned char *)c,8*NB_WORD_GFqn)
++#define set0_gf2n(c) SET0((unsigned char *)(c),8*NB_WORD_GFqn)
 +
  #if (NB_WORD_GFqn<7)
      #define swap_gf2n CONCAT_NB_WORD_GFqn_SUP(SWAP)
@@ -28,7 +45,7 @@
 -#else
 -    #define set0_product_gf2n(c) SET0(c,NB_WORD_MMUL)
 -#endif
-+#define set0_product_gf2n(c) SET0((unsigned char*)c,NB_BITS_MMUL_SUP/8)
++#define set0_product_gf2n(c) SET0((unsigned char*)(c),8*NB_WORD_MMUL)
  
  #if (NB_WORD_MMUL==NB_WORD_GFqn)
      /* Nothing to set to 0 */

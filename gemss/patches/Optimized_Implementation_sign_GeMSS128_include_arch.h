@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/include/arch.h
-+++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/include/arch.h
+--- upstream/Optimized_Implementation/sign/GeMSS128/include/arch.h
++++ upstream-patched/Optimized_Implementation/sign/GeMSS128/include/arch.h
 @@ -6,6 +6,8 @@
  #include <inttypes.h>
  #include "macro.h"
@@ -9,7 +9,26 @@
  
  /****************** uintXX_t for compatibility  ******************/
  
-@@ -81,9 +83,6 @@
+@@ -26,18 +28,6 @@
+ #define ZERO8 ((uint8_t)0)
+ #define ONE8  ((uint8_t)1)
+ 
+-/* 0x... */
+-#define PRINT_X64(a) printf("0x%"PRIx64,a);
+-#define PRINT_X32(a) printf("0x%"PRIx32,a);
+-#define PRINT_X16(a) printf("0x%"PRIx16,a);
+-#define PRINT_X8(a) printf("0x%"PRIx8,a);
+-/* ... */
+-#define PRINT_U64(a) printf("%"PRIx64,a);
+-#define PRINT_U32(a) printf("%"PRIx32,a);
+-#define PRINT_U16(a) printf("%"PRIx16,a);
+-#define PRINT_U8(a) printf("%"PRIx8,a);
+-
+-
+ /****************** Definition of an UINT  ******************/
+ 
+ /* XXX For the moment, this parameter cannot be modified. XXX */
+@@ -81,9 +71,6 @@
  /** Print an UINT. */
  #define PRINT_UINT(a) CONCAT(PRINT_X,NB_BITS_UINT)(a);
  
@@ -19,7 +38,7 @@
  /** A reserved variable to do a for loop on a buffer of UINT. */
  #define RESERVED_VARIABLE reserved_variable
  
-@@ -103,6 +102,35 @@
+@@ -103,6 +90,35 @@
          } \
      }
  
@@ -55,7 +74,7 @@
  
  
  /****************** C++ compatibility ******************/
-@@ -160,60 +188,44 @@
+@@ -160,60 +176,44 @@
  
  
  #ifdef __SSE__
@@ -116,7 +135,7 @@
      /** Improve the computation of the number of bits set to 1 in a 64-bit 
       *  or 32-bit integer. */
      #define ENABLED_POPCNT
-@@ -237,7 +249,7 @@
+@@ -237,7 +237,7 @@
  /** Verify if the allocation by malloc or calloc succeeds. 
   *  Exit in the failure case. */
  #define VERIFY_ALLOC(p) \
@@ -125,7 +144,7 @@
      {\
          exit(ERROR_ALLOC);\
      }
-@@ -245,7 +257,7 @@
+@@ -245,7 +245,7 @@
  /** Verify if the allocation by malloc or calloc succeeds. 
   *  Return ERROR_ALLOC in the failure case. */
  #define VERIFY_ALLOC_RET(p) \
@@ -134,7 +153,7 @@
      {\
          return(ERROR_ALLOC);\
      }
-@@ -272,7 +284,7 @@
+@@ -272,7 +272,7 @@
                  p=(type)_mm_malloc((nmemb)*(size),16);
  #else
      #define ALIGNED16_MALLOC(p,type,nmemb,size) \
@@ -143,7 +162,7 @@
                  {\
                      exit(1);\
                  }
-@@ -280,7 +292,7 @@
+@@ -280,7 +280,7 @@
  
  #define ALIGNED16_CALLOC(p,type,nmemb,size) \
              ALIGNED16_MALLOC(p,type,nmemb,size);\
@@ -152,7 +171,7 @@
  
  
  /** Align the data on 32 bytes, useful for avx. */
-@@ -291,7 +303,7 @@
+@@ -291,7 +291,7 @@
                  p=(type)_mm_malloc((nmemb)*(size),32);
  #else
      #define ALIGNED32_MALLOC(p,type,nmemb,size) \
@@ -161,7 +180,7 @@
                  {\
                      exit(1);\
                  }
-@@ -299,7 +311,7 @@
+@@ -299,7 +299,7 @@
  
  #define ALIGNED32_CALLOC(p,type,nmemb,size) \
              ALIGNED32_MALLOC(p,type,nmemb,size);\

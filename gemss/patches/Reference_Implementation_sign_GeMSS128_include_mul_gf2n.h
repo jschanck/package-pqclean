@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Reference_Implementation/sign/GeMSS128/include/mul_gf2n.h
-+++ GeMSS-Round2_V2.a-patched/Reference_Implementation/sign/GeMSS128/include/mul_gf2n.h
+--- upstream/Reference_Implementation/sign/GeMSS128/include/mul_gf2n.h
++++ upstream-patched/Reference_Implementation/sign/GeMSS128/include/mul_gf2n.h
 @@ -60,11 +60,7 @@
  
  

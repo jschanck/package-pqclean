@@ -1,5 +1,14 @@
---- GeMSS-Round2_V2.a/Reference_Implementation/sign/GeMSS128/src/evalMQSnocst8_gf2.c
-+++ GeMSS-Round2_V2.a-patched/Reference_Implementation/sign/GeMSS128/src/evalMQSnocst8_gf2.c
+--- upstream/Reference_Implementation/sign/GeMSS128/src/evalMQSnocst8_gf2.c
++++ upstream-patched/Reference_Implementation/sign/GeMSS128/src/evalMQSnocst8_gf2.c
+@@ -35,7 +35,7 @@
+     #define NB_BYTES_EQ NB_EQq
+ #endif
+ 
+-#define MASK_EQ mask64(NB_EQ&63)
++#define MASK_EQ ((1<<(NB_EQ&63))-1)
+ #if (NB_EQ&63)
+     #define MASK_64(c) (c)&=MASK_EQ;
+     #define MASK2_64(c,a) (c)=(a)&MASK_EQ;
 @@ -103,7 +103,7 @@
  
  

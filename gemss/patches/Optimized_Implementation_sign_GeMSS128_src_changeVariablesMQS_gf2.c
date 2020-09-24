@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/src/changeVariablesMQS_gf2.c
-+++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/src/changeVariablesMQS_gf2.c
+--- upstream/Optimized_Implementation/sign/GeMSS128/src/changeVariablesMQS_gf2.c
++++ upstream-patched/Optimized_Implementation/sign/GeMSS128/src/changeVariablesMQS_gf2.c
 @@ -142,7 +142,7 @@
  
  /* Compute a dot product with one word of S */

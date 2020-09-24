@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Optimized_Implementation/sign/GeMSS128/src/initMatrixId_gf2.c
-+++ GeMSS-Round2_V2.a-patched/Optimized_Implementation/sign/GeMSS128/src/initMatrixId_gf2.c
+--- upstream/Optimized_Implementation/sign/GeMSS128/src/initMatrixId_gf2.c
++++ upstream-patched/Optimized_Implementation/sign/GeMSS128/src/initMatrixId_gf2.c
 @@ -1,59 +1,93 @@
  #include "initMatrixId_gf2.h"
  

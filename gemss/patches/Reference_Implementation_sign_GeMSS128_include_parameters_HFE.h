@@ -1,5 +1,5 @@
---- GeMSS-Round2_V2.a/Reference_Implementation/sign/GeMSS128/include/parameters_HFE.h
-+++ GeMSS-Round2_V2.a-patched/Reference_Implementation/sign/GeMSS128/include/parameters_HFE.h
+--- upstream/Reference_Implementation/sign/GeMSS128/include/parameters_HFE.h
++++ upstream-patched/Reference_Implementation/sign/GeMSS128/include/parameters_HFE.h
 @@ -11,9 +11,6 @@
      #define GFq 2U
      #define Log2_q 1
