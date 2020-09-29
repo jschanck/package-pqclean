@@ -11,6 +11,7 @@ BUILD=${BASE}/build
 BUILD_UPSTREAM=${BUILD}/upstream
 BUILD_CRYPTO_SIGN=${BUILD}/crypto_sign
 BUILD_TEST=${BUILD}/test
+BUILD_DFILE=${BUILD}/dfile
 
 SCRIPTS=${BASE}/scripts
 
@@ -43,7 +44,7 @@ then
   fi
   rm -rf ${BUILD_CRYPTO_SIGN} ${BUILD_TEST}
 fi
-mkdir -p ${BUILD_CRYPTO_SIGN} ${BUILD_TEST}
+mkdir -p ${BUILD_CRYPTO_SIGN} ${BUILD_TEST} ${BUILD_DFILE}
 
 if [ ! -f ${BASE}/${ARCHIVE} ]
 then
@@ -84,7 +85,7 @@ do
     cp -Lp --no-preserve=mode ${BUILD_UPSTREAM}/Reference_Implementation/sign/${INPARAM}/*/*.{c,h} ${BUILD_CRYPTO_SIGN}/${OUTPARAM}/clean/
     cp -Lp --no-preserve=mode ${BUILD_UPSTREAM}/Optimized_Implementation/sign/${INPARAM}/*/*.{c,h} ${BUILD_CRYPTO_SIGN}/${OUTPARAM}/avx2/
     for F in PQCgenKAT_sign.c debug.h KAT_int.c hash.c KAT_int.h prefix_name.h\
-             randombytes_FIPS.c randombytes_FIPS.h randombytes.h rng.c rng.h
+             randombytes_FIPS.c randombytes_FIPS.h randombytes.h rem_gf2x.h rng.c rng.h
     do
       rm -f ${BUILD_CRYPTO_SIGN}/${OUTPARAM}/*/$F
     done
@@ -116,9 +117,11 @@ sed -i 's/ENABLED_GF2X 1/ENABLED_GF2X 0/' ${BUILD_CRYPTO_SIGN}/*/*/arch.h
 for X in ${BUILD_CRYPTO_SIGN}/*/*/choice_crypto.h
 do
   ( cd $(dirname ${X})
-  DFILE=$(mktemp)
   PARAM=$(echo ${X} | awk -F/ '{print $(NF-2)}' )
   IMPL=$(echo ${X} | awk -F/ '{print $(NF-1)}' )
+  DFILE=${BUILD_DFILE}/${PARAM}
+
+  cat choice_crypto.h | sed "${GRAB[@]}" > ${DFILE}
 
   if [ ${IMPL} == "avx2" ]
   then
@@ -133,8 +136,6 @@ do
 
   # Remove line breaks in multi-line #if statements.
   sed -s -i "${STRAIGHTEN_IF[@]}" config_gf2n.h sign_keypairHFE.c rem_gf2n.c rem_gf2n.h
-
-  cat choice_crypto.h | sed "${GRAB[@]}" >> ${DFILE}
 
   unifdef ${UNIFDEFOPTS} -f ${DFILE} parameters_HFE.h || true
   cat parameters_HFE.h | sed "${GRAB[@]}" >> ${DFILE}
@@ -227,11 +228,11 @@ do
     VAL_BITS_M=$((${DELTA}+${V})) ||
     VAL_BITS_M=$((8-${MR8}))
 
-  echo "#define HFENq $((${NB_MONOMIAL_PK}/64))" >> ${DFILE}
-  echo "#define HFENq8 $((${NB_MONOMIAL_PK}/8))" >> ${DFILE}
-  echo "#define HFENr $((${NB_MONOMIAL_PK}%64))" >> ${DFILE}
-  echo "#define HFENr8 $((${NB_MONOMIAL_PK}%8))" >> ${DFILE}
-  echo "#define HFENr8c $(((8-${NB_MONOMIAL_PK})%8))" >> ${DFILE}
+  echo "#define HFENq ${HFENq}" >> ${DFILE}
+  echo "#define HFENq8 ${HFENq8}" >> ${DFILE}
+  echo "#define HFENr ${HFENr}" >> ${DFILE}
+  echo "#define HFENr8 ${HFENr8}" >> ${DFILE}
+  echo "#define HFENr8c ${HFENr8c}" >> ${DFILE}
   echo "#define HFEm ${M}" >> ${DFILE}
   echo "#define HFEmq ${MQ}" >> ${DFILE}
   echo "#define HFEmq8 ${MQ8}" >> ${DFILE}
@@ -386,7 +387,8 @@ do
   # final pass
   unifdef ${UNIFDEFOPTS} -f ${DFILE} *.{c,h} || true
 
-  rm ${DFILE}
+  sed -i 's/^\s*//' ${DFILE}
+  sort -o ${DFILE} ${DFILE}
 
   # Write api.h while we have all of the information we need
   SIZE_SK=$((${K}/8))
@@ -494,8 +496,15 @@ endtask
 #rm -rf ${MANIFEST}/*.xxx
 
 task 'Namespacing' 
-( # XXX: figure out how to preserve define formatting.
-sed -i -s "${STRAIGHTEN_DEF[@]}" ${BUILD_CRYPTO_SIGN}/*/*/*.h
+(
+
+# Fix definitions that need namespacing but are split over multiple lines
+sed -i -s "${STRAIGHTEN_DEF[@]}" ${BUILD_CRYPTO_SIGN}/*/*/conv_gf2nx.h
+sed -i -s "${STRAIGHTEN_DEF[@]}" ${BUILD_CRYPTO_SIGN}/*/*/convMQS_gf2.h
+sed -i -s "${STRAIGHTEN_DEF[@]}" ${BUILD_CRYPTO_SIGN}/*/*/evalMQShybrid_gf2.h
+sed -i -s "${STRAIGHTEN_DEF[@]}" ${BUILD_CRYPTO_SIGN}/*/*/evalMQnocst_gf2.h
+sed -i -s "${STRAIGHTEN_DEF[@]}" ${BUILD_CRYPTO_SIGN}/*/avx2/frobeniusMap_gf2nx.h
+sed -i -s "${STRAIGHTEN_DEF[@]}" ${BUILD_CRYPTO_SIGN}/*/avx2/genCanonicalBasis_gf2n.h
 
 # GeMSS has its own namespacing macro. We'll delete it and do it our way.
 sed -i -s '/include "prefix_name.h"/d' ${BUILD_CRYPTO_SIGN}/*/*/*.h
@@ -639,6 +648,10 @@ astyle \
   --mode=c \
   --suffix=none \
   ${BUILD_CRYPTO_SIGN}/*/*/*.{c,h} >/dev/null
+endtask
+
+task "Removing 256-bit implementations. See https://github.com/PQClean/PQClean/pull/326#issuecomment-700374801"
+rm -rf ${BUILD_CRYPTO_SIGN}/*256
 endtask
 
 # Package
