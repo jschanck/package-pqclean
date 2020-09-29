@@ -72,11 +72,13 @@
  
      return (int)l;
      #endif
-@@ -128,22 +106,14 @@
+@@ -127,23 +105,15 @@
+         return 1;
      #else
  
-     static_gf2n inv[NB_WORD_GFqn];
+-    static_gf2n inv[NB_WORD_GFqn];
 -    gf2nx tmp_p, poly, poly2;
++    static_gf2n inv[NB_WORD_GFqn]={0};
 +    UINT p1[((HFEDeg<<1)-1)*NB_WORD_GFqn]={0};
 +    UINT p2[(HFEDeg+1)*NB_WORD_GFqn]={0};
 +    UINT *tmp_p;

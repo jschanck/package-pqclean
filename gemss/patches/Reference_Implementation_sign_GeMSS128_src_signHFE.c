@@ -87,6 +87,15 @@
      #else
          sk_HFE->F_struct.poly=sk_HFE->F_HFEv;
      #endif
+@@ -447,7 +442,7 @@
+     #endif
+ 
+     int nb_root;
+-    secret_key_HFE sk_HFE;
++    secret_key_HFE sk_HFE={0};
+ 
+     #if(HFEv)
+         UINT* F;
 @@ -666,9 +661,6 @@
              if(nb_root<0)
              {
@@ -144,6 +153,15 @@
      UINT *tmp, *Hi=Hi_tab,*Hi1=Hi1_tab;
      unsigned int k;
      #if (HFEnv!=HFEm)
+@@ -786,7 +771,7 @@
+     #endif
+ 
+     int nb_root;
+-    secret_key_HFE sk_HFE;
++    secret_key_HFE sk_HFE={0};
+ 
+     #if(HFEv)
+         UINT* F;
 @@ -824,13 +809,6 @@
      /* Compute H1 = H(m) */
      HASH((unsigned char*)Hi,m,len);

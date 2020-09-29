@@ -17,20 +17,22 @@
          while((1U<<i)<min)
      #else
          while((1U<<i)<deg)
-@@ -107,8 +115,11 @@
+@@ -107,9 +115,12 @@
  void PREFIX_NAME(findRootsSplit_gf2nx)(vec_gf2n roots, gf2nx f,
                                         unsigned int deg)
  {
 -    gf2nx poly_trace,f_cp,tmp_p;
 -    gf2nx poly_frob;
-+    UINT poly_frob[((HFEDeg<<1)-1)*NB_WORD_GFqn];
-+    UINT p1[HFEDeg*NB_WORD_GFqn];
-+    UINT p2[(HFEDeg+1)*NB_WORD_GFqn];
+-    static_gf2n inv[NB_WORD_GFqn];
++    UINT poly_frob[((HFEDeg<<1)-1)*NB_WORD_GFqn]={0};
++    UINT p1[HFEDeg*NB_WORD_GFqn]={0};
++    UINT p2[(HFEDeg+1)*NB_WORD_GFqn]={0};
 +    UINT *poly_trace=p1;
 +    UINT *f_cp=p2;
-     static_gf2n inv[NB_WORD_GFqn];
++    static_gf2n inv[NB_WORD_GFqn]={0};
      unsigned int b,i,l,d;
  
+     if(deg==1)
 @@ -119,11 +130,6 @@
          return;
      }

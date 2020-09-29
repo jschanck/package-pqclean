@@ -5,13 +5,13 @@
          expandSeedCxtDeclaration;
      #endif
 -    mqsnv_gf2n Q;
-+    UINT Q[MQnv_GFqn_SIZE];
++    UINT Q[MQnv_GFqn_SIZE]={0};
      sparse_monic_gf2nx F;
 -    GLnv_gf2 S;
 -    GLn_gf2 T;
 +    /* Generate S for the linear transformation on variables */
 +    #if ((!ENABLED_SEED_SK)||GEN_INVERTIBLE_MATRIX_LU)
-+        UINT S[MATRIXnv_SIZE];
++        UINT S[MATRIXnv_SIZE]={0};
 +        UINT *T = S;
 +    #else
 +    UINT *S;
@@ -28,13 +28,13 @@
 +        UINT sk_uncomp[(NB_UINT_HFEVPOLY+
 +                       (LTRIANGULAR_NV_SIZE<<1)+
 +                       (LTRIANGULAR_N_SIZE<<1)+
-+                       SIZE_VECTOR_t)];
++                       SIZE_VECTOR_t)]={0};
      #endif
      #if (GEN_INV_MATRIX_TRIAL_ERROR&&(!ENABLED_SEED_SK)&&GEN_INVERSE_IN_FIRST)
          unsigned int i;
      #endif
 +    #if (FORMAT_HYBRID_CPK8)
-+        uint8_t pk_tmp[MQ_GFqm8_SIZE];
++        uint8_t pk_tmp[MQ_GFqm8_SIZE]={0};
 +    #endif
      int ret;
  

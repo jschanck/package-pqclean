@@ -6,7 +6,7 @@
      #if HFEmr8
 -        uint8_t *pk_U=(uint8_t*)malloc(HFEmr8*NB_BYTES_EQUATION
 -                                             *sizeof(uint8_t));
-+        uint8_t pk_U[HFEmr8*NB_BYTES_EQUATION];
++        uint8_t pk_U[HFEmr8*NB_BYTES_EQUATION]={0};
  
          convMQS_one_to_last_mr8_equations_gf2(pk_U,pk);
          for(j=0;j<HFEmr8;++j)
@@ -24,7 +24,7 @@
      #if HFEmr8
 -        uint8_t *pk_U=(uint8_t*)malloc(HFEmr8*NB_BYTES_EQUATION
 -                                             *sizeof(uint8_t));
-+        uint8_t pk_U[HFEmr8*NB_BYTES_EQUATION];
++        uint8_t pk_U[HFEmr8*NB_BYTES_EQUATION]={0};
  
          convMQS_one_to_last_mr8_equations_gf2(pk_U,pk);
      

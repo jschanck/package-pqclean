@@ -6,16 +6,24 @@
  #include "add_gf2x.h"
  #include "init.h"
  #include "simd.h"
-@@ -49,7 +49,7 @@
+@@ -49,14 +49,15 @@
      #define NB_BYTES_EQ NB_EQq
  #endif
  
 -#define MASK_EQ mask64(NB_EQ&63)
-+#define MASK_EQ ((UINT_1<<(NB_EQ&63))-UINT_1)
  #if (NB_EQ&63)
      #define MASK_64(c) (c)&=MASK_EQ;
      #define MASK2_64(c,a) (c)=(a)&MASK_EQ;
-@@ -89,68 +89,45 @@
++    #define MASK_EQ ((UINT_1<<(NB_EQ&63))-UINT_1)
+ #else
+     /* The AND is useless here */
+     #define MASK_64(c)
+     #define MASK2_64(c,a)
++    #define MASK_EQ UINT_M1
+ #endif
+ 
+ 
+@@ -89,68 +90,45 @@
  
  #define CONCAT_NB_WORD_EQ_SUP(name) CONCAT(name,NB_WORD_EQ)
  
@@ -91,7 +99,7 @@
          }\
          pk+=NB_BYTES_EQ;\
          xj>>=1;\
-@@ -172,7 +149,7 @@
+@@ -172,7 +150,7 @@
      #endif
  
      /* Constant cst_pk */
@@ -100,7 +108,7 @@
      pk+=NB_BYTES_EQ;
  
      /* for each row of the quadratic matrix of pk, excepted the last block */
-@@ -186,7 +163,7 @@
+@@ -186,7 +164,7 @@
                  /* for each column of the quadratic matrix of pk */
  
                  /* xj=xi=1 */
@@ -109,7 +117,7 @@
                  pk+=NB_BYTES_EQ;
  
                  xj=xi>>1;
-@@ -222,7 +199,7 @@
+@@ -222,7 +200,7 @@
                  /* for each column of the quadratic matrix of pk */
  
                  /* xj=xi=1 */

@@ -5,7 +5,7 @@
          #endif
  
 -        vec_gf2n roots;
-+        UINT roots[HFEDeg] = {0}; /* XXX: unnecessarily large (?) */
++        UINT roots[HFEDeg * NB_WORD_GFqn] = {0};
          int l;
  
 -        l=findRootsHFE_gf2nx(&roots,F,U);
