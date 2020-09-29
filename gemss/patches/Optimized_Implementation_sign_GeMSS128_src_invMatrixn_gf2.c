@@ -1,5 +1,14 @@
 --- upstream/Optimized_Implementation/sign/GeMSS128/src/invMatrixn_gf2.c
 +++ upstream-patched/Optimized_Implementation/sign/GeMSS128/src/invMatrixn_gf2.c
+@@ -28,7 +28,7 @@
+ 
+ #define ADDROW(LOOPK,LOOPKINV) \
+         /* pivot */\
+-        mask=-(((*S_cpj)>>ir)&1);\
++        mask=(1+~(((*S_cpj)>>ir)&1));\
+         LOOPK;\
+         LOOPKINV;
+ 
 @@ -49,7 +49,7 @@
  
  #define LOOPIR(NB_IT,LOOPK1,LOOPK2) \
@@ -18,6 +27,15 @@
      {\
          S_cpj=S_cpi;\
          Sinv_cpj=Sinv_cpi;\
+@@ -81,7 +81,7 @@
+             S_cpj-=NB_WORD_GFqn;\
+             Sinv_cpj-=NB_WORD_GFqn;\
+             /* pivot */\
+-            mask=-(((*S_cpj)>>ir)&1);\
++            mask=(1+~(((*S_cpj)>>ir)&1));\
+             xorLoadMask1_gf2n(Sinv_cpj,Sinv_cpi,mask);\
+         }\
+ \
 @@ -133,7 +133,6 @@
          LOOPIR(HFEnr-1,SWAP_WORD(*S_cpj,*S_cpi),*S_cpj^=*S_cpi&mask);
  
@@ -26,7 +44,7 @@
          LOOPIR_DOWN_TO_UP(HFEnr);
      #else
          /* To begin to last row */
-@@ -178,7 +177,7 @@
+@@ -178,16 +177,16 @@
      }
  
  #define LOOPIR_CST(NB_IT) \
@@ -34,5 +52,43 @@
 +    for(ir=0;ir<(NB_IT);++ir,++i)\
      {\
          /* row i += (1-pivot_i)* row j */\
-         LOOPJ_CST({mask=(-(UINT_1-(((*S_cpi)>>ir)&UINT_1)));\
+-        LOOPJ_CST({mask=(-(UINT_1-(((*S_cpi)>>ir)&UINT_1)));\
++        LOOPJ_CST({mask=(1+~(UINT_1-(((*S_cpi)>>ir)&UINT_1)));\
+                    LOOPK(XORLOADMASK1_1(S_cpi+k,S_cpj+k,mask);)\
+                    xorLoadMask1_gf2n(Sinv_cpi,Sinv_cpj,mask);\
+                   });\
+ \
+         /* row j += (pivot_j) * row_i */\
+-        LOOPJ_CST({mask=(-(((*S_cpj)>>ir)&UINT_1));\
++        LOOPJ_CST({mask=(1+~(((*S_cpj)>>ir)&UINT_1));\
+                    LOOPK(XORLOADMASK1_1(S_cpj+k,S_cpi+k,mask);)\
+                    xorLoadMask1_gf2n(Sinv_cpj,Sinv_cpi,mask);\
+                   });\
+@@ -314,7 +313,7 @@
+                 Sinv_cpj+=NB_WORD_GFqn;
+                 L_cpj+=(j>>6)+1;
+ 
+-                mask=(-(((*L_cpj)>>ir)&UINT_1));
++                mask=(1+~(((*L_cpj)>>ir)&UINT_1));
+                 for(k=0;k<=iq;++k)
+                 {
+                     XORLOADMASK1_1(Sinv_cpj+k,Sinv_cpi+k,mask);
+@@ -343,7 +342,7 @@
+                 Sinv_cpj+=NB_WORD_GFqn;
+                 L_cpj+=(j>>6)+1;
+ 
+-                mask=(-(((*L_cpj)>>ir)&UINT_1));
++                mask=(1+~(((*L_cpj)>>ir)&UINT_1));
+                 for(k=0;k<=iq;++k)
+                 {
+                     XORLOADMASK1_1(Sinv_cpj+k,Sinv_cpi+k,mask);
+@@ -381,7 +380,7 @@
+         for(j=0;j<i;++j)
+         {
+             /* pivot */
+-            mask=-(((U[j>>6])>>(j&63U))&1U);
++            mask=(1+~(((U[j>>6])>>(j&63U))&1U));
+             xorLoadMask1_gf2n(Sinv_cpj,Sinv_cpi,mask);
+ 
+             /* next row */
 

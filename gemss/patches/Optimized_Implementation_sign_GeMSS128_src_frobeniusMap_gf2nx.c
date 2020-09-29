@@ -1,7 +1,11 @@
 --- upstream/Optimized_Implementation/sign/GeMSS128/src/frobeniusMap_gf2nx.c
 +++ upstream-patched/Optimized_Implementation/sign/GeMSS128/src/frobeniusMap_gf2nx.c
-@@ -29,7 +29,7 @@
- unsigned int PREFIX_NAME(frobeniusMap_HFE_gf2nx)(gf2nx Xqn, const
+@@ -26,10 +26,10 @@
+  * @remark  Requirement: F.L must be initialized with initListDifferences_gf2nx.
+  * @remark  Constant-time implementation when CONSTANT_TIME!=0.
+  */
+-unsigned int PREFIX_NAME(frobeniusMap_HFE_gf2nx)(gf2nx Xqn, const
++unsigned int PREFIX_NAME(frobeniusMap_HFE_gf2nx)(gf2nx Xqn,
                                      complete_sparse_monic_gf2nx F, cst_gf2n U)
  {
 -    static_gf2n cst[NB_WORD_GFqn];
@@ -9,8 +13,12 @@
      #if (HFEDegI==HFEDegJ)
          cst_sparse_monic_gf2nx F_cp;
          gf2nx Xqn_cp;
-@@ -158,7 +158,7 @@
-                              const complete_sparse_monic_gf2nx F,
+@@ -155,10 +155,10 @@
+  * @remark  Constant-time implementation.
+  */
+ static void precompute_table(vec_gf2nx table,
+-                             const complete_sparse_monic_gf2nx F,
++                             complete_sparse_monic_gf2nx F,
                               cst_gf2n cst)
  {
 -    static_gf2n mul_coef[NB_WORD_GFqn];
@@ -64,4 +72,13 @@
      #if ((HFEn-HFEDegI)%II)
          #if (!CONSTANT_TIME)
              d=HFEDeg-1;
+@@ -389,7 +383,7 @@
+             b=isNot0_gf2n(Xqn+i*NB_WORD_GFqn);
+             mask|=b;
+             /* We add 1 to d as soon as we exceed all left zero coefficients */
+-            d+=mask;
++            d+=(unsigned int)mask;
+         }
+     #elif ((HFEn-HFEDegI)%II)
+         if(d==1)
 

@@ -1,5 +1,59 @@
 --- upstream/Optimized_Implementation/sign/GeMSS128/src/mul_gf2n.c
 +++ upstream-patched/Optimized_Implementation/sign/GeMSS128/src/mul_gf2n.c
+@@ -28,7 +28,7 @@
+     for(i=0;i<HFEnq;++i)
+     {
+         /* j=0 */
+-        mask_B=-((*B)&ONE64);
++        mask_B=(1+~((*B)&ONE64));
+         for(k=0;k<NB_WORD_GFqn;++k)
+         {
+             C[k]^=A[k]&mask_B;
+@@ -40,7 +40,7 @@
+             for(j=1;j<=(64-HFEnr);++j)
+             {
+                 jc=64-j;
+-                mask_B=-(((*B)>>j)&ONE64);
++                mask_B=(1+~(((*B)>>j)&ONE64));
+                 /* k=0 */
+                 tmp_A=(*A)&mask_B;
+                 C[0]^=tmp_A<<j;
+@@ -57,7 +57,7 @@
+         #endif
+         {
+             jc=64-j;
+-            mask_B=-(((*B)>>j)&ONE64);
++            mask_B=(1+~(((*B)>>j)&ONE64));
+             /* k=0 */
+             tmp_A=(*A)&mask_B;
+             C[0]^=tmp_A<<j;
+@@ -77,7 +77,7 @@
+ 
+     #if HFEnr
+         /* j=0 */
+-        mask_B=-((*B)&ONE64);
++        mask_B=(1+~((*B)&ONE64));
+         for(k=0;k<NB_WORD_GFqn;++k)
+         {
+             C[k]^=A[k]&mask_B;
+@@ -92,7 +92,7 @@
+         #endif
+         {
+             jc=64-j;
+-            mask_B=-(((*B)>>j)&ONE64);
++            mask_B=(1+~(((*B)>>j)&ONE64));
+             /* k=0 */
+             tmp_A=(*A)&mask_B;
+             C[0]^=tmp_A<<j;
+@@ -108,7 +108,7 @@
+             for(;j<HFEnr;++j)
+             {
+                 jc=64-j;
+-                mask_B=-(((*B)>>j)&ONE64);
++                mask_B=(1+~(((*B)>>j)&ONE64));
+                 /* k=0 */
+                 tmp_A=(*A)&mask_B;
+                 C[0]^=tmp_A<<j;
 @@ -132,44 +132,6 @@
  /***********************************************************************/
  /***********************************************************************/

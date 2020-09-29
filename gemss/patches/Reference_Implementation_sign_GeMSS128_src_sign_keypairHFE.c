@@ -103,7 +103,7 @@
      #if GEN_INVERTIBLE_MATRIX_LU
          #if ENABLED_SEED_SK
              /* The random bytes are already generated from a seed */
-@@ -383,57 +361,18 @@
+@@ -383,70 +361,25 @@
      #endif
  
  
@@ -158,10 +158,11 @@
      #endif
  
 -
-     /* Generate the inverse of T */
+-    /* Generate the inverse of T */
      #if (GEN_INV_MATRIX_TRIAL_ERROR&&(!ENABLED_SEED_SK)\
                                     &&(!GEN_INVERSE_IN_FIRST))
-@@ -441,12 +380,6 @@
++        /* Generate the inverse of T */
+         invMatrixn_gf2(sk+ACCESS_MATRIX_T,T);
      #endif
  
  

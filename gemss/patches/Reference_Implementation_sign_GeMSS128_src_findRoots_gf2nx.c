@@ -5,8 +5,9 @@
   * @remark  A part of the implementation is not in constant-time.
   */
 -int PREFIX_NAME(findRootsHFE_gf2nx)(vec_gf2n* roots,
+-                                    const complete_sparse_monic_gf2nx F,
 +int PREFIX_NAME(findRootsHFE_gf2nx)(vec_gf2n roots,
-                                     const complete_sparse_monic_gf2nx F,
++                                    complete_sparse_monic_gf2nx F,
                                      cst_gf2n U)
  {
      #if (HFEDeg==1)
@@ -72,6 +73,15 @@
  
      return (int)l;
      #endif
+@@ -119,7 +97,7 @@
+  * @remark  A part of the implementation is not in constant-time.
+  */
+ int PREFIX_NAME(findUniqRootHFE_gf2nx)(gf2n root,
+-                                       const complete_sparse_monic_gf2nx F,
++                                       complete_sparse_monic_gf2nx F,
+                                        cst_gf2n U)
+ {
+     #if (HFEDeg==1)
 @@ -127,23 +105,15 @@
          return 1;
      #else

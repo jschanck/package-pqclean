@@ -1,5 +1,14 @@
 --- upstream/Optimized_Implementation/sign/GeMSS128/src/chooseRootHFE_gf2nx.c
 +++ upstream-patched/Optimized_Implementation/sign/GeMSS128/src/chooseRootHFE_gf2nx.c
+@@ -29,7 +29,7 @@
+  * @remark  A part of the implementation is not in constant-time.
+  */
+ int PREFIX_NAME(chooseRootHFE_gf2nx)(gf2n root,
+-                                     const complete_sparse_monic_gf2nx F,
++                                     complete_sparse_monic_gf2nx F,
+                                      cst_gf2n U)
+ {
+     #if (HFEDeg==1)
 @@ -44,76 +44,74 @@
              unsigned int j,i,ind=0;
          #endif

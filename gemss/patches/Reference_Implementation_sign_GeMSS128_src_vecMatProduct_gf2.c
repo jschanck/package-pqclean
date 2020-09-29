@@ -1,6 +1,6 @@
 --- upstream/Reference_Implementation/sign/GeMSS128/src/vecMatProduct_gf2.c
 +++ upstream-patched/Reference_Implementation/sign/GeMSS128/src/vecMatProduct_gf2.c
-@@ -9,7 +9,7 @@
+@@ -9,11 +9,11 @@
  
  /* for a block of bits of vec */
  #define LOOPIR_M(NB_IT) \
@@ -9,7 +9,12 @@
      {\
          /* multiply the (iq*NB_BITS_UINT)+ir bit of vec
              by the (iq*NB_BITS_UINT)+ir row of S */\
-@@ -22,7 +22,7 @@
+-        vec_ir=-(bit_ir&1);\
++        vec_ir=(1+~(bit_ir&1));\
+         xorLoadMask1_gf2m(res,S_cp,vec_ir);\
+         /* next row of S */\
+         S_cp+=NB_WORD_GFqn;\
+@@ -22,11 +22,11 @@
  
  /* for a block of bits of vec */
  #define LOOPIR_N(NB_IT) \
@@ -18,7 +23,12 @@
      {\
          /* multiply the (iq*NB_BITS_UINT)+ir bit of vec
              by the (iq*NB_BITS_UINT)+ir row of S */\
-@@ -35,7 +35,7 @@
+-        vec_ir=-(bit_ir&1);\
++        vec_ir=(1+~(bit_ir&1));\
+         xorLoadMask1_gf2n(res,S_cp,vec_ir);\
+         /* next row of S */\
+         S_cp+=NB_WORD_GFqn;\
+@@ -35,11 +35,11 @@
  
  /* for a block of bits of vec */
  #define LOOPIR_START_N(NB_IT) \
@@ -27,7 +37,12 @@
      {\
          /* multiply the (iq*NB_BITS_UINT)+ir bit of vec
              by the (iq*NB_BITS_UINT)+ir row of S */\
-@@ -48,7 +48,7 @@
+-        vec_ir=-(bit_ir&1);\
++        vec_ir=(1+~(bit_ir&1));\
+         xorLoadMask1_gf2n(res,S_cp,vec_ir);\
+         /* next row of S */\
+         S_cp+=NB_WORD_GFqn;\
+@@ -48,11 +48,11 @@
  
  /* for a block of bits of vec */
  #define LOOPIR_NV(NB_IT) \
@@ -36,6 +51,11 @@
      {\
          /* multiply the (iq*NB_BITS_UINT)+ir bit of vec
              by the (iq*NB_BITS_UINT)+ir row of S */\
+-        vec_ir=-(bit_ir&1);\
++        vec_ir=(1+~(bit_ir&1));\
+         xorLoadMask1_gf2nv(res,S_cp,vec_ir);\
+         /* next row of S */\
+         S_cp+=NB_WORD_GF2nv;\
 @@ -69,7 +69,10 @@
  #endif
  
@@ -156,7 +176,7 @@
 +        {
 +            /* multiply the (iq*NB_BITS_UINT)+ir bit of vec
 +                by the (iq*NB_BITS_UINT)+ir row of S */
-+            vec_ir=-(bit_ir&1);
++            vec_ir=(1+~(bit_ir&1));
 +            xorLoadMask1_gf2n(res,S_cp,vec_ir);
 +            /* next row of S */
 +            S_cp+=NB_WORD_GFqn;

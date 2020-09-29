@@ -33,7 +33,7 @@
 +        for(j=0; (j<NB_BITS_UINT) && (k<NB_VAR); ++j)
          {
 -            x[k]=-((xi>>j)&UINT_1);
-+              x[k]=-((xi>>j)&UINT_1);
++              x[k]=(1+~((xi>>j)&UINT_1));
 +              ++k;
          }
 +        ++i;
@@ -56,7 +56,7 @@
 +        for(j=0; (j<NB_BITS_UINT) && (k<NB_VAR); ++j)
          {
 -            x[k]=-((xi>>j)&UINT_1);
-+              x[k]=-((xi>>j)&UINT_1);
++              x[k]=(1+~((xi>>j)&UINT_1));
 +              ++k;
          }
 +        ++i;
