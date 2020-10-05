@@ -291,7 +291,7 @@
 +	tmp = _mm256_setzero_si256();
 +	for (size_t i = 0; i < 8; i++){
 +		mask = ~(uint32_t) ((-(int64_t)(i ^ message/16))>>63);
-+		__m256i vect_mask = _mm256_set1_epi32(mask);
++		vect_mask = _mm256_set1_epi32(mask);
 +		tmp = _mm256_or_si256(tmp, _mm256_and_si256(vect_mask, transform[i]));
 +	}
 +	result=0;

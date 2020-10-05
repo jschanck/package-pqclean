@@ -198,7 +198,7 @@ do
     ( cd ${BUILD_CRYPTO_KEM}/${PARAM}/${IMPL}
     NAMESPACE=$(echo PQCLEAN_${PARAM//-/}_${IMPL} | tr [:lower:] [:upper:])
     for X in $(grep CRYPTO_NAMESPACE *.{c,h} | cut -f2 -d' ' | sort -u); do
-      sed -i -s "s/\([^a-zA-Z_]\)${X}\([^a-zA-Z\._]\)/\1${NAMESPACE}_${X}\2/g" *.c *.h
+      sed -i -s "/\\b${X}\\b\.[ch]"'/!s/'"\\b${X}\\b/${NAMESPACE}_${X}/g" *.c *.h
     done
     sed -i -s '/CRYPTO_NAMESPACE/d' *.{c,h}
     sed -i -s "s/CRYPTO_/${NAMESPACE}_CRYPTO_/" *.h
@@ -242,7 +242,9 @@ implementations:
                 - Linux
                 - Darwin
             required_flags:
-                - avx2" >> META.yml
+                - avx2
+                - bmi1
+                - pclmul" >> META.yml
 
   echo "\
 # This Makefile can be used with GNU Make or BSD Make
