@@ -8,6 +8,20 @@
  #include "rng.h"
  #include "fips202.h"
  #include "SABER_params.h"
+@@ -15,11 +14,11 @@
+ {
+ 	uint16_t A[SABER_L][SABER_L][SABER_N];
+ 	uint16_t s[SABER_L][SABER_N];
+-	uint16_t b[SABER_L][SABER_N] = {0};
++	uint16_t b[SABER_L][SABER_N] = {{0}};
+ 
+ 	uint8_t seed_A[SABER_SEEDBYTES];
+ 	uint8_t seed_s[SABER_NOISE_SEEDBYTES];
+-	int i, j;
++	size_t i, j;
+ 
+ 	randombytes(seed_A, SABER_SEEDBYTES);
+ 	shake128(seed_A, SABER_SEEDBYTES, seed_A, SABER_SEEDBYTES); // for not revealing system RNG state
 @@ -27,7 +26,7 @@
  
  	GenMatrix(A, seed_A);
@@ -17,7 +31,7 @@
  
  	for (i = 0; i < SABER_L; i++)
  	{
-@@ -37,12 +36,12 @@
+@@ -37,25 +36,25 @@
  		}
  	}
  
@@ -33,7 +47,14 @@
  {
  	uint16_t A[SABER_L][SABER_L][SABER_N];
  	uint16_t sp[SABER_L][SABER_N];
-@@ -55,7 +54,7 @@
+-	uint16_t bp[SABER_L][SABER_N] = {0};
++	uint16_t bp[SABER_L][SABER_N] = {{0}};
+ 	uint16_t vp[SABER_N] = {0};
+ 	uint16_t mp[SABER_N];
+ 	uint16_t b[SABER_L][SABER_N];
+-	int i, j;
++	size_t i, j;
+ 	const uint8_t *seed_A = pk + SABER_POLYVECCOMPRESSEDBYTES;
  
  	GenMatrix(A, seed_A);
  	GenSecret(sp, seed_sp);
@@ -58,7 +79,7 @@
  
  	for (j = 0; j < SABER_N; j++)
  	{
-@@ -79,7 +78,7 @@
+@@ -79,19 +78,19 @@
  	POLT2BS(ciphertext + SABER_POLYVECCOMPRESSEDBYTES, vp);
  }
  
@@ -67,9 +88,11 @@
  {
  
  	uint16_t s[SABER_L][SABER_N];
-@@ -88,10 +87,10 @@
+ 	uint16_t b[SABER_L][SABER_N];
+ 	uint16_t v[SABER_N] = {0};
  	uint16_t cm[SABER_N];
- 	int i;
+-	int i;
++	size_t i;
  
 -	BS2POLVECq(sk, s);
 -	BS2POLVECp(ciphertext, b);
