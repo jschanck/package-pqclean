@@ -58,7 +58,7 @@ for PARAM in hrss701 hps2048509 hps2048677 hps4096821; do
   task "Copying avx2-${PARAM} to ntru${PARAM}/clean/"
   ( cd ${UPSTREAM}/avx2-${PARAM}/
     cp -Lp api.h cmov.h owcpa.h params.h poly.h poly_r2_inv.h sample.h ${BUILD}/ntru${PARAM}/avx2/
-    cp -Lp cmov.c kem.c owcpa.c pack3.c packq.c poly.c poly_r2_inv.c sample.c sample_iid.c ${BUILD}/ntru${PARAM}/avx2/
+    cp -Lp cmov.c kem.c owcpa.c pack3.c packq.c poly.c poly_r2_inv.c poly_s3_inv.c sample.c sample_iid.c ${BUILD}/ntru${PARAM}/avx2/
     cp -Lp *.s ${BUILD}/ntru${PARAM}/avx2/ )
   endtask
 
@@ -69,7 +69,7 @@ for PARAM in hrss701 hps2048509 hps2048677 hps4096821; do
 
     ( cd ${UPSTREAM}/avx2-${PARAM}/
       cp -Lp crypto_sort_int32.h ${BUILD}/ntru${PARAM}/avx2/
-      cp -Lp crypto_sort_int32.c poly_lift.c poly_s3_inv.c ${BUILD}/ntru${PARAM}/avx2/ )
+      cp -Lp crypto_sort_int32.c poly_lift.c ${BUILD}/ntru${PARAM}/avx2/ )
   fi
 
 # Makefiles and other metadata
@@ -156,7 +156,7 @@ length-public-key: 699
 length-secret-key: 935
 length-ciphertext: 699
 length-shared-secret: 32
-nistkat-sha256: 7ecb93dbc7a588878691f2b2d656ebc42192779f335e3a96197f4ce2134f72c6" \
+nistkat-sha256: fc314366fbe795e2db6d29abb9f5b2ff43f0f608d0bd66161f9450364f0d271b" \
 > ${BUILD}/ntruhps2048509/META.yml
 
 echo "\
@@ -168,7 +168,7 @@ length-public-key: 930
 length-secret-key: 1234
 length-ciphertext: 930
 length-shared-secret: 32
-nistkat-sha256: 715a5caf1ee22bb4b75ff6b10f911fec77e0d63378ea359c0773ee0a4c6cbb97" \
+nistkat-sha256: 33e2cad6c2a2f17991517050d7a1b745908c84b8283a4e0f07dbe6f62d166507" \
 > ${BUILD}/ntruhps2048677/META.yml
 
 echo "\
@@ -180,7 +180,7 @@ length-public-key: 1230
 length-secret-key: 1590
 length-ciphertext: 1230
 length-shared-secret: 32
-nistkat-sha256: 0c5b6b159fab6eb677da469ec35aaa7e6b16162b315dcdb55a3b5da857e10519" \
+nistkat-sha256: 1a8382ae0c801a43cf461c98d22743f5b2d8a1ffed1b1df0dd767de2c2874597" \
 > ${BUILD}/ntruhps4096821/META.yml
 
 echo "\
