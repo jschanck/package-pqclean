@@ -1,6 +1,7 @@
 #!/bin/bash
 
 VERSION=$(cat VERSION)
+PACKAGER=$(git rev-parse HEAD)
 
 BASE=`dirname $0`
 BASE=`cd $BASE && pwd`
@@ -190,9 +191,9 @@ principal-submitters:
   - Frederik Vercauteren
 implementations:
     - name: clean
-      version: https://github.com/KULeuven-COSIC/SABER/commit/${VERSION}
+      version: https://github.com/KULeuven-COSIC/SABER/tree/${VERSION} via https://github.com/jschanck/package-pqclean/tree/${PACKAGER:0:8}/saber
     - name: avx2
-      version: https://github.com/KULeuven-COSIC/SABER/commit/${VERSION}
+      version: https://github.com/KULeuven-COSIC/SABER/tree/${VERSION} via https://github.com/jschanck/package-pqclean/tree/${PACKAGER:0:8}/saber
       supported_platforms:
           - architecture: x86_64
             operating_systems:
