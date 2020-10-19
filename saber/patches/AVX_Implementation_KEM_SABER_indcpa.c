@@ -140,7 +140,7 @@
  //********************************matrix-vector mul routines*****************************************************
 -void matrix_vector_mul(__m256i a1_avx_combined[NUM_POLY][NUM_POLY][AVX_N1], __m256i b_bucket[NUM_POLY][SCHB_N*4], __m256i res_avx[NUM_POLY][AVX_N1], int isTranspose);
 -void vector_vector_mul(__m256i a_avx[NUM_POLY][AVX_N1], __m256i b_bucket[NUM_POLY][SCHB_N*4], __m256i res_avx[AVX_N1]);
-+static void matrix_vector_mul(__m256i a1_avx_combined[NUM_POLY][NUM_POLY][AVX_N1], __m256i b_bucket[NUM_POLY][SCHB_N*4], __m256i res_avx[NUM_POLY][AVX_N1], int isTranspose){
++static void matrix_vector_mul(__m256i res_avx[NUM_POLY][AVX_N1], __m256i a1_avx_combined[NUM_POLY][NUM_POLY][AVX_N1], __m256i b_bucket[NUM_POLY][SCHB_N*4], int isTranspose){
 +	int64_t i,j;
 +
 +	__m256i c_bucket[2*SCM_SIZE*4]; //Holds results for 9 Karatsuba at a time
@@ -161,7 +161,7 @@
 +
 +}
 +
-+static void vector_vector_mul(__m256i a_avx[NUM_POLY][AVX_N1], __m256i b_bucket[NUM_POLY][SCHB_N*4], __m256i res_avx[AVX_N1]){
++static void vector_vector_mul(__m256i res_avx[AVX_N1], __m256i a_avx[NUM_POLY][AVX_N1], __m256i b_bucket[NUM_POLY][SCHB_N*4]){
 +
 +	int64_t i;
 +
@@ -214,7 +214,15 @@
    randombytes(seed, SABER_SEEDBYTES);
   
    shake128(seed, SABER_SEEDBYTES, seed, SABER_SEEDBYTES); // for not revealing system RNG state
-@@ -223,7 +176,7 @@
+@@ -216,14 +169,14 @@
+ 	for(j=0;j<NUM_POLY;j++){
+ 		TC_eval(sk_avx[j], b_bucket[j]);
+ 	}
+-	matrix_vector_mul(a_avx, b_bucket, res_avx, 1);// Matrix-vector multiplication; Matrix in transposed order
++	matrix_vector_mul(res_avx, a_avx, b_bucket, 1);// Matrix-vector multiplication; Matrix in transposed order
+ 	
+ 	// Now truncation
+ 
  		
  	for(i=0;i<SABER_K;i++){ //shift right EQ-EP bits
  		for(j=0;j<SABER_N/16;j++){
@@ -325,10 +333,11 @@
  	for(j=0;j<NUM_POLY;j++){
  		TC_eval(sk_avx[j], b_bucket[j]);
  	}
- 	matrix_vector_mul(a_avx, b_bucket, res_avx, 0);// Matrix-vector multiplication; Matrix in normal order
+-	matrix_vector_mul(a_avx, b_bucket, res_avx, 0);// Matrix-vector multiplication; Matrix in normal order
 -	CLOCK2=cpucycles();
 -	clock_mv_vv_mul= clock_mv_vv_mul + (CLOCK2-CLOCK1);
 -	
++	matrix_vector_mul(res_avx, a_avx, b_bucket, 0);// Matrix-vector multiplication; Matrix in normal order
 +
  	// Now truncation
  
@@ -366,11 +375,12 @@
  	// vector-vector scalar multiplication with mod p
  
 -	CLOCK1=cpucycles();
- 	vector_vector_mul(pkcl_avx, b_bucket, vprime_avx);
+-	vector_vector_mul(pkcl_avx, b_bucket, vprime_avx);
 -	CLOCK2=cpucycles();
 -	clock_mv_vv_mul= clock_mv_vv_mul + (CLOCK2-CLOCK1);
 -
 -
++	vector_vector_mul(vprime_avx, pkcl_avx, b_bucket);
  
  	// Computation of v'+h1 
  	for(i=0;i<SABER_N/16;i++){//adding h1
@@ -442,7 +452,7 @@
  
  	for(i=0;i<SABER_K;i++){
  		for(j=0; j<SABER_N/16; j++){
-@@ -490,8 +407,6 @@
+@@ -490,21 +407,15 @@
  
  
  	// InnerProduct(b', s, mod p)
@@ -451,14 +461,15 @@
  
  	for(j=0;j<NUM_POLY;j++){
  		TC_eval(sksv_avx[j], b_bucket[j]);
-@@ -499,12 +414,8 @@
+ 	}
  
- 	vector_vector_mul(pksv_avx, b_bucket, v_avx);
- 
+-	vector_vector_mul(pksv_avx, b_bucket, v_avx);
+-
 -	CLOCK2=cpucycles();
 -	clock_mul=clock_mul+(CLOCK2-CLOCK1);
 -
--
++	vector_vector_mul(v_avx, pksv_avx, b_bucket);
+ 
  	for(i=0; i<SABER_N/16; i++){
 -		_mm256_maskstore_epi32 ((int *)(message_dec_unpacked+i*16), mask_load, v_avx[i]);
 +		_mm256_maskstore_epi32 ((int *)(message_dec_unpacked+i*16), _mm256_set1_epi32(-1), v_avx[i]);

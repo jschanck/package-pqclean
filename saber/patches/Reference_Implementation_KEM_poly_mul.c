@@ -1,13 +1,5 @@
 --- upstream/Reference_Implementation_KEM/poly_mul.c
 +++ upstream-patched/Reference_Implementation_KEM/poly_mul.c
-@@ -1,6 +1,6 @@
- #include "poly_mul.h"
- #include <stdint.h>
--#include <string.h>
-+#include <stddef.h>
- 
- #define SCHB_N 16
- 
 @@ -11,13 +11,13 @@
  #define OVERFLOWING_MUL(X, Y) ((uint16_t)((uint32_t)(X) * (uint32_t)(Y)))
  
@@ -24,6 +16,15 @@
  
      memset(result_d01, 0, (KARATSUBA_N - 1)*sizeof(uint16_t));
      memset(d01, 0, (KARATSUBA_N / 2 - 1)*sizeof(uint16_t));
+@@ -110,7 +110,7 @@
+ 
+ 
+ 
+-static void toom_cook_4way (const uint16_t *a1, const uint16_t *b1, uint16_t *result) {
++static void toom_cook_4way (uint16_t *result, const uint16_t *a1, const uint16_t *b1) {
+     uint16_t inv3 = 43691, inv9 = 36409, inv15 = 61167;
+ 
+     uint16_t aw1[N_SB], aw2[N_SB], aw3[N_SB], aw4[N_SB], aw5[N_SB], aw6[N_SB], aw7[N_SB];
 @@ -181,13 +181,13 @@
  
      // MULTIPLICATION
