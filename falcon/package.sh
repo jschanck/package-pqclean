@@ -127,7 +127,7 @@ implementations:
   echo "\
 # This Makefile can be used with GNU Make or BSD Make
 
-LIB=lib${PARAM/-/}_clean.a
+LIB=lib${PARAM}_clean.a
 
 SOURCES = $(basename -a clean/*.c | tr '\n' ' ')
 OBJECTS = $(basename -a clean/*.c | sed 's/\.c/.o/' | tr '\n' ' ')
@@ -151,7 +151,7 @@ echo "\
 # This Makefile can be used with Microsoft Visual Studio's nmake using the command:
 #    nmake /f Makefile.Microsoft_nmake
 
-LIBRARY=lib${PARAM/-/}_clean.lib
+LIBRARY=lib${PARAM}_clean.lib
 OBJECTS=$(basename -a clean/*.c | sed 's/\.c/.obj/' | tr '\n' ' ')
 
 # Warning C4146 is raised when a unary minus operator is applied to an
@@ -175,7 +175,7 @@ clean:
 echo "\
 # This Makefile can be used with GNU Make or BSD Make
 
-LIB=lib${PARAM/-/}_avx2.a
+LIB=lib${PARAM}_avx2.a
 
 SOURCES = $(basename -a avx2/*.c | tr '\n' ' ')
 OBJECTS = $(basename -a avx2/*.c | sed 's/\.c/.o/' | tr '\n' ' ')
