@@ -269,10 +269,12 @@
  
  	__m256i y;
  	__m256i S;
-@@ -279,6 +150,7 @@
+@@ -278,7 +149,8 @@
+ 	__m256i tmp_repeat;
  	uint32_t *aux;
  	int16_t *alpha_tmp;
- 	uint32_t i;
+-	uint32_t i;
++	size_t i, j;
 +	uint32_t nzflag;
  	// static variable so that it is stored in the DATA segment
  	// not in the STACK segment
@@ -282,13 +284,13 @@
  
  	// Evaluation of the polynomial corresponding to the vector v in alpha^i for i in {1, ..., 2 * PARAM_DELTA}
 -	for (uint16_t j = 0 ; j < SYND_SIZE_256 ; ++j) {
-+	for (size_t j = 0 ; j < SYND_SIZE_256 ; ++j) {
++	for (j = 0 ; j < SYND_SIZE_256 ; ++j) {
  		S = zero_256;
  		alpha_tmp = table_alpha_ij + (j << 4);
  
 -		for (uint16_t i = 0 ; i < PARAM_N1 ; ++i) {
 -			tmp_repeat = _mm256_set1_epi64x((long long)(tmp_array[i]!=0));
-+		for (size_t i = 0 ; i < PARAM_N1 ; ++i) {
++		for (i = 0 ; i < PARAM_N1 ; ++i) {
 +			nzflag = ((-(int32_t) tmp_array[i]) >> 31) & 1;
 +			tmp_repeat = _mm256_set1_epi64x(nzflag);
  			L = _mm256_cmpeq_epi64(tmp_repeat,un_256);

@@ -8,7 +8,7 @@
  #include "vector.h"
  #include <stdint.h>
  #include <string.h>
-@@ -33,72 +34,63 @@
+@@ -33,72 +34,66 @@
  void vect_set_random_fixed_weight(AES_XOF_struct *ctx, uint64_t *v, uint16_t weight) {
  	size_t random_bytes_size = 3 * weight;
  	uint8_t rand_bytes[3 * PARAM_OMEGA_R] = {0};
@@ -27,9 +27,13 @@
 -	for (uint32_t i = 0 ; i < weight ; ++i) {
 -		exist = 0;
 +	__m256i posCmp256 = _mm256_set_epi64x(3,2,1,0);
++	__m256i pos256;
++	__m256i mask256;
++	__m256i aux;
++	__m256i i256;
 +	uint64_t bloc, pos, bit64;
 +	uint8_t inc;
-+	size_t i, j;
++	size_t i, j, k;
 +
 +	i=0;
 +	j=random_bytes_size;
@@ -43,20 +47,24 @@
 -			random_data  = ((uint32_t) rand_bytes[j++]) << 16;
 -			random_data |= ((uint32_t) rand_bytes[j++]) << 8;
 -			random_data |= rand_bytes[j++];
+-
+-		} while (random_data >= UTILS_REJECTION_THRESHOLD);
+-
+-		random_data = random_data % PARAM_N;
+-
+-		for (uint32_t k = 0 ; k < i ; k++) {
+-			if (tmp[k] == random_data) {
+-				exist = 1;
 +			tmp[i] = ((uint32_t) rand_bytes[j++]) << 16;
 +			tmp[i] |= ((uint32_t) rand_bytes[j++]) << 8;
 +			tmp[i] |= rand_bytes[j++];
- 
--		} while (random_data >= UTILS_REJECTION_THRESHOLD);
++
 +		} while (tmp[i] >= UTILS_REJECTION_THRESHOLD);
- 
--		random_data = random_data % PARAM_N;
++
 +		tmp[i] = tmp[i] % PARAM_N;
- 
++
 +		inc = 1;
- 		for (uint32_t k = 0 ; k < i ; k++) {
--			if (tmp[k] == random_data) {
--				exist = 1;
++		for (k = 0 ; k < i ; k++) {
 +			if (tmp[k] == tmp[i]) {
 +				inc = 0;
  			}
@@ -77,24 +85,29 @@
 +		bloc = tmp[i] >> 6;
  		bloc256[i] = _mm256_set1_epi64x(bloc >> 2);
 -		uint64_t pos = (bloc & 0x3UL);
-+		pos = (bloc & 0x3UL);
- 		__m256i pos256 = _mm256_set1_epi64x(pos);
- 		__m256i mask256 = _mm256_cmpeq_epi64(pos256,posCmp256);
+-		__m256i pos256 = _mm256_set1_epi64x(pos);
+-		__m256i mask256 = _mm256_cmpeq_epi64(pos256,posCmp256);
 -		uint64_t bit64 = 1ULL << (tmp[i] & 0x3f);
+-		__m256i bloc256 = _mm256_set1_epi64x(bit64);
+-		bit256[i] = bloc256&mask256;
++		pos = (bloc & 0x3UL);
++		pos256 = _mm256_set1_epi64x(pos);
++		mask256 = _mm256_cmpeq_epi64(pos256,posCmp256);
 +		bit64 = 1ULL << (tmp[i] & 0x3f);
- 		__m256i bloc256 = _mm256_set1_epi64x(bit64);
- 		bit256[i] = bloc256&mask256;
++		bit256[i] = _mm256_set1_epi64x(bit64)&mask256;
  	}
  
 -	for (uint32_t i = 0 ; i < LOOP_SIZE ; i++) {
 -		__m256i aux = _mm256_setzero_si256();
+-		__m256i i256 = _mm256_set1_epi64x(i);
 +	for (i = 0 ; i < CEIL_DIVIDE(PARAM_N, 256); i++) {
-+		__m256i aux = _mm256_loadu_si256(((__m256i *)v)+i);
- 		__m256i i256 = _mm256_set1_epi64x(i);
++		aux = _mm256_loadu_si256(((__m256i *)v)+i);
++		i256 = _mm256_set1_epi64x(i);
  
 -		for (uint32_t j = 0 ; j < weight ; j++) {
+-			__m256i mask256 = _mm256_cmpeq_epi64(bloc256[j],i256);
 +		for (j = 0 ; j < weight ; j++) {
- 			__m256i mask256 = _mm256_cmpeq_epi64(bloc256[j],i256);
++			mask256 = _mm256_cmpeq_epi64(bloc256[j],i256);
  			aux ^= bit256[j] & mask256;
  		}
 -
@@ -106,7 +119,7 @@
  }
  
  
-@@ -117,24 +109,8 @@
+@@ -117,24 +112,8 @@
  
  	seedexpander(ctx, rand_bytes, VEC_N_SIZE_BYTES);
  
@@ -133,7 +146,7 @@
  }
  
  
-@@ -163,17 +139,18 @@
+@@ -163,13 +142,13 @@
   * @param[in] size Integer that is the size of the vectors
   * @returns 0 if the vectors are equals and a negative/psotive value otherwise
   */
@@ -153,12 +166,7 @@
  }
  
  
- 
-+
- /**
-  * @brief Resize a vector so that it contains <b>size_o</b> bits
-  *
-@@ -183,10 +160,9 @@
+@@ -183,10 +162,9 @@
   * @param[in] size_v Integer that is the size of the input vector in bits
   */
  void vect_resize(uint64_t *o, uint32_t size_o, const uint64_t *v, uint32_t size_v) {
@@ -171,7 +179,7 @@
  		if (size_o % 64) {
  			val = 64 - (size_o % 64);
  		}
-@@ -200,54 +176,3 @@
+@@ -200,54 +178,3 @@
  		memcpy(o, v, CEIL_DIVIDE(size_v, 8));
  	}
  }

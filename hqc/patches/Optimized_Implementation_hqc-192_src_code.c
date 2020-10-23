@@ -16,7 +16,7 @@
 -	uint32_t i;
 -	static const uint64_t mask[2][2] = {{0x0UL,0x0UL}, {0x7FFFFFFFFFFFFFFUL,0x3FFFFFFFFFFFFFFUL}};
 +	const uint64_t mask[2][2] = {{0x0UL,0x0UL}, {0x7FFFFFFFFFFFFFFUL,0x3FFFFFFFFFFFFFFUL}};
-+	size_t i, pos_r;
++	size_t i, j, pos_r;
 +	uint64_t bit;
 +	uint16_t idx_r;
 +	uint64_t select;
@@ -62,13 +62,15 @@
  
  	/* now we add the message m */
  	/* systematic encoding */
-+  pos_r = PARAM_N2 * (PARAM_N1 - PARAM_K);
- 	for (int32_t i = 0 ; i < 4 ; i++) {
- 		for (int32_t j = 0 ; j < 64 ; j++) {
+-	for (int32_t i = 0 ; i < 4 ; i++) {
+-		for (int32_t j = 0 ; j < 64 ; j++) {
 -			uint8_t bit = (m[i] >> j) & 0x1;
 -			uint32_t pos_r = PARAM_N2 * ((PARAM_N1 - PARAM_K) + ((i << 6) + j));
 -			uint16_t idx_r = (pos_r & 0x3f);
 -			uint64_t *p64 = em;
++  pos_r = PARAM_N2 * (PARAM_N1 - PARAM_K);
++	for (i = 0 ; i < 4 ; i++) {
++		for (j = 0 ; j < 64 ; j++) {
 +			bit = (m[i] >> j) & 0x1;
  
  			#ifdef VERBOSE

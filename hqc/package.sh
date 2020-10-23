@@ -253,7 +253,7 @@ LIB=lib${PARAM}_clean.a
 HEADERS=$(basename -a clean/*.h | tr '\n' ' ')
 OBJECTS=$(basename -a clean/*.c | sed 's/\.c/.o/' | tr '\n' ' ')
 
-CFLAGS=-O3 -Wall -Wextra -Wpedantic -Wvla -Werror -Wredundant-decls -Wmissing-prototypes -std=c99 -I../../../common \$(EXTRAFLAGS)
+CFLAGS=-O3 -Wall -Wextra -Wpedantic -Wshadow -Wvla -Werror -Wredundant-decls -Wmissing-prototypes -std=c99 -I../../../common \$(EXTRAFLAGS)
 
 all: \$(LIB)
 
@@ -295,7 +295,7 @@ LIB=lib${PARAM}_avx2.a
 HEADERS=$(basename -a avx2/*.h | tr '\n' ' ')
 OBJECTS=$(basename -a avx2/*.c | sed 's/\.c/.o/' | tr '\n' ' ')
 
-CFLAGS=-O3 -mavx2 -mbmi -mpclmul -Wall -Wextra -Wpedantic -Wvla -Werror -Wredundant-decls -Wmissing-prototypes -std=c99 -I../../../common \$(EXTRAFLAGS)
+CFLAGS=-O3 -mavx2 -mbmi -mpclmul -Wall -Wextra -Wshadow -Wpedantic -Wvla -Werror -Wredundant-decls -Wmissing-prototypes -std=c99 -I../../../common \$(EXTRAFLAGS)
 
 all: \$(LIB)
 
