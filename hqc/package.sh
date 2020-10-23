@@ -244,7 +244,7 @@ implementations:
             required_flags:
                 - avx2
                 - bmi1
-                - pclmul" >> META.yml
+                - pclmulqdq" >> META.yml
 
   echo "\
 # This Makefile can be used with GNU Make or BSD Make
