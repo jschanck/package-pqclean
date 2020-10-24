@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Optimized_Implementation/hqc-rmrs-128/src/code.h
-+++ hqc-2020-05-29-patched/Optimized_Implementation/hqc-rmrs-128/src/code.h
+--- upstream/Optimized_Implementation/hqc-rmrs-128/src/code.h
++++ upstream-patched/Optimized_Implementation/hqc-rmrs-128/src/code.h
 @@ -10,7 +10,7 @@
  #include <stddef.h>
  #include <stdint.h>

@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Reference_Implementation/hqc-rmrs-256/src/gf2x.c
-+++ hqc-2020-05-29-patched/Reference_Implementation/hqc-rmrs-256/src/gf2x.c
+--- upstream/Reference_Implementation/hqc-rmrs-256/src/gf2x.c
++++ upstream-patched/Reference_Implementation/hqc-rmrs-256/src/gf2x.c
 @@ -6,15 +6,12 @@
  #include "gf2x.h"
  #include "rng.h"

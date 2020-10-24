@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Reference_Implementation/hqc-rmrs-256/src/vector.c
-+++ hqc-2020-05-29-patched/Reference_Implementation/hqc-rmrs-256/src/vector.c
+--- upstream/Reference_Implementation/hqc-rmrs-256/src/vector.c
++++ upstream-patched/Reference_Implementation/hqc-rmrs-256/src/vector.c
 @@ -5,6 +5,7 @@
  
  #include "rng.h"

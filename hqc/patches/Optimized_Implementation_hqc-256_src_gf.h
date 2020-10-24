@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Optimized_Implementation/hqc-256/src/gf.h
-+++ hqc-2020-05-29-patched/Optimized_Implementation/hqc-256/src/gf.h
+--- upstream/Optimized_Implementation/hqc-256/src/gf.h
++++ upstream-patched/Optimized_Implementation/hqc-256/src/gf.h
 @@ -9,9 +9,14 @@
  #include <stddef.h>
  #include <stdint.h>

@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Optimized_Implementation/hqc-192/src/fft.c
-+++ hqc-2020-05-29-patched/Optimized_Implementation/hqc-192/src/fft.c
+--- upstream/Optimized_Implementation/hqc-192/src/fft.c
++++ upstream-patched/Optimized_Implementation/hqc-192/src/fft.c
 @@ -17,8 +17,9 @@
  #include <stdio.h>
  

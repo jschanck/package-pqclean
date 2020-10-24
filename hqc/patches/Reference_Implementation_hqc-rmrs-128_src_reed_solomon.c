@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Reference_Implementation/hqc-rmrs-128/src/reed_solomon.c
-+++ hqc-2020-05-29-patched/Reference_Implementation/hqc-rmrs-128/src/reed_solomon.c
+--- upstream/Reference_Implementation/hqc-rmrs-128/src/reed_solomon.c
++++ upstream-patched/Reference_Implementation/hqc-rmrs-128/src/reed_solomon.c
 @@ -7,6 +7,7 @@
  #include "gf.h"
  #include "reed_solomon.h"

@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Reference_Implementation/hqc-rmrs-128/src/reed_muller.c
-+++ hqc-2020-05-29-patched/Reference_Implementation/hqc-rmrs-128/src/reed_muller.c
+--- upstream/Reference_Implementation/hqc-rmrs-128/src/reed_muller.c
++++ upstream-patched/Reference_Implementation/hqc-rmrs-128/src/reed_muller.c
 @@ -3,9 +3,6 @@
   * Constant time implementation of Reed-Muller code RM(1,7)
   */

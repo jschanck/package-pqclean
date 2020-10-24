@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Reference_Implementation/hqc-rmrs-192/src/reed_solomon.h
-+++ hqc-2020-05-29-patched/Reference_Implementation/hqc-rmrs-192/src/reed_solomon.h
+--- upstream/Reference_Implementation/hqc-rmrs-192/src/reed_solomon.h
++++ upstream-patched/Reference_Implementation/hqc-rmrs-192/src/reed_solomon.h
 @@ -10,9 +10,9 @@
  #include <stddef.h>
  #include <stdint.h>

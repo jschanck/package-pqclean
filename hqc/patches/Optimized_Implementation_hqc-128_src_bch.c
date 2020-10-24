@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Optimized_Implementation/hqc-128/src/bch.c
-+++ hqc-2020-05-29-patched/Optimized_Implementation/hqc-128/src/bch.c
+--- upstream/Optimized_Implementation/hqc-128/src/bch.c
++++ upstream-patched/Optimized_Implementation/hqc-128/src/bch.c
 @@ -17,135 +17,12 @@
  #include <stdio.h>
  #endif

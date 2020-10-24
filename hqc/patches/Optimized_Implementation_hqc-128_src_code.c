@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Optimized_Implementation/hqc-128/src/code.c
-+++ hqc-2020-05-29-patched/Optimized_Implementation/hqc-128/src/code.c
+--- upstream/Optimized_Implementation/hqc-128/src/code.c
++++ upstream-patched/Optimized_Implementation/hqc-128/src/code.c
 @@ -11,7 +11,6 @@
  #include <stdint.h>
  #include <string.h>

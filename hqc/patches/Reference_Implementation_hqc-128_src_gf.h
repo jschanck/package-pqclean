@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Reference_Implementation/hqc-128/src/gf.h
-+++ hqc-2020-05-29-patched/Reference_Implementation/hqc-128/src/gf.h
+--- upstream/Reference_Implementation/hqc-128/src/gf.h
++++ upstream-patched/Reference_Implementation/hqc-128/src/gf.h
 @@ -9,9 +9,22 @@
  #include <stddef.h>
  #include <stdint.h>

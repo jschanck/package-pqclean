@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Optimized_Implementation/hqc-rmrs-256/src/gf2x.c
-+++ hqc-2020-05-29-patched/Optimized_Implementation/hqc-rmrs-256/src/gf2x.c
+--- upstream/Optimized_Implementation/hqc-rmrs-256/src/gf2x.c
++++ upstream-patched/Optimized_Implementation/hqc-rmrs-256/src/gf2x.c
 @@ -18,27 +18,23 @@
  #define T_TM3R_3W_256 93
  #define T_TM3R_3W_64 (T_TM3R_3W_256<<2)

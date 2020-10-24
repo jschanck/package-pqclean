@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Reference_Implementation/hqc-rmrs-128/src/parsing.h
-+++ hqc-2020-05-29-patched/Reference_Implementation/hqc-rmrs-128/src/parsing.h
+--- upstream/Reference_Implementation/hqc-rmrs-128/src/parsing.h
++++ upstream-patched/Reference_Implementation/hqc-rmrs-128/src/parsing.h
 @@ -8,6 +8,11 @@
  
  #include <stdint.h>

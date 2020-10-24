@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Optimized_Implementation/hqc-256/src/repetition.c
-+++ hqc-2020-05-29-patched/Optimized_Implementation/hqc-256/src/repetition.c
+--- upstream/Optimized_Implementation/hqc-256/src/repetition.c
++++ upstream-patched/Optimized_Implementation/hqc-256/src/repetition.c
 @@ -22,21 +22,23 @@
   * @param[in] em Pointer to an array that is the code word
   */

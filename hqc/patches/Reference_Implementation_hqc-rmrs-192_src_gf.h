@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Reference_Implementation/hqc-rmrs-192/src/gf.h
-+++ hqc-2020-05-29-patched/Reference_Implementation/hqc-rmrs-192/src/gf.h
+--- upstream/Reference_Implementation/hqc-rmrs-192/src/gf.h
++++ upstream-patched/Reference_Implementation/hqc-rmrs-192/src/gf.h
 @@ -15,24 +15,20 @@
   * The last two elements are needed by the gf_mul function
   * (for example if both elements to multiply are zero).

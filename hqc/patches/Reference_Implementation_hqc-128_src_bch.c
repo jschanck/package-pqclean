@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Reference_Implementation/hqc-128/src/bch.c
-+++ hqc-2020-05-29-patched/Reference_Implementation/hqc-128/src/bch.c
+--- upstream/Reference_Implementation/hqc-128/src/bch.c
++++ upstream-patched/Reference_Implementation/hqc-128/src/bch.c
 @@ -15,8 +15,6 @@
  #include <stdio.h>
  #endif

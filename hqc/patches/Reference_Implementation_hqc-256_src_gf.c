@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Reference_Implementation/hqc-256/src/gf.c
-+++ hqc-2020-05-29-patched/Reference_Implementation/hqc-256/src/gf.c
+--- upstream/Reference_Implementation/hqc-256/src/gf.c
++++ upstream-patched/Reference_Implementation/hqc-256/src/gf.c
 @@ -7,125 +7,57 @@
  #include "parameters.h"
  #include <stdint.h>

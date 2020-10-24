@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Reference_Implementation/hqc-128/src/parsing.c
-+++ hqc-2020-05-29-patched/Reference_Implementation/hqc-128/src/parsing.c
+--- upstream/Reference_Implementation/hqc-128/src/parsing.c
++++ upstream-patched/Reference_Implementation/hqc-128/src/parsing.c
 @@ -10,6 +10,64 @@
  #include <stdint.h>
  #include <string.h>

@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Optimized_Implementation/hqc-rmrs-256/src/vector.c
-+++ hqc-2020-05-29-patched/Optimized_Implementation/hqc-rmrs-256/src/vector.c
+--- upstream/Optimized_Implementation/hqc-rmrs-256/src/vector.c
++++ upstream-patched/Optimized_Implementation/hqc-rmrs-256/src/vector.c
 @@ -5,6 +5,7 @@
  
  #include "rng.h"

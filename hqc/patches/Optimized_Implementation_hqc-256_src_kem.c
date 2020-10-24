@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Optimized_Implementation/hqc-256/src/kem.c
-+++ hqc-2020-05-29-patched/Optimized_Implementation/hqc-256/src/kem.c
+--- upstream/Optimized_Implementation/hqc-256/src/kem.c
++++ upstream-patched/Optimized_Implementation/hqc-256/src/kem.c
 @@ -74,9 +74,9 @@
  	sha512(d, (unsigned char *) m, VEC_K_SIZE_BYTES);
  

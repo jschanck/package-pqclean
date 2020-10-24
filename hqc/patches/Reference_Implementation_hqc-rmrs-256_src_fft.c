@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Reference_Implementation/hqc-rmrs-256/src/fft.c
-+++ hqc-2020-05-29-patched/Reference_Implementation/hqc-rmrs-256/src/fft.c
+--- upstream/Reference_Implementation/hqc-rmrs-256/src/fft.c
++++ upstream-patched/Reference_Implementation/hqc-rmrs-256/src/fft.c
 @@ -15,9 +15,10 @@
  #include <stdint.h>
  #include <string.h>

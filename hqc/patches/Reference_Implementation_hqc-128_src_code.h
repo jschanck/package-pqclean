@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Reference_Implementation/hqc-128/src/code.h
-+++ hqc-2020-05-29-patched/Reference_Implementation/hqc-128/src/code.h
+--- upstream/Reference_Implementation/hqc-128/src/code.h
++++ upstream-patched/Reference_Implementation/hqc-128/src/code.h
 @@ -10,7 +10,7 @@
  #include <stddef.h>
  #include <stdint.h>

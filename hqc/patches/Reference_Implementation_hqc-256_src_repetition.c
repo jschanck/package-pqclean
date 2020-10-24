@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Reference_Implementation/hqc-256/src/repetition.c
-+++ hqc-2020-05-29-patched/Reference_Implementation/hqc-256/src/repetition.c
+--- upstream/Reference_Implementation/hqc-256/src/repetition.c
++++ upstream-patched/Reference_Implementation/hqc-256/src/repetition.c
 @@ -18,35 +18,21 @@
   * @param[in] m Pointer to an array that is the message
   */

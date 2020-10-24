@@ -4,8 +4,8 @@ BASE=`dirname $0`
 BASE=`cd ${BASE} && pwd`
 
 VERSION=$(cat ${BASE}/VERSION)
-V1=hqc-${VERSION}
-V2=${V1}-patched
+V1=upstream
+V2=upstream-patched
 
 ARCHIVE=hqc-submission_${VERSION}.zip
 

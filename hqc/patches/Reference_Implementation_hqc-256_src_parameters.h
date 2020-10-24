@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Reference_Implementation/hqc-256/src/parameters.h
-+++ hqc-2020-05-29-patched/Reference_Implementation/hqc-256/src/parameters.h
+--- upstream/Reference_Implementation/hqc-256/src/parameters.h
++++ upstream-patched/Reference_Implementation/hqc-256/src/parameters.h
 @@ -9,8 +9,7 @@
  #ifndef HQC_PARAMETERS_H
  #define HQC_PARAMETERS_H

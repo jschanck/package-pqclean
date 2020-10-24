@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Reference_Implementation/hqc-192/src/kem.c
-+++ hqc-2020-05-29-patched/Reference_Implementation/hqc-192/src/kem.c
+--- upstream/Reference_Implementation/hqc-192/src/kem.c
++++ upstream-patched/Reference_Implementation/hqc-192/src/kem.c
 @@ -55,6 +55,7 @@
      	#endif
      

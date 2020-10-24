@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Reference_Implementation/hqc-rmrs-256/src/code.c
-+++ hqc-2020-05-29-patched/Reference_Implementation/hqc-rmrs-256/src/code.c
+--- upstream/Reference_Implementation/hqc-rmrs-256/src/code.c
++++ upstream-patched/Reference_Implementation/hqc-rmrs-256/src/code.c
 @@ -25,8 +25,8 @@
   * @param[out] em Pointer to an array that is the tensor code word
   * @param[in] m Pointer to an array that is the message

@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Reference_Implementation/hqc-192/src/repetition.c
-+++ hqc-2020-05-29-patched/Reference_Implementation/hqc-192/src/repetition.c
+--- upstream/Reference_Implementation/hqc-192/src/repetition.c
++++ upstream-patched/Reference_Implementation/hqc-192/src/repetition.c
 @@ -8,7 +8,7 @@
  #include <stdint.h>
  #include <stdio.h>

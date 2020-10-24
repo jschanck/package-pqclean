@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Optimized_Implementation/hqc-rmrs-256/src/parsing.h
-+++ hqc-2020-05-29-patched/Optimized_Implementation/hqc-rmrs-256/src/parsing.h
+--- upstream/Optimized_Implementation/hqc-rmrs-256/src/parsing.h
++++ upstream-patched/Optimized_Implementation/hqc-rmrs-256/src/parsing.h
 @@ -8,6 +8,11 @@
  
  #include <stdint.h>

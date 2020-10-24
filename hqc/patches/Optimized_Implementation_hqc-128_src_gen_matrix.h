@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Optimized_Implementation/hqc-128/src/gen_matrix.h
-+++ hqc-2020-05-29-patched/Optimized_Implementation/hqc-128/src/gen_matrix.h
+--- upstream/Optimized_Implementation/hqc-128/src/gen_matrix.h
++++ upstream-patched/Optimized_Implementation/hqc-128/src/gen_matrix.h
 @@ -8,6 +8,6 @@
  
  #include "parameters.h"

@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Reference_Implementation/hqc-rmrs-256/src/hqc.h
-+++ hqc-2020-05-29-patched/Reference_Implementation/hqc-rmrs-256/src/hqc.h
+--- upstream/Reference_Implementation/hqc-rmrs-256/src/hqc.h
++++ upstream-patched/Reference_Implementation/hqc-rmrs-256/src/hqc.h
 @@ -9,7 +9,7 @@
  #include <stdint.h>
  

@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Optimized_Implementation/hqc-rmrs-192/src/parameters.h
-+++ hqc-2020-05-29-patched/Optimized_Implementation/hqc-rmrs-192/src/parameters.h
+--- upstream/Optimized_Implementation/hqc-rmrs-192/src/parameters.h
++++ upstream-patched/Optimized_Implementation/hqc-rmrs-192/src/parameters.h
 @@ -8,9 +8,7 @@
  
  #include "api.h"

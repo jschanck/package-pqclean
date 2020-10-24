@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Reference_Implementation/hqc-rmrs-192/src/hqc.c
-+++ hqc-2020-05-29-patched/Reference_Implementation/hqc-rmrs-192/src/hqc.c
+--- upstream/Reference_Implementation/hqc-rmrs-192/src/hqc.c
++++ upstream-patched/Reference_Implementation/hqc-rmrs-192/src/hqc.c
 @@ -84,7 +84,7 @@
   * @param[in] theta Seed used to derive randomness required for encryption
   * @param[in] pk String containing the public key

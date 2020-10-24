@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Optimized_Implementation/hqc-rmrs-192/src/vector.h
-+++ hqc-2020-05-29-patched/Optimized_Implementation/hqc-rmrs-192/src/vector.h
+--- upstream/Optimized_Implementation/hqc-rmrs-192/src/vector.h
++++ upstream-patched/Optimized_Implementation/hqc-rmrs-192/src/vector.h
 @@ -14,10 +14,7 @@
  void vect_set_random_from_randombytes(uint64_t *v);
  

@@ -1,5 +1,5 @@
---- hqc-2020-05-29/Reference_Implementation/hqc-256/src/vector.h
-+++ hqc-2020-05-29-patched/Reference_Implementation/hqc-256/src/vector.h
+--- upstream/Reference_Implementation/hqc-256/src/vector.h
++++ upstream-patched/Reference_Implementation/hqc-256/src/vector.h
 @@ -12,13 +12,9 @@
  void vect_set_random_fixed_weight_by_coordinates(AES_XOF_struct *ctx, uint32_t *v, uint16_t weight);
  void vect_set_random_fixed_weight(AES_XOF_struct *ctx, uint64_t *v, uint16_t weight);
