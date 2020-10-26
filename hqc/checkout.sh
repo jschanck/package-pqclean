@@ -44,11 +44,19 @@ then
 fi
 unzip -qq -d ${BASE}/${V1}/ ${BASE}/${ARCHIVE}
 
+for IMPL in Reference_Implementation Optimized_Implementation
+do
+  for K in 128 192 256
+  do
+    mv ${V1}/${IMPL}/hqc-${K} ${V1}/${IMPL}/hqc-rmrs-${K}
+  done
+done
+
 cp -rp ${V1}/* ${V2}
 
 ( cd ${V2}
 for X in ${PATCHES}/*
 do
-  patch -p1 < ${X}
+  patch -N -p1 < ${X}
 done
 )

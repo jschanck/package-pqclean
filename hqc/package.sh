@@ -48,6 +48,14 @@ task "Unpacking ${ARCHIVE}"
 unzip -qq -d ${BUILD_UPSTREAM} ${BASE}/${ARCHIVE}
 endtask
 
+for IMPL in Reference_Implementation Optimized_Implementation
+do
+  for K in 128 192 256
+  do
+    mv ${BUILD_UPSTREAM}/${IMPL}/hqc-${K} ${BUILD_UPSTREAM}/${IMPL}/hqc-rmrs-${K}
+  done
+done
+
 task 'Applying patches to upstream source code'
 ( cd ${BUILD_UPSTREAM}
 
@@ -59,7 +67,7 @@ done
 endtask
 
 task 'Copying files'
-for PARAM in {hqc,hqc-rmrs}-{128,192,256}
+for PARAM in hqc-rmrs-{128,192,256}
 do
   mkdir -p ${BUILD_CRYPTO_KEM}/${PARAM}/{clean,avx2}
   cp -Lp ${BUILD_UPSTREAM}/Reference_Implementation/${PARAM}/src/*.{c,h} ${BUILD_CRYPTO_KEM}/${PARAM}/clean/
@@ -69,7 +77,7 @@ done
 endtask
 
 task 'Renaming hash, rng, and intrinsic includes'
-for PARAM in {hqc,hqc-rmrs}-{128,192,256}
+for PARAM in hqc-rmrs-{128,192,256}
 do
   sed -s -i 's/hash\.h/sha2.h/' ${BUILD_CRYPTO_KEM}/${PARAM}/{clean,avx2}/*.{c,h}
   sed -s -i 's/#include "rng\.h"/#include "nistseedexpander\.h"\n#include "randombytes\.h"/' ${BUILD_CRYPTO_KEM}/${PARAM}/{clean,avx2}/*.{c,h}
@@ -84,7 +92,7 @@ unifdef -m -UVERBOSE -UALIGNVECTORS -U__STDC_LIB_EXT1__ ${BUILD_CRYPTO_KEM}/*/*/
 endtask
 
 task 'Checking include guards'
-for PARAM in {hqc,hqc-rmrs}-{128,192,256}
+for PARAM in hqc-rmrs-{128,192,256}
 do
   for IMPL in clean avx2
   do
@@ -109,7 +117,7 @@ done
 endtask
 
 task 'Sorting #includes'
-for PARAM in {hqc,hqc-rmrs}-{128,192,256}
+for PARAM in hqc-rmrs-{128,192,256}
 do
   for IMPL in clean avx2
   do
@@ -138,7 +146,7 @@ MANIFEST=${BUILD_TEST}/duplicate_consistency
 mkdir -p ${MANIFEST}
 task "Preparing for duplicate consistency"
 ( cd ${MANIFEST}
-for P1 in hqc-{,rmrs-}{128,192,256}
+for P1 in hqc-rmrs-{128,192,256}
 do
   for OUT in clean avx2
   do
@@ -149,14 +157,14 @@ done
 endtask
 
 ( cd ${MANIFEST}
-for P1 in hqc-{,rmrs-}{128,192,256}
+for P1 in hqc-rmrs-{128,192,256}
 do
   for OUT in clean avx2
   do
     task "${P1}/${OUT} duplicate consistency"
     echo "\
 consistency_checks:" > ${P1}_${OUT}.yml
-    for P2 in hqc-{,rmrs-}{128,192,256}
+    for P2 in hqc-rmrs-{128,192,256}
 
     do
       for IN in clean avx2
@@ -189,9 +197,9 @@ rm -rf ${MANIFEST}/*.xxx
 
 task 'Namespacing' 
 # Insert hooks for namespacing. These will be removed later.
-sed -i -s 's/^\(size_t\|int\|uint.._t\|uint8_t\|void\) \([^(]*\)(.*);/#define \2 CRYPTO_NAMESPACE(\2)\n&\n/' ${BUILD_CRYPTO_KEM}/*/*/*.h
+sed -i -s 's/^\(size_t\|int\|uint.._t\|uint8_t\|void\|__m256i\) \([^(]*\)(.*);/#define \2 CRYPTO_NAMESPACE(\2)\n&\n/' ${BUILD_CRYPTO_KEM}/*/*/*.h
 
-for PARAM in {hqc,hqc-rmrs}-{128,192,256}
+for PARAM in hqc-rmrs-{128,192,256}
 do
   for IMPL in clean avx2
   do
@@ -210,7 +218,7 @@ endtask
 
 task 'Copying metadata'
 # Makefiles and other metadata
-for PARAM in {hqc,hqc-rmrs}-{128,192,256}
+for PARAM in hqc-rmrs-{128,192,256}
 do
   ( cd ${BUILD_CRYPTO_KEM}/${PARAM}/
 

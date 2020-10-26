@@ -119,17 +119,18 @@
  }
  
  
-@@ -117,24 +112,8 @@
+@@ -117,29 +112,13 @@
  
  	seedexpander(ctx, rand_bytes, VEC_N_SIZE_BYTES);
  
 -	memcpy(v, rand_bytes, VEC_N_SIZE_BYTES);
--	v[VEC_N_SIZE_64 - 1] &= BITMASK(PARAM_N, 64);
--}
--
--
--
--/**
++	load8_arr(v, VEC_N_SIZE_64, rand_bytes, VEC_N_SIZE_BYTES);
+ 	v[VEC_N_SIZE_64 - 1] &= BITMASK(PARAM_N, 64);
+ }
+ 
+ 
+ 
+ /**
 - * @brief Generates a random vector
 - *
 - * This function generates a random binary vector. It uses the the randombytes function.
@@ -141,11 +142,14 @@
 -
 -	randombytes(rand_bytes, VEC_K_SIZE_BYTES);
 -	memcpy(v, rand_bytes, VEC_K_SIZE_BYTES);
-+	load8_arr(v, VEC_N_SIZE_64, rand_bytes, VEC_N_SIZE_BYTES);
-+	v[VEC_N_SIZE_64 - 1] &= RED_MASK;
- }
- 
- 
+-}
+-
+-
+-
+-/**
+  * @brief Adds two vectors
+  *
+  * @param[out] o Pointer to an array that is the result
 @@ -163,13 +142,13 @@
   * @param[in] size Integer that is the size of the vectors
   * @returns 0 if the vectors are equals and a negative/psotive value otherwise

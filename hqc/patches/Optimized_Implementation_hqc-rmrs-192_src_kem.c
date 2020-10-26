@@ -6,7 +6,7 @@
  	uint8_t theta[SHA512_BYTES] = {0};
 -	uint64_t m[VEC_K_SIZE_64] = {0};
 +	uint8_t m[VEC_K_SIZE_BYTES] = {0};
- 	uint64_t u[VEC_N_256_SIZE_64] = {0};
+ 	static uint64_t u[VEC_N_256_SIZE_64] = {0};
  	uint64_t v[VEC_N1N2_256_SIZE_64] = {0};
  	unsigned char d[SHA512_BYTES] = {0};
  	unsigned char mc[VEC_K_SIZE_BYTES + VEC_N_SIZE_BYTES + VEC_N1N2_SIZE_BYTES] = {0};

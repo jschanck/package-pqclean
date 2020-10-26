@@ -20,13 +20,38 @@
    #define PARAM_GF_MUL_ORDER                  	Define the size of the multiplicative group of GF(2^PARAM_M),  i.e 2^PARAM_M -1
    #define PARAM_K                             	Define the size of the information bits of the Reed-Solomon code
    #define PARAM_G                             	Define the size of the generator polynomial of Reed-Solomon code
-@@ -92,6 +92,8 @@
- #define PARAM_DELTA                         	24
+@@ -80,24 +80,29 @@
+ #define VEC_N1_SIZE_BYTES                   	PARAM_N1
+ #define VEC_N1N2_SIZE_BYTES                 	CEIL_DIVIDE(PARAM_N1N2, 8)
+ 
+-#define VEC_N_SIZE_64                         CEIL_DIVIDE(PARAM_N, 64)
++#define VEC_N_SIZE_256                      	CEIL_DIVIDE(PARAM_N, 256)
++
++#define VEC_N_SIZE_64                       	CEIL_DIVIDE(PARAM_N, 64)
+ #define VEC_K_SIZE_64                       	CEIL_DIVIDE(PARAM_K, 8)
+ #define VEC_N1_SIZE_64                      	CEIL_DIVIDE(PARAM_N1, 8)
+ #define VEC_N1N2_SIZE_64                    	CEIL_DIVIDE(PARAM_N1N2, 64)
+ 
+-#define PARAM_N_MULT                        	18432
+-#define VEC_N_256_SIZE_64                     (CEIL_DIVIDE(PARAM_N_MULT, 256) << 2)
++#define PARAM_N_MULT                        	(9*256*CEIL_DIVIDE(CEIL_DIVIDE(PARAM_N, 9), 256))
++#define VEC_N_256_SIZE_64                   	(PARAM_N_MULT / 64)
+ #define VEC_N1N2_256_SIZE_64                	(CEIL_DIVIDE(PARAM_N1N2, 256) << 2)
+ 
+ #define PARAM_DELTA                         	15
  #define PARAM_M                             	8
  #define PARAM_GF_POLY                       	0x11D
 +#define PARAM_GF_POLY_WT                    	5
 +#define PARAM_GF_POLY_M2                    	4
  #define PARAM_GF_MUL_ORDER                  	255
- #define PARAM_K                             	32
- #define PARAM_G                             	49
+ #define PARAM_K                             	16
+ #define PARAM_G                             	31
+-#define PARAM_FFT                           	4
++#define PARAM_FFT                           	5
+ #define RS_POLY_COEFS 89,69,153,116,176,117,111,75,73,233,242,233,65,210,21,139,103,173,67,118,105,210,174,110,74,69,228,82,255,181,1
+ 
++#define BITMASK(a, size)                    	((1UL << ((a) % (size))) - 1)
+ #define RED_MASK                            	BITMASK(PARAM_N, 64)
+ #define SHA512_BYTES                        	64
+ #define SEED_BYTES                          	40
 

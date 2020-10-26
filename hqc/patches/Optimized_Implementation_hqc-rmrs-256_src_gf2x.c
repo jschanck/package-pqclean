@@ -1,50 +1,68 @@
 --- upstream/Optimized_Implementation/hqc-rmrs-256/src/gf2x.c
 +++ upstream-patched/Optimized_Implementation/hqc-rmrs-256/src/gf2x.c
-@@ -18,27 +18,23 @@
- #define T_TM3R_3W_256 93
- #define T_TM3R_3W_64 (T_TM3R_3W_256<<2)
+@@ -7,42 +7,34 @@
+ #include "parameters.h"
+ #include <stdint.h>
+ #include <string.h>
+-#include <stdio.h>
+ #include <immintrin.h>
+ 
  
 -#define VEC_N_ARRAY_SIZE_VEC CEIL_DIVIDE(PARAM_N, 256) /*!< The number of needed vectors to store PARAM_N bits*/
 -#define WORD 64
 -#define LAST64 (PARAM_N >> 6)
+-
+ //Parameters for Toom-Cook and UB_Karatsuba
+ #define T_TM3R_3W (PARAM_N_MULT / 3)
+ #define T_TM3R (PARAM_N_MULT + 384)
+-#define tTM3R ((T_TM3R) / WORD)
+-#define T_TM3R_3W_256 ((T_TM3R_3W + 128) / (4 * WORD))
++#define tTM3R ((T_TM3R) / 64)
++#define T_TM3R_3W_256 ((T_TM3R_3W + 128) / (256))
+ #define T_TM3R_3W_64 (T_TM3R_3W_256 << 2)
+ 
+ #define T_5W 4096
+ #define T_5W_256 (T_5W >> 8)
+ 
+ #define T2_5W_256 (2 * T_5W_256)
+-#define t5 (5 * T_5W / WORD)
++#define t5 (5 * T_5W / 64)
+ 
 -uint64_t a1_times_a2[VEC_N_256_SIZE_64 << 1];
 -uint64_t tmp_reduce[VEC_N_ARRAY_SIZE_VEC << 2];
 -__m256i *o256 = (__m256i *) tmp_reduce;
-+#define VEC_N_SIZE_256 CEIL_DIVIDE(PARAM_N, 256) /*!< The number of needed vectors to store PARAM_N bits*/
-+__m256i a1_times_a2[2 * VEC_N_SIZE_256 + 1];
  uint64_t bloc64[PARAM_OMEGA_R]; // Allocation with the biggest possible weight
  uint64_t bit64[PARAM_OMEGA_R]; // Allocation with the biggest possible weight
  
- 
--static inline void reduce(uint64_t *o, uint64_t *a);
+-inline static void reduce(uint64_t *o, uint64_t *a);
 -inline static void karat_mult_1(__m128i *C, __m128i *A, __m128i *B);
 -inline static void karat_mult_2(__m256i *C, __m256i *A, __m256i *B);
 -inline static void karat_mult_4(__m256i *C, __m256i *A, __m256i *B);
 -inline static void karat_mult_8(__m256i *C, __m256i *A, __m256i *B);
 -inline static void karat_mult_16(__m256i *C, __m256i *A, __m256i *B);
--inline static void karat_mult_32(__m256i *C, __m256i *A, __m256i *B);
-+static inline void reduce(uint64_t *o, const uint64_t *a);
-+static inline void karat_mult_1(__m128i *C, __m128i *A, __m128i *B);
-+static inline void karat_mult_2(__m256i *C, __m256i *A, __m256i *B);
-+static inline void karat_mult_4(__m256i *C, __m256i *A, __m256i *B);
-+static inline void karat_mult_8(__m256i *C, __m256i *A, __m256i *B);
-+static inline void karat_mult_16(__m256i *C, __m256i *A, __m256i *B);
-+static inline void karat_mult_32(__m256i *C, __m256i *A, __m256i *B);
- static inline void divByXplus1(__m256i *out,__m256i *in,int size);
- static inline void divByXplus1_256(__m256i *out,__m256i *in,int size);
--void TOOM3Mult(uint64_t* Out, const uint64_t *A, const uint64_t *B);
--void TOOM3RecMult(uint64_t *Out, const uint64_t *A, const uint64_t *B);
-+static void TOOM3Mult(__m256i *Out, const uint64_t *A, const uint64_t *B);
-+static void TOOM3RecMult(__m256i *Out, const uint64_t *A, const uint64_t *B);
+-inline static void karat_mult5(__m256i *C, __m256i *A, __m256i *B);
+-inline static void divide_by_x_plus_one_256(__m256i *in, __m256i *out, int32_t size);
+-static void toom_3_mult(uint64_t *Out, const uint64_t *A, const uint64_t *B);
++static inline void reduce(uint64_t *o, const __m256i *a);
++static inline void karat_mult_1(__m128i *C, const __m128i *A, const __m128i *B);
++static inline void karat_mult_2(__m256i *C, const __m256i *A, const __m256i *B);
++static inline void karat_mult_4(__m256i *C, const __m256i *A, const __m256i *B);
++static inline void karat_mult_8(__m256i *C, const __m256i *A, const __m256i *B);
++static inline void karat_mult_16(__m256i *C, const __m256i *A, const __m256i *B);
++static inline void karat_mult5(__m256i *C, const __m256i *A, const __m256i *B);
++static inline void divide_by_x_plus_one_256(__m256i *in, __m256i *out, int32_t size);
++static void toom_3_mult(uint64_t *Out, const aligned_vec_t *A, const aligned_vec_t *B);
  
  
- 
-@@ -50,35 +46,18 @@
+ /**
+@@ -53,40 +45,39 @@
   * @param[out] o Pointer to the result
   * @param[in] a Pointer to the polynomial a(x)
   */
--static inline void reduce(uint64_t *o, uint64_t *a) {
--	__m256i r256, carry256;
+-inline static void reduce(uint64_t *o, uint64_t *a) {
++static inline void reduce(uint64_t *o, const __m256i *a256) {
++	size_t i, i2;
+ 	__m256i r256, carry256;
 -	__m256i *a256 = (__m256i *) a;
 -	static const int32_t dec64 = PARAM_N & 0x3f;
 -	static const int32_t d0 = WORD - dec64;
@@ -55,607 +73,378 @@
 -		r256 = _mm256_srli_epi64(r256, dec64);
 -		carry256 = _mm256_lddqu_si256((__m256i const *) (& a[i + 1]));
 -		carry256 = _mm256_slli_epi64(carry256, d0);
--		r256 ^= carry256;
++	__m256i *o256 = (__m256i *)o;
++	const uint64_t *a64 = (const uint64_t *)a256;
++	uint64_t r, carry;
++
++  i2 = 0;
++	for (i = (PARAM_N >> 6); i < (PARAM_N >> 5) - 4 ; i += 4) {
++		r256 = _mm256_lddqu_si256((const __m256i *) (& a64[i]));
++		r256 = _mm256_srli_epi64(r256, PARAM_N&63);
++		carry256 = _mm256_lddqu_si256((const __m256i *) (& a64[i + 1]));
++		carry256 = _mm256_slli_epi64(carry256, (-PARAM_N)&63);
+ 		r256 ^= carry256;
 -		i2 = (i - LAST64) >> 2;
 -		o256[i2] = a256[i2] ^ r256;
--	}
++		_mm256_storeu_si256(&o256[i2], a256[i2] ^ r256);
++		i2 += 1;
+ 	}
+ 
+-	i = i - LAST64;
 -
--    r256 = _mm256_lddqu_si256((__m256i const *)(& a[i]));
--	carry256 = _mm256_lddqu_si256((__m256i const *) (& a[i + 1]));
--	r256 = _mm256_srli_epi64(r256, dec64);
--	carry256 = _mm256_slli_epi64(carry256, d0);
--	r256 ^= carry256;
--	i2 = (i - LAST64) >> 2;
--	o256[i2] = (a256[i2] ^ r256);
+-	for (; i < LAST64 + 1 ; i++) {
+-		uint64_t r = a[i + LAST64] >> dec64;
+-		uint64_t carry = a[i + LAST64 + 1] << d0;
++	i = i - (PARAM_N >> 6);
++	for (; i < (PARAM_N >> 6) + 1 ; i++) {
++		r = a64[i + (PARAM_N >> 6)] >> (PARAM_N&63);
++		carry = a64[i + (PARAM_N >> 6) + 1] << ((-PARAM_N)&63);
+ 		r ^= carry;
+-		tmp_reduce[i] = a[i] ^ r;
++		o[i] = a64[i] ^ r;
+ 	}
+ 
 -	tmp_reduce[LAST64] &= RED_MASK;
 -	memcpy(o, tmp_reduce, VEC_N_SIZE_BYTES);
--}
-+static inline void reduce(uint64_t *o, const uint64_t *a) {
-+	uint64_t r;
-+	uint64_t carry;
++	o[PARAM_N >> 6] &= RED_MASK;
+ }
  
-+	for (uint32_t i = 0 ; i < VEC_N_SIZE_64 ; i++) {
-+		r = a[i + VEC_N_SIZE_64 - 1] >> (PARAM_N & 63);
-+		carry = (uint64_t) (a[i + VEC_N_SIZE_64] << (64 - (PARAM_N & 63)));
-+		o[i] = a[i] ^ r ^ carry;
-+	}
  
-+	o[VEC_N_SIZE_64 - 1] &= RED_MASK;
-+}
  
  /**
-  * @brief Compute C(x) = A(x)*B(x)
-@@ -89,7 +68,7 @@
+- * @brief Compute C(x) = A(x)*B(x) 
++ * @brief Compute C(x) = A(x)*B(x)
+  * A(x) and B(x) are stored in 128-bit registers
+  * This function computes A(x)*B(x) using Karatsuba
+  *
+@@ -94,7 +85,7 @@
   * @param[in] A Pointer to the polynomial A(x)
   * @param[in] B Pointer to the polynomial B(x)
   */
 -inline static void karat_mult_1(__m128i *C, __m128i *A, __m128i *B) {
-+static inline void karat_mult_1(__m128i *C, __m128i *A, __m128i *B) {
++static inline void karat_mult_1(__m128i *C, const __m128i *A, const __m128i *B) {
  	__m128i D1[2];
  	__m128i D0[2], D2[2];
  	__m128i Al = _mm_loadu_si128(A);
-@@ -146,7 +125,7 @@
+@@ -102,7 +93,7 @@
+ 	__m128i Bl = _mm_loadu_si128(B);
+ 	__m128i Bh = _mm_loadu_si128(B + 1);
+ 
+-	// Computation of Al.Bl=D0 
++	//	Compute Al.Bl=D0
+ 	__m128i DD0 = _mm_clmulepi64_si128(Al, Bl, 0);
+ 	__m128i DD2 = _mm_clmulepi64_si128(Al, Bl, 0x11);
+ 	__m128i AAlpAAh = _mm_xor_si128(Al, _mm_shuffle_epi32(Al, 0x4e));
+@@ -111,7 +102,7 @@
+ 	D0[0] = _mm_xor_si128(DD0, _mm_unpacklo_epi64(_mm_setzero_si128(), DD1));
+ 	D0[1] = _mm_xor_si128(DD2, _mm_unpackhi_epi64(DD1, _mm_setzero_si128()));
+ 
+-	//	Computation of Ah.Bh=D2
++	//	Compute Ah.Bh=D2
+ 	DD0 = _mm_clmulepi64_si128(Ah, Bh, 0);
+ 	DD2 = _mm_clmulepi64_si128(Ah, Bh, 0x11);
+ 	AAlpAAh = _mm_xor_si128(Ah, _mm_shuffle_epi32(Ah, 0x4e));
+@@ -120,11 +111,10 @@
+ 	D2[0] = _mm_xor_si128(DD0, _mm_unpacklo_epi64(_mm_setzero_si128(), DD1));
+ 	D2[1] = _mm_xor_si128(DD2, _mm_unpackhi_epi64(DD1, _mm_setzero_si128()));
+ 
+-	// Computation of AlpAh.BlpBh=D1
+-	// initialisation of AlpAh and BlpBh
+-	__m128i AlpAh = _mm_xor_si128(Al, Ah);
+-	__m128i BlpBh = _mm_xor_si128(Bl, Bh);
+-
++	// Compute AlpAh.BlpBh=D1
++	// Initialisation of AlpAh and BlpBh
++	__m128i AlpAh = _mm_xor_si128(Al,Ah);
++	__m128i BlpBh = _mm_xor_si128(Bl,Bh);
+ 	DD0 = _mm_clmulepi64_si128(AlpAh, BlpBh, 0);
+ 	DD2 = _mm_clmulepi64_si128(AlpAh, BlpBh, 0x11);
+ 	AAlpAAh = _mm_xor_si128(AlpAh, _mm_shuffle_epi32(AlpAh, 0x4e));
+@@ -133,9 +123,8 @@
+ 	D1[0] = _mm_xor_si128(DD0, _mm_unpacklo_epi64(_mm_setzero_si128(), DD1));
+ 	D1[1] = _mm_xor_si128(DD2, _mm_unpackhi_epi64(DD1, _mm_setzero_si128()));
+ 
+-	// Computation of C
++	// Final comutation of C
+ 	__m128i middle = _mm_xor_si128(D0[1], D2[0]);
+-
+ 	C[0] = D0[0];
+ 	C[1] = middle ^ D0[0] ^ D1[0];
+ 	C[2] = middle ^ D1[1] ^ D2[1];
+@@ -145,7 +134,7 @@
+ 
+ 
+ /**
+- * @brief Compute C(x) = A(x)*B(x) 
++ * @brief Compute C(x) = A(x)*B(x)
+  *
+  * This function computes A(x)*B(x) using Karatsuba
+  * A(x) and B(x) are stored in 256-bit registers
+@@ -153,28 +142,29 @@
   * @param[in] A Pointer to the polynomial A(x)
   * @param[in] B Pointer to the polynomial B(x)
   */
 -inline static void karat_mult_2(__m256i *C, __m256i *A, __m256i *B) {
-+static inline void karat_mult_2(__m256i *C, __m256i *A, __m256i *B) {
- 	__m256i D0[2],D1[2],D2[2],SAA,SBB;
- 	__m128i *A128 = (__m128i *)A, *B128 = (__m128i *)B;
++static inline void karat_mult_2(__m256i *C, const __m256i *A, const __m256i *B) {
+ 	__m256i D0[2], D1[2], D2[2], SAA, SBB;
+-	__m128i *A128 = (__m128i *)A, *B128 = (__m128i *)B;
++	const __m128i *A128 = (const __m128i *)A;
++	const __m128i *B128 = (const __m128i *)B;
++	__m256i middle;
  
-@@ -176,7 +155,7 @@
+ 	karat_mult_1((__m128i *) D0, A128, B128);
+ 	karat_mult_1((__m128i *) D2, A128 + 2, B128 + 2);
++
+ 	SAA = A[0] ^ A[1];
+ 	SBB = B[0] ^ B[1];
+ 	karat_mult_1((__m128i *) D1,(__m128i *) &SAA,(__m128i *) &SBB);
+-	
+-	__m256i middle = _mm256_xor_si256(D0[1], D2[0]);
++	middle = _mm256_xor_si256(D0[1], D2[0]);
+ 
+ 	C[0] = D0[0];
+ 	C[1] = middle ^ D0[0] ^ D1[0];
+ 	C[2] = middle ^ D1[1] ^ D2[1];
+ 	C[3] = D2[1];
+ }
+-	
+ 
+ 
+ /**
+- * @brief Compute C(x) = A(x)*B(x) 
++ * @brief Compute C(x) = A(x)*B(x)
+  *
+  * This function computes A(x)*B(x) using Karatsuba
+  * A(x) and B(x) are stored in 256-bit registers
+@@ -182,20 +172,24 @@
   * @param[in] A Pointer to the polynomial A(x)
   * @param[in] B Pointer to the polynomial B(x)
   */
 -inline static void karat_mult_4(__m256i *C, __m256i *A, __m256i *B) {
-+static inline void karat_mult_4(__m256i *C, __m256i *A, __m256i *B) {
- 	__m256i D0[4],D1[4],D2[4],SAA[2],SBB[2];
++static inline void karat_mult_4(__m256i *C, const __m256i *A, const __m256i *B) {
+ 	__m256i D0[4], D1[4], D2[4], SAA[2], SBB[2];
+-			
+-	karat_mult_2(D0, A,B);
++	__m256i middle0;
++	__m256i middle1;
++
++	karat_mult_2(D0, A, B);
+ 	karat_mult_2(D2, A + 2, B + 2);
++
+ 	SAA[0] = A[0] ^ A[2];
+ 	SBB[0] = B[0] ^ B[2];
+ 	SAA[1] = A[1] ^ A[3];
+ 	SBB[1] = B[1] ^ B[3];
++
+ 	karat_mult_2(D1, SAA, SBB);
+-	
+-	__m256i middle0 = _mm256_xor_si256(D0[2], D2[0]);
+-	__m256i middle1 = _mm256_xor_si256(D0[3], D2[1]);
+-	
++
++	middle0 = _mm256_xor_si256(D0[2], D2[0]);
++	middle1 = _mm256_xor_si256(D0[3], D2[1]);
++
+ 	C[0] = D0[0];
+ 	C[1] = D0[1];
+ 	C[2] = middle0 ^ D0[0] ^ D1[0];
+@@ -204,12 +198,12 @@
+ 	C[5] = middle1 ^ D1[3] ^ D2[3];
+ 	C[6] = D2[2];
+ 	C[7] = D2[3];
+-}	
++}
  
- 	karat_mult_2( D0, A,B);
-@@ -213,7 +192,7 @@
+ 
+ 
+ /**
+- * @brief Compute C(x) = A(x)*B(x) 
++ * @brief Compute C(x) = A(x)*B(x)
+  *
+  * This function computes A(x)*B(x) using Karatsuba
+  * A(x) and B(x) are stored in 256-bit registers
+@@ -217,26 +211,29 @@
   * @param[in] A Pointer to the polynomial A(x)
   * @param[in] B Pointer to the polynomial B(x)
   */
--inline static void karat_mult_8(__m256i * C, __m256i * A, __m256i * B) {
-+static inline void karat_mult_8(__m256i * C, __m256i * A, __m256i * B) {
- 	__m256i D0[8],D1[8],D2[8],SAA[4],SBB[4];
+-inline static void karat_mult_8(__m256i *C, __m256i *A, __m256i *B) {
++static inline void karat_mult_8(__m256i *C, const __m256i *A, const __m256i *B) {
++	size_t i, is, is2, is3;
+ 	__m256i D0[8], D1[8], D2[8], SAA[4], SBB[4];
+-			
++	__m256i middle;
++
+ 	karat_mult_4(D0, A, B);
+ 	karat_mult_4(D2, A + 4, B + 4);
+-	for(int32_t i = 0 ; i < 4 ; i++) {
+-		int32_t is = i + 4; 
++
++	for (i = 0 ; i < 4 ; i++) {
++		is = i + 4;
+ 		SAA[i] = A[i] ^ A[is];
+ 		SBB[i] = B[i] ^ B[is];
+ 	}
  
- 	karat_mult_4( D0, A,B);
-@@ -252,24 +231,25 @@
+ 	karat_mult_4(D1, SAA, SBB);
+ 
+-	for(int32_t i = 0 ; i < 4 ; i++) {
+-		int32_t is = i + 4;
+-		int32_t is2 = is + 4;
+-		int32_t is3 = is2 + 4;
+-		
+-		__m256i middle = _mm256_xor_si256(D0[is], D2[i]);
+-		
++	for (i = 0 ; i < 4 ; i++) {
++		is = i + 4;
++		is2 = is + 4;
++		is3 = is2 + 4;
++
++		middle = _mm256_xor_si256(D0[is], D2[i]);
++
+ 		C[i]   = D0[i];
+ 		C[is]  = middle ^ D0[i] ^ D1[i];
+ 		C[is2] = middle ^ D1[is] ^ D2[is];
+@@ -247,7 +244,7 @@
+ 
+ 
+ /**
+- * @brief Compute C(x) = A(x)*B(x) 
++ * @brief Compute C(x) = A(x)*B(x)
+  *
+  * This function computes A(x)*B(x) using Karatsuba
+  * A(x) and B(x) are stored in 256-bit registers
+@@ -255,27 +252,29 @@
   * @param[in] A Pointer to the polynomial A(x)
   * @param[in] B Pointer to the polynomial B(x)
   */
 -inline static void karat_mult_16(__m256i *C, __m256i *A, __m256i *B) {
-+static inline void karat_mult_16(__m256i *C, __m256i *A, __m256i *B) {
-+	int32_t i, is, is2, is3;
- 	__m256i D0[16],D1[16],D2[16],SAA[8],SBB[8];
- 
- 	karat_mult_8( D0, A,B);
++inline static void karat_mult_16(__m256i *C, const __m256i *A, const __m256i *B) {
++	size_t i, is, is2, is3;
++	__m256i middle;
+ 	__m256i D0[16], D1[16], D2[16], SAA[8], SBB[8];
+-			
++
+ 	karat_mult_8(D0, A, B);
  	karat_mult_8(D2, A + 8, B + 8);
  
--	for (int32_t i = 0 ; i < 8 ; i++) {
--		int32_t is = i + 8;
+-	for(int32_t i = 0 ; i < 8 ; i++) {
+-		int32_t is = i + 8; 
 +	for (i = 0 ; i < 8 ; i++) {
 +		is = i + 8;
  		SAA[i] = A[i] ^ A[is];
  		SBB[i] = B[i] ^ B[is];
  	}
  
- 	karat_mult_8( D1, SAA, SBB);
+ 	karat_mult_8(D1, SAA, SBB);
  
--	for (int32_t i = 0 ; i < 8 ; i++) {
+-	for(int32_t i = 0 ; i < 8 ; i++) {
 -		int32_t is = i + 8;
 -		int32_t is2 = is + 8;
 -		int32_t is3 = is2 + 8;
+-		
+-		__m256i middle = _mm256_xor_si256(D0[is], D2[i]);
+-		
 +	for (i = 0 ; i < 8 ; i++) {
 +		is = i + 8;
 +		is2 = is + 8;
 +		is3 = is2 + 8;
- 
- 		__m256i middle = _mm256_xor_si256(D0[is], D2[i]);
- 
-@@ -291,24 +271,25 @@
-  * @param[in] A Pointer to the polynomial A(x)
-  * @param[in] B Pointer to the polynomial B(x)
-  */
--inline static void karat_mult_32(__m256i *C, __m256i *A, __m256i *B) {
-+static inline void karat_mult_32(__m256i *C, __m256i *A, __m256i *B) {
- 	__m256i D0[32],D1[32],D2[32],SAA[16],SBB[16];
-+	int32_t i, is, is2, is3;
- 
- 	karat_mult_16( D0, A, B);
- 	karat_mult_16(D2, A + 16, B + 16);
- 
--	for (int32_t i = 0 ; i < 16 ; i++) {
--		int is = i + 16;
-+	for (i = 0 ; i < 16 ; i++) {
-+		is = i + 16;
- 		SAA[i] = A[i] ^ A[is];
- 		SBB[i] = B[i] ^ B[is];
- 	}
- 
- 	karat_mult_16( D1, SAA, SBB);
- 
--	for (int32_t i = 0 ; i < 16 ; i++) {
--		int32_t is = i + 16;
--		int32_t is2 = is + 16;
--		int32_t is3 = is2 + 16;
-+	for (i = 0 ; i < 16 ; i++) {
-+		is = i + 16;
-+		is2 = is + 16;
-+		is3 = is2 + 16;
- 
- 		__m256i middle = _mm256_xor_si256(D0[is], D2[i]);
- 
-@@ -320,7 +301,6 @@
++
++		middle = D0[is] ^ D2[i];
++
+ 		C[i]   = D0[i];
+ 		C[is]  = middle ^ D0[i] ^ D1[i];
+ 		C[is2] = middle ^ D1[is] ^ D2[is];
+@@ -284,9 +283,8 @@
  }
  
  
 -
  /**
-  * @brief Compute B(x) = A(x)/(x+1)
+- * @brief Compute C(x) = A(x)*B(x) 
++ * @brief Compute C(x) = A(x)*B(x)
   *
-@@ -337,7 +317,7 @@
- 
- 	for (int32_t i = 1 ; i < 2 * (size << 2) ;i++) {
- 		B[i] = B[i - 1] ^ A[i];
--    	}
-+	}
- }
- 
- 
-@@ -351,17 +331,22 @@
+  * This function computes A(x)*B(x) using Karatsuba
+  * A(x) and B(x) are stored in 256-bit registers
+@@ -294,15 +292,15 @@
   * @param[in] A Pointer to the polynomial A(x)
   * @param[in] B Pointer to the polynomial B(x)
   */
--void TOOM3Mult(uint64_t* Out, const uint64_t* A, const uint64_t* B) {
-+static void TOOM3Mult(__m256i *Out, const uint64_t* A, const uint64_t* B) {
- 	static __m256i U0[T_TM3_3W_256], V0[T_TM3_3W_256], U1[T_TM3_3W_256], V1[T_TM3_3W_256], U2[T_TM3_3W_256], V2[T_TM3_3W_256];
- 	static __m256i W0[2 * (T_TM3_3W_256)], W1[2 * (T_TM3_3W_256)], W2[2 * (T_TM3_3W_256)], W3[2 * (T_TM3_3W_256)], W4[2 * (T_TM3_3W_256)];
- 	static __m256i tmp[2 * (T_TM3_3W_256)];
- 	static __m256i ro256[6 * (T_TM3_3W_256)];
--	const __m256i zero = (__m256i){0ul,0ul,0ul,0ul};
-+	const __m256i zero = _mm256_setzero_si256();
-+	int64_t *U1_64;
-+	int64_t *U2_64;
-+	int64_t *V1_64;
-+	int64_t *V2_64;
- 	int32_t T2 = T_TM3_3W_64 << 1;
-+	int32_t i, i4, i41, i42;
- 
--	for (int32_t i = 0 ; i < T_TM3_3W_256 - 1 ; i++) {
--		int32_t i4 = i << 2;
--		int32_t i42 = i4 - 2;
-+	for (i = 0 ; i < T_TM3_3W_256 - 1 ; i++) {
-+		i4 = i << 2;
-+		i42 = i4 - 2;
- 		U0[i] = _mm256_lddqu_si256((__m256i const *)(& A[i4]));
- 		V0[i] = _mm256_lddqu_si256((__m256i const *)(& B[i4]));
- 		U1[i] = _mm256_lddqu_si256((__m256i const *)(& A[i42 + T_TM3_3W_64]));
-@@ -370,22 +355,22 @@
- 		V2[i] = _mm256_lddqu_si256((__m256i const *)(& B[i4 + T2 - 4]));
+-inline static void karat_mult5(__m256i *Out, __m256i *A, __m256i *B) {
+-	__m256i *a0, *b0, *a1, *b1, *a2, *b2, * a3, * b3, *a4, *b4;
++static inline void karat_mult5(__m256i *C, const __m256i *A, const __m256i *B) {
++	const __m256i *a0, *b0, *a1, *b1, *a2, *b2, * a3, * b3, *a4, *b4;
+ 	
+-	static __m256i aa01[T_5W_256], bb01[T_5W_256], aa02[T_5W_256], bb02[T_5W_256], aa03[T_5W_256], bb03[T_5W_256], aa04[T_5W_256], bb04[T_5W_256], 
++	__m256i aa01[T_5W_256], bb01[T_5W_256], aa02[T_5W_256], bb02[T_5W_256], aa03[T_5W_256], bb03[T_5W_256], aa04[T_5W_256], bb04[T_5W_256], 
+ 			aa12[T_5W_256], bb12[T_5W_256], aa13[T_5W_256], bb13[T_5W_256], aa14[T_5W_256], bb14[T_5W_256],
+ 			aa23[T_5W_256], bb23[T_5W_256], aa24[T_5W_256], bb24[T_5W_256],
+ 			aa34[T_5W_256], bb34[T_5W_256];
+ 	
+-	static __m256i D0[T2_5W_256], D1[T2_5W_256], D2[T2_5W_256], D3[T2_5W_256], D4[T2_5W_256], 
++	__m256i D0[T2_5W_256], D1[T2_5W_256], D2[T2_5W_256], D3[T2_5W_256], D4[T2_5W_256], 
+ 			D01[T2_5W_256], D02[T2_5W_256], D03[T2_5W_256], D04[T2_5W_256],
+ 			D12[T2_5W_256], D13[T2_5W_256], D14[T2_5W_256],
+ 			D23[T2_5W_256], D24[T2_5W_256],
+@@ -387,7 +385,7 @@
  	}
  
--	for (int32_t i = T_TM3_3W_256 - 1 ; i < T_TM3_3W_256 ; i++) {
--		int32_t i4 = i << 2;
--		int32_t i41 = i4 + 1;
--		U0[i]= (__m256i){A[i4],A[i41],0x0ul,0x0ul};
--		V0[i]= (__m256i){B[i4],B[i41],0x0ul,0x0ul};
--		U1[i]= (__m256i){A[i4 + T_TM3_3W_64 - 2],A[i41 + T_TM3_3W_64 - 2],0x0ul,0x0ul};
--		V1[i]= (__m256i){B[i4 + T_TM3_3W_64 - 2],B[i41 + T_TM3_3W_64 - 2],0x0ul,0x0ul};
--		U2[i]= (__m256i){A[i4 - 4 + T2],A[i4 - 3 + T2],0x0ul,0x0ul};
--		V2[i]= (__m256i){B[i4 - 4 + T2],B[i4 - 3 + T2],0x0ul,0x0ul};
-+	for (i = T_TM3_3W_256 - 1 ; i < T_TM3_3W_256 ; i++) {
-+		i4 = i << 2;
-+		i41 = i4 + 1;
-+		U0[i]= _mm256_set_epi64x(0,0,A[i41],A[i4]);
-+		V0[i]= _mm256_set_epi64x(0,0,B[i41],B[i4]);
-+		U1[i]= _mm256_set_epi64x(0,0,A[i41+T_TM3_3W_64-2],A[i4+T_TM3_3W_64-2]);
-+		V1[i]= _mm256_set_epi64x(0,0,B[i41+T_TM3_3W_64-2],B[i4+T_TM3_3W_64-2]);
-+		U2[i]= _mm256_set_epi64x(0,0,A[i4-3+T2],A[i4-4+T2]);
-+		V2[i]= _mm256_set_epi64x(0,0,B[i4-3+T2],B[i4-4+T2]);
- 	}
- 
- 	// Evaluation phase : x= X^64
- 	// P(X): P0=(0); P1=(1); P2=(x); P3=(1+x); P4=(\infty)
- 	// Evaluation: 5*2 add, 2*2 shift; 5 mul (n)
- 	//W3 = U2 + U1 + U0 ; W2 = V2 + V1 + V0
--	for (int32_t i = 0 ; i < T_TM3_3W_256 ; i++) {
-+	for (i = 0 ; i < T_TM3_3W_256 ; i++) {
- 		W3[i]=U0[i] ^ U1[i] ^ U2[i];
- 		W2[i]=V0[i] ^ V1[i] ^ V2[i];
- 	}
-@@ -394,38 +379,32 @@
- 	karat_mult_32( W1, W2, W3);
- 
- 	//W0 =(U1 + U2*x)*x ; W4 =(V1 + V2*x)*x (SIZE = T_TM3_3W_256 !)
--	uint64_t *U1_64 = ((uint64_t *) U1);
--	uint64_t *U2_64 = ((uint64_t *) U2);
--
--	uint64_t *V1_64 = ((uint64_t *) V1);
--	uint64_t *V2_64 = ((uint64_t *) V2);
--
--	W0[0] = (__m256i){0ul,U1_64[0],U1_64[1] ^ U2_64[0],U1_64[2] ^ U2_64[1]};
--	W4[0] = (__m256i){0ul,V1_64[0],V1_64[1] ^ V2_64[0],V1_64[2] ^ V2_64[1]};
-+	U1_64 = ((int64_t *) U1);
-+	U2_64 = ((int64_t *) U2);
- 
--	U1_64 = ((uint64_t *) U1) - 1;
--	U2_64 = ((uint64_t *) U2) - 2;
-+	V1_64 = ((int64_t *) V1);
-+	V2_64 = ((int64_t *) V2);
- 
--	V1_64 = ((uint64_t *) V1) - 1;
--	V2_64 = ((uint64_t *) V2) - 2;
-+	W0[0] = _mm256_set_epi64x(U1_64[2]^U2_64[1], U1_64[1]^U2_64[0], U1_64[0], 0);
-+	W4[0] = _mm256_set_epi64x(V1_64[2]^V2_64[1], V1_64[1]^V2_64[0], V1_64[0], 0);
- 
--	for (int32_t i = 1 ; i < T_TM3_3W_256 ; i++) {
--		int i4 = i << 2;
--		W0[i] = _mm256_lddqu_si256((__m256i const *)(& U1_64[i4]));
--		W0[i] ^= _mm256_lddqu_si256((__m256i const *)(& U2_64[i4]));
-+	for (i = 1 ; i < T_TM3_3W_256 ; i++) {
-+		i4 = i << 2;
-+		W0[i] = _mm256_lddqu_si256((__m256i const *)(& U1_64[i4-1]));
-+		W0[i] ^= _mm256_lddqu_si256((__m256i const *)(& U2_64[i4-2]));
- 
--		W4[i] = _mm256_lddqu_si256((__m256i const *)(& V1_64[i4]));
--		W4[i] ^= _mm256_lddqu_si256((__m256i const *)(& V2_64[i4]));
-+		W4[i] = _mm256_lddqu_si256((__m256i const *)(& V1_64[i4-1]));
-+		W4[i] ^= _mm256_lddqu_si256((__m256i const *)(& V2_64[i4-2]));
- 	}
- 
- 	//W3 = W3 + W0      ; W2 = W2 + W4
--	for (int32_t i = 0 ; i < T_TM3_3W_256 ; i++) {
-+	for (i = 0 ; i < T_TM3_3W_256 ; i++) {
- 		W3[i] ^= W0[i];
- 		W2[i] ^= W4[i];
- 	}
- 
- 	//W0 = W0 + U0      ; W4 = W4 + V0
--	for (int32_t i = 0 ; i < T_TM3_3W_256 ; i++) {
-+	for (i = 0 ; i < T_TM3_3W_256 ; i++) {
- 		W0[i] ^= U0[i];
- 		W4[i] ^= V0[i];
- 	}
-@@ -433,9 +412,9 @@
- 	//W3 = W3 * W2      ; W2 = W0 * W4
- 	karat_mult_32(tmp, W3, W2);
- 
--	for (int32_t i = 0 ; i < 2 * (T_TM3_3W_256) ; i++) {
-+	for (i = 0 ; i < 2 * (T_TM3_3W_256) ; i++) {
- 		W3[i] = tmp[i];
--    	}
-+	}
- 
- 	karat_mult_32(W2, W0, W4);
- 	//W4 = U2 * V2      ; W0 = U0 * V0
-@@ -445,65 +424,64 @@
- 	// Interpolation phase
- 	// 9 add, 1 shift, 1 Smul, 2 Sdiv (2n)
- 	//W3 = W3 + W2
--	for (int32_t i = 0 ; i < 2 * (T_TM3_3W_256) ; i++) {
-+	for (i = 0 ; i < 2 * (T_TM3_3W_256) ; i++) {
- 		W3[i] ^= W2[i];
- 	}
- 
- 	//W1 = W1 + W0
--	for (int32_t i = 0 ; i < 2 * (T_TM3_3W_256) ; i++) {
-+	for (i = 0 ; i < 2 * (T_TM3_3W_256) ; i++) {
- 		W1[i] ^= W0[i];
- 	}
- 
- 	//W2 =(W2 + W0)/x -> x = X^64
--	U1_64 = ((uint64_t *) W2) + 1;
--	U2_64 = ((uint64_t *) W0) + 1;
--	for (int32_t i = 0 ; i < (T_TM3_3W_256 << 1) ; i++) {
--			int32_t i4 = i << 2;
--			W2[i] = _mm256_lddqu_si256((__m256i const *)(& U1_64[i4]));
--			W2[i] ^= _mm256_lddqu_si256((__m256i const *)(& U2_64[i4]));
-+	U1_64 = ((int64_t *) W2);
-+	U2_64 = ((int64_t *) W0);
-+	for (i = 0 ; i < (T_TM3_3W_256 << 1) ; i++) {
-+			i4 = i << 2;
-+			W2[i] = _mm256_lddqu_si256((__m256i const *)(& U1_64[i4+1]));
-+			W2[i] ^= _mm256_lddqu_si256((__m256i const *)(& U2_64[i4+1]));
- 	}
- 
- 	//W2 =(W2 + W3 + W4*(x^3+1))/(x+1)
--	U1_64 = ((uint64_t *) W4);
-+	U1_64 = ((int64_t *) W4);
- 	__m256i *U1_256 = (__m256i *) (U1_64+1);
--	tmp[0] = W2[0]^W3[0]^W4[0]^(__m256i){0x0ul,0x0ul,0x0ul,U1_64[0]};
-+	tmp[0] = W2[0]^W3[0]^W4[0]^_mm256_set_epi64x(U1_64[0],0,0,0);
- 
--	for (int32_t i = 1 ; i < (T_TM3_3W_256 << 1) - 1 ;i++) {
--        	tmp[i] = W2[i] ^ W3[i] ^ W4[i] ^ U1_256[i - 1];
-+	for (i = 1 ; i < (T_TM3_3W_256 << 1) - 1 ;i++) {
-+		tmp[i] = W2[i] ^ W3[i] ^ W4[i] ^ _mm256_lddqu_si256(&U1_256[i - 1]);
- 	}
- 
- 	divByXplus1(W2,tmp,T_TM3_3W_256);
- 	W2[2 * (T_TM3_3W_256) - 1] = zero;
- 
- 	//W3 =(W3 + W1)/(x*(x+1))
--	U1_64 = (uint64_t *) W3;
-+	U1_64 = (int64_t *) W3;
- 	U1_256 = (__m256i *) (U1_64 + 1);
- 
--	U2_64 = (uint64_t *) W1;
-+	U2_64 = (int64_t *) W1;
- 	__m256i * U2_256 = (__m256i *) (U2_64 + 1);
- 
--	for (int32_t i = 0 ; i < 2 * (T_TM3_3W_256) - 1 ; i++) {
--		tmp[i] = U1_256[i] ^ U2_256[i];
-+	for (i = 0 ; i < 2 * (T_TM3_3W_256) - 1 ; i++) {
-+		tmp[i] = _mm256_lddqu_si256(&U1_256[i]) ^ _mm256_lddqu_si256(&U2_256[i]);
- 	}
- 
- 	divByXplus1(W3,tmp,T_TM3_3W_256);
- 	W3[2 * (T_TM3_3W_256) - 1] = zero;
- 
- 	//W1 = W1 + W4 + W2
--	for (int32_t i = 0 ; i < 2 * (T_TM3_3W_256) ; i++) {
-+	for (i = 0 ; i < 2 * (T_TM3_3W_256) ; i++) {
- 		W1[i] ^= W2[i] ^ W4[i];
- 	}
- 
- 	//W2 = W2 + W3
--	for (int32_t i = 0 ; i < 2 * (T_TM3_3W_256) ; i++) {
-+	for (i = 0 ; i < 2 * (T_TM3_3W_256) ; i++) {
- 		W2[i] ^= W3[i];
- 	}
- 
- 	// Recomposition
- 	//W  = W0+ W1*x+ W2*x^2+ W3*x^3 + W4*x^4
- 	//W0, W1, W4 of size 2*T_TM3_3W_256, W2 and W3 of size 2*(T_TM3_3W_256)
--
--	for (int32_t i = 0 ; i < (T_TM3_3W_256 << 1) - 1 ; i++) {
-+	for (i = 0 ; i < (T_TM3_3W_256 << 1) - 1 ; i++) {
- 		ro256[i] = W0[i];
- 		ro256[i + 2 * T_TM3_3W_256 - 1] = W2[i];
- 		ro256[i + 4 * T_TM3_3W_256 - 2] = W4[i];
-@@ -513,20 +491,19 @@
- 	ro256[(T_TM3_3W_256 << 2) - 2] = W2[(T_TM3_3W_256 << 1) - 1] ^ W4[0];
- 	ro256[(T_TM3_3W_256 * 6) - 3] = W4[(T_TM3_3W_256 << 1) - 1];
- 
--	U1_64 = ((uint64_t *) &ro256[T_TM3_3W_256]);
-+	U1_64 = ((int64_t *) &ro256[T_TM3_3W_256]);
- 	U1_256 = (__m256i *) (U1_64 - 2);
- 
--	U2_64 = ((uint64_t *) &ro256[3 * T_TM3_3W_256 - 1]);
-+	U2_64 = ((int64_t *) &ro256[3 * T_TM3_3W_256 - 1]);
- 	U2_256 = (__m256i *) (U2_64 - 2);
- 
--	for (int32_t i = 0 ; i < T_TM3_3W_256 << 1 ; i++) {
--		U1_256[i] ^= W1[i];
--		U2_256[i] ^= W3[i];
-+	for (i = 0 ; i < T_TM3_3W_256 << 1 ; i++) {
-+		_mm256_storeu_si256(&U1_256[i], W1[i] ^ _mm256_lddqu_si256(&U1_256[i]));
-+		_mm256_storeu_si256(&U2_256[i], W3[i] ^ _mm256_loadu_si256(&U2_256[i]));
- 	}
- 
--	for (int32_t i = 0 ; i < 6 * T_TM3_3W_256 - 2 ; i++) {
--		uint64_t *out64 = Out + (i << 2);
--		_mm256_storeu_si256((__m256i *)out64, ro256[i]);
-+	for (i = 0 ; i < 6 * T_TM3_3W_256 - 2 ; i++) {
-+		_mm256_storeu_si256(&Out[i], ro256[i]);
+ 	for(int32_t i = 0 ; i < T_5W_256 * 10 ; i++) {
+-		Out[i] = ro256[i];
++		C[i] = ro256[i];
  	}
  }
  
-@@ -540,7 +517,7 @@
-  * @param[in] in Pointer to the polynomial A(x)
-  * @param[in] size used to define the number of coeeficients of A
-  */
--static inline void divByXplus1_256(__m256i* in,__m256i *out, int32_t size) {
-+static inline void divByXplus1_256(__m256i *out,__m256i *in, int32_t size) {
- 	out[0] = in[0];
- 	for (int32_t i = 1 ; i < 2 * (size + 2) ; i++) {
- 		out[i]= out[i - 1] ^ in[i];
-@@ -557,16 +534,17 @@
+@@ -418,22 +416,22 @@
   * @param[in] A Pointer to the polynomial A(x)
   * @param[in] B Pointer to the polynomial B(x)
   */
--void TOOM3RecMult(uint64_t *Out, const uint64_t *A, const uint64_t *B) {
-+static void TOOM3RecMult(__m256i *Out, const uint64_t *A, const uint64_t *B) {
- 	__m256i U0[T_TM3R_3W_256 + 2], V0[T_TM3R_3W_256 + 2], U1[T_TM3R_3W_256 + 2], V1[T_TM3R_3W_256 + 2], U2[T_TM3R_3W_256 + 2], V2[T_TM3R_3W_256 + 2];
- 	__m256i W0[2 * (T_TM3R_3W_256 + 2)], W1[2 * (T_TM3R_3W_256 + 2)], W2[2 * (T_TM3R_3W_256 + 2)], W3[2 * (T_TM3R_3W_256 + 2)], W4[2 * (T_TM3R_3W_256 + 2)];
- 	__m256i tmp[2 * (T_TM3R_3W_256 + 2) + 3];
- 	__m256i ro256[tTM3R / 2];
--	const __m256i zero = (__m256i){0ul,0ul,0ul,0ul};
-+	const __m256i zero = _mm256_setzero_si256();
+-static void toom_3_mult(uint64_t *Out, const uint64_t *A, const uint64_t *B) {
+-	static __m256i U0[T_TM3R_3W_256 + 2], V0[T_TM3R_3W_256 + 2], U1[T_TM3R_3W_256 + 2], V1[T_TM3R_3W_256 + 2], U2[T_TM3R_3W_256 + 2], V2[T_TM3R_3W_256 + 2];
+-	static __m256i W0[2 * (T_TM3R_3W_256 + 2)], W1[2 * (T_TM3R_3W_256 + 2)], W2[2 * (T_TM3R_3W_256 + 2)], W3[2 * (T_TM3R_3W_256 + 2)], W4[2 * (T_TM3R_3W_256 + 2)];
+-	static __m256i tmp[2 * (T_TM3R_3W_256 + 2) + 3];
+-	static __m256i ro256[tTM3R / 2];
+-	static const __m256i zero = {0ul, 0ul, 0ul, 0ul};
++static void toom_3_mult(uint64_t *Out, const aligned_vec_t *A, const aligned_vec_t *B) {
++	__m256i U0[T_TM3R_3W_256 + 2], V0[T_TM3R_3W_256 + 2], U1[T_TM3R_3W_256 + 2], V1[T_TM3R_3W_256 + 2], U2[T_TM3R_3W_256 + 2], V2[T_TM3R_3W_256 + 2];
++	__m256i W0[2 * (T_TM3R_3W_256 + 2)], W1[2 * (T_TM3R_3W_256 + 2)], W2[2 * (T_TM3R_3W_256 + 2)], W3[2 * (T_TM3R_3W_256 + 2)], W4[2 * (T_TM3R_3W_256 + 2)];
++	__m256i tmp[2 * (T_TM3R_3W_256 + 2) + 3];
++	__m256i ro256[tTM3R / 2];
++	const __m256i zero = {0ul, 0ul, 0ul, 0ul};
  	int32_t T2 = T_TM3R_3W_64 << 1;
-+	int32_t i, i1, i4;
  
--	for (int32_t i = 0 ; i < T_TM3R_3W_256 ; i++) {
--		int32_t i4 = i << 2;
-+	for (i = 0 ; i < T_TM3R_3W_256 ; i++) {
-+		i4 = i << 2;
- 		U0[i]= _mm256_lddqu_si256((__m256i const *)(& A[i4]));
- 		V0[i]= _mm256_lddqu_si256((__m256i const *)(& B[i4]));
- 		U1[i]= _mm256_lddqu_si256((__m256i const *)(& A[i4 + T_TM3R_3W_64]));
-@@ -575,7 +553,7 @@
- 		V2[i]= _mm256_lddqu_si256((__m256i const *)(& B[i4 + T2]));
+ 	for (int32_t i = 0 ; i < T_TM3R_3W_256 ; i++) {
+ 		int32_t i4 = i << 2;
+-		U0[i]= _mm256_lddqu_si256((__m256i const *)(& A[i4]));
+-		V0[i]= _mm256_lddqu_si256((__m256i const *)(& B[i4]));
+-		U1[i]= _mm256_lddqu_si256((__m256i const *)(& A[i4 + T_TM3R_3W_64]));
+-		V1[i]= _mm256_lddqu_si256((__m256i const *)(& B[i4 + T_TM3R_3W_64]));
+-		U2[i]= _mm256_lddqu_si256((__m256i const *)(& A[i4 + T2]));
+-		V2[i]= _mm256_lddqu_si256((__m256i const *)(& B[i4 + T2]));
++		U0[i]= _mm256_lddqu_si256((__m256i const *)(&A->arr64[i4]));
++		V0[i]= _mm256_lddqu_si256((__m256i const *)(&B->arr64[i4]));
++		U1[i]= _mm256_lddqu_si256((__m256i const *)(&A->arr64[i4 + T_TM3R_3W_64]));
++		V1[i]= _mm256_lddqu_si256((__m256i const *)(&B->arr64[i4 + T_TM3R_3W_64]));
++		U2[i]= _mm256_lddqu_si256((__m256i const *)(&A->arr64[i4 + T2]));
++		V2[i]= _mm256_lddqu_si256((__m256i const *)(&B->arr64[i4 + T2]));
  	}
  
--	for (int32_t i = T_TM3R_3W_256 ; i < T_TM3R_3W_256 + 2 ; i++) {
-+	for (i = T_TM3R_3W_256 ; i < T_TM3R_3W_256 + 2 ; i++) {
- 		U0[i]= zero;
- 		V0[i]= zero;
- 		U1[i]= zero;
-@@ -589,25 +567,25 @@
- 	// Evaluation: 5*2 add, 2*2 shift; 5 mul (n)
- 	//W3 = U2 + U1 + U0 ; W2 = V2 + V1 + V0
- 
--	for (int32_t i = 0 ; i < T_TM3R_3W_256 ; i++) {
-+	for (i = 0 ; i < T_TM3R_3W_256 ; i++) {
- 		W3[i]=U0[i] ^ U1[i] ^ U2[i];
- 		W2[i]=V0[i] ^ V1[i] ^ V2[i];
- 	}
- 
--	for (int32_t i = T_TM3R_3W_256 ; i < T_TM3R_3W_256 + 2 ; i++) {
-+	for (i = T_TM3R_3W_256 ; i < T_TM3R_3W_256 + 2 ; i++) {
- 		W2[i]= zero;
- 		W3[i]= zero;
- 	}
- 
- 	//W1 = W2 * W3
--	TOOM3Mult((uint64_t *) W1,(uint64_t *) W2,(uint64_t *) W3);
-+	TOOM3Mult(W1,(uint64_t *) W2,(uint64_t *) W3);
- 	//W0 =(U1 + U2*x)*x ; W4 =(V1 + V2*x)*x (SIZE = T_TM3_3W_256 + 2 !)
- 	W0[0] = zero;
- 	W4[0] = zero;
- 	W0[1] = U1[0];
- 	W4[1] = V1[0];
- 
--	for (int32_t i = 1 ; i < T_TM3R_3W_256 + 1 ; i++) {
-+	for (i = 1 ; i < T_TM3R_3W_256 + 1 ; i++) {
- 		W0[i + 1] = U1[i] ^ U2[i - 1];
- 		W4[i + 1] = V1[i] ^ V2[i - 1];
- 	}
-@@ -616,53 +594,53 @@
- 	W4[T_TM3R_3W_256 + 1] = V2[T_TM3R_3W_256 - 1];
- 
- 	//W3 = W3 + W0      ; W2 = W2 + W4
--	for (int32_t i = 0 ; i < T_TM3R_3W_256 + 2 ; i++) {
-+	for (i = 0 ; i < T_TM3R_3W_256 + 2 ; i++) {
- 		W3[i] ^= W0[i];
- 		W2[i] ^= W4[i];
- 	}
- 
- 	//W0 = W0 + U0      ; W4 = W4 + V0
--	for (int32_t i = 0 ; i < T_TM3R_3W_256 + 2 ; i++) {
-+	for (i = 0 ; i < T_TM3R_3W_256 + 2 ; i++) {
- 		W0[i] ^= U0[i];
- 		W4[i] ^= V0[i];
- 	}
- 
- 	//W3 = W3 * W2      ; W2 = W0 * W4
--	TOOM3Mult((uint64_t *) tmp,(uint64_t *) W3,(uint64_t *) W2);
-+	TOOM3Mult(tmp,(uint64_t *) W3,(uint64_t *) W2);
- 
--	for (int32_t i = 0 ; i < 2 * (T_TM3R_3W_256 + 2) ; i++) {
-+	for (i = 0 ; i < 2 * (T_TM3R_3W_256 + 2) ; i++) {
- 		W3[i] = tmp[i];
--    	}
-+	}
- 
--	TOOM3Mult((uint64_t *) W2,(uint64_t *) W0,(uint64_t *) W4);
-+	TOOM3Mult(W2,(uint64_t *) W0,(uint64_t *) W4);
- 
- 	//W4 = U2 * V2      ; W0 = U0 * V0
--	TOOM3Mult((uint64_t *) W4,(uint64_t *) U2,(uint64_t *) V2);
--	TOOM3Mult((uint64_t *) W0,(uint64_t *) U0,(uint64_t *) V0);
-+	TOOM3Mult(W4,(uint64_t *) U2,(uint64_t *) V2);
-+	TOOM3Mult(W0,(uint64_t *) U0,(uint64_t *) V0);
- 
- 	//Interpolation phase
- 	//9 add, 1 shift, 1 Smul, 2 Sdiv (2n)
- 
- 	//W3 = W3 + W2
--	for (int32_t i = 0 ; i < 2 * (T_TM3R_3W_256 + 2) ; i++) {
-+	for (i = 0 ; i < 2 * (T_TM3R_3W_256 + 2) ; i++) {
- 		W3[i] ^= W2[i];
--    	}
-+	}
- 
- 	//W1 = W1 + W0
--	for (int32_t i = 0 ; i < 2 * (T_TM3R_3W_256) ; i++) {
-+	for (i = 0 ; i < 2 * (T_TM3R_3W_256) ; i++) {
- 		W1[i] ^= W0[i];
--   	}
-+	}
- 
- 	//W2 =(W2 + W0)/x
--	for (int32_t i = 0 ; i < 2 * (T_TM3R_3W_256 + 2) - 1 ; i++) {
--		int32_t i1 = i + 1;
-+	for (i = 0 ; i < 2 * (T_TM3R_3W_256 + 2) - 1 ; i++) {
-+		i1 = i + 1;
- 		W2[i] = W2[i1] ^ W0[i1];
-    	}
- 
- 	W2[2 * (T_TM3R_3W_256 + 2) - 1] = zero;
- 
- 	//W2 =(W2 + W3 + W4*(x^3+1))/(x+1)
--	for (int32_t i = 0 ; i < 2 * (T_TM3R_3W_256 + 2) ; i++) {
-+	for (i = 0 ; i < 2 * (T_TM3R_3W_256 + 2) ; i++) {
- 		tmp[i] = W2[i] ^ W3[i] ^ W4[i];
- 	}
- 
-@@ -670,34 +648,34 @@
- 	tmp[2 * (T_TM3R_3W_256 + 2) + 1] = zero;
- 	tmp[2 * (T_TM3R_3W_256 + 2) + 2] = zero;
- 
--	for (int32_t i = 0 ; i < 2 * (T_TM3R_3W_256) ; i++) {
-+	for (i = 0 ; i < 2 * (T_TM3R_3W_256) ; i++) {
- 		tmp[i + 3] ^= W4[i];
--    	}
-+	}
- 
--	divByXplus1_256(tmp,W2,T_TM3R_3W_256);
-+	divByXplus1_256(W2,tmp,T_TM3R_3W_256);
- 
- 	//W3 =(W3 + W1)/(x*(x+1))
--	for (int32_t i = 0 ; i < 2 * (T_TM3R_3W_256 + 2) - 1 ; i++) {
--		int32_t i1 = i + 1;
-+	for (i = 0 ; i < 2 * (T_TM3R_3W_256 + 2) - 1 ; i++) {
-+		i1 = i + 1;
- 		tmp[i] = W3[i1] ^ W1[i1];
--   	 }
-+	 }
- 
- 	tmp[ 2 * (T_TM3R_3W_256 + 2) - 1] = zero;
--	divByXplus1_256(tmp,W3,T_TM3R_3W_256);
-+	divByXplus1_256(W3,tmp,T_TM3R_3W_256);
- 
- 	//W1 = W1 + W4 + W2
--	for (int32_t i = 0 ; i < 2 * (T_TM3R_3W_256 + 2) ; i++) {
-+	for (i = 0 ; i < 2 * (T_TM3R_3W_256 + 2) ; i++) {
- 		W1[i] ^= W2[i] ^ W4[i];
- 	}
- 	//W2 = W2 + W3
--	for (int32_t i = 0 ; i < 2 * (T_TM3R_3W_256 + 2) ; i++) {
-+	for (i = 0 ; i < 2 * (T_TM3R_3W_256 + 2) ; i++) {
- 		W2[i] ^= W3[i];
-     	}
- 
- 	// Recomposition
- 	//W  = W0+ W1*x+ W2*x^2+ W3*x^3 + W4*x^4
- 	//W0, W1, W4 of size 2*T_TM3_3W_256, W2 and W3 of size 2*(T_TM3_3W_256+2)
--	for (int32_t i = 0 ; i < T_TM3R_3W_256 ; i++) {
-+	for (i = 0 ; i < T_TM3R_3W_256 ; i++) {
- 		ro256[i] = W0[i];
- 		ro256[i + T_TM3R_3W_256] = W0[i + T_TM3R_3W_256] ^ W1[i];
- 		ro256[i + 2 * T_TM3R_3W_256] = W1[i + T_TM3R_3W_256] ^ W2[i];
-@@ -719,9 +697,8 @@
- 	ro256[3 + 5 * T_TM3R_3W_256] ^= W3[3 + 2 * T_TM3R_3W_256];
- 
- 
--	for (int32_t i = 0 ; i < 6 * T_TM3R_3W_256 - 2 ; i++) {
--		uint64_t *out64 = Out + (i << 2);
--		_mm256_storeu_si256((__m256i *)out64, ro256[i]);
-+	for (i = 0 ; i < 2 * VEC_N_SIZE_256 + 1 ; i++) {
-+		_mm256_storeu_si256(&Out[i], ro256[i]);
- 	}
- }
- 
-@@ -739,12 +716,12 @@
+ 	for (int32_t i = T_TM3R_3W_256 ; i < T_TM3R_3W_256 + 2 ; i++)	{
+@@ -599,14 +597,8 @@
+  * @param[in] a1 Pointer to a polynomial
+  * @param[in] a2 Pointer to a polynomial
   */
- void vect_mul(uint64_t *o, const uint64_t *a1, const uint64_t *a2) {
- 	TOOM3RecMult(a1_times_a2, a1, a2);
--	reduce(o, a1_times_a2);
-+	reduce(o, (uint64_t *)a1_times_a2);
- 
- 	// clear all
+-void vect_mul(uint64_t *o, const uint64_t *a1, const uint64_t *a2) {	
+-	toom_3_mult(a1_times_a2, a1, a2);
++void vect_mul(uint64_t *o, const aligned_vec_t *a1, const aligned_vec_t *a2) {
++	__m256i a1_times_a2[VEC_N_256_SIZE_64 << 1] = {0};
++	toom_3_mult((uint64_t *)a1_times_a2, a1, a2);
+ 	reduce(o, a1_times_a2);
+-
+-	// clear all
 -	#ifdef __STDC_LIB_EXT1__
 -		memset_s(a1_times_a2, 0, (VEC_N_SIZE_64 << 1) * sizeof(uint64_t));
 -	#else
 -		memset(a1_times_a2, 0, (VEC_N_SIZE_64 << 1) * sizeof(uint64_t));
 -	#endif
-+#ifdef __STDC_LIB_EXT1__
-+	memset_s(a1_times_a2, 0, (2 * VEC_N_SIZE_256 + 1) * sizeof(__m256i));
-+#else
-+	memset(a1_times_a2, 0, (2 * VEC_N_SIZE_256 + 1) * sizeof(__m256i));
-+#endif
  }
 
