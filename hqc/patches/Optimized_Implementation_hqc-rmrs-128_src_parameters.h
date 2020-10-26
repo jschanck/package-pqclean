@@ -20,7 +20,7 @@
    #define PARAM_GF_MUL_ORDER                  	Define the size of the multiplicative group of GF(2^PARAM_M),  i.e 2^PARAM_M -1
    #define PARAM_K                             	Define the size of the information bits of the Reed-Solomon code
    #define PARAM_G                             	Define the size of the generator polynomial of Reed-Solomon code
-@@ -80,24 +80,29 @@
+@@ -80,25 +80,29 @@
  #define VEC_N1_SIZE_BYTES                   	PARAM_N1
  #define VEC_N1N2_SIZE_BYTES                 	CEIL_DIVIDE(PARAM_N1N2, 8)
  
@@ -50,8 +50,9 @@
 +#define PARAM_FFT                           	5
  #define RS_POLY_COEFS 89,69,153,116,176,117,111,75,73,233,242,233,65,210,21,139,103,173,67,118,105,210,174,110,74,69,228,82,255,181,1
  
-+#define BITMASK(a, size)                    	((1UL << ((a) % (size))) - 1)
- #define RED_MASK                            	BITMASK(PARAM_N, 64)
+-#define RED_MASK                            	BITMASK(PARAM_N, 64)
++#define RED_MASK                            	0x1f
  #define SHA512_BYTES                        	64
  #define SEED_BYTES                          	40
+ #define SEEDEXPANDER_MAX_LENGTH             	4294967295
 
