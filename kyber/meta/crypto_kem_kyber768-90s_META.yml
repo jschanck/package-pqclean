@@ -6,7 +6,7 @@ length-public-key: 1184
 length-ciphertext: 1088
 length-secret-key: 2400
 length-shared-secret: 32
-nistkat-sha256: 57fa080a0b2295044b128f1e4f7d978a7863ec6c99ebd6239fba747525a3d451
+nistkat-sha256: 68bf2e3914c0b4e053cefc67dd9f10f567946da5720f0b453b347610c3cc2c0a
 principal-submitters:
   - Peter Schwabe
 auxiliary-submitters:

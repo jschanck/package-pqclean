@@ -7,20 +7,38 @@
  #include "params.h"
  #include "indcpa.h"
  #include "poly.h"
-@@ -175,10 +176,8 @@
- void gen_matrix(polyvec *a, const uint8_t seed[KYBER_SYMBYTES], int transposed)
+@@ -111,10 +112,15 @@
+ **************************************************/
+ static void unpack_ciphertext(polyvec *b,
+                               poly *v,
+-                              const uint8_t c[KYBER_INDCPA_BYTES+6])
++                              const uint8_t c[KYBER_INDCPA_BYTES])
  {
-   unsigned int ctr, i, j;
++  size_t i;
++  uint8_t c2[KYBER_POLYCOMPRESSEDBYTES+6] = {0};
++  for(i=0; i<KYBER_POLYCOMPRESSEDBYTES; i++) {
++    c2[i] = c[KYBER_POLYVECCOMPRESSEDBYTES+i];
++  }
+   polyvec_decompress(b, c);
+-  poly_decompress(v, c+KYBER_POLYVECCOMPRESSEDBYTES);
++  poly_decompress(v, c2);
+ }
+ 
+ /*************************************************
+@@ -177,10 +183,8 @@
+ {
+   unsigned int ctr, i, j, k;
+   unsigned buflen, off;
 -  __attribute__((aligned(16)))
 -  uint64_t nonce;
 -  __attribute__((aligned(32)))
--  uint8_t buf[GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES];
+-  uint8_t buf[AVX_REJ_UNIFORM_BUFLEN+2];
 +  ALIGN16_TYPE(uint64_t) nonce = {.orig = 0};
-+  ALIGN32_ARRAY(uint8_t, GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES) buf;
++  ALIGN32_ARRAY(uint8_t, AVX_REJ_UNIFORM_BUFLEN+2) buf;
    aes256ctr_ctx state;
  
    aes256ctr_init(&state, seed, 0);
-@@ -186,17 +185,17 @@
+@@ -188,22 +192,22 @@
    for(i=0;i<KYBER_K;i++) {
      for(j=0;j<KYBER_K;j++) {
        if(transposed)
@@ -32,25 +50,31 @@
  
 -      state.n = _mm_loadl_epi64((__m128i *)&nonce);
 -      aes256ctr_squeezeblocks(buf, GEN_MATRIX_NBLOCKS, &state);
--      ctr = rej_uniform_avx(a[i].vec[j].coeffs, buf);
 +      state.n = _mm_loadl_epi64(&nonce.vec);
 +      aes256ctr_squeezeblocks(buf.arr, GEN_MATRIX_NBLOCKS, &state);
+       buflen = GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES;
+-      ctr = rej_uniform_avx(a[i].vec[j].coeffs, buf);
 +      ctr = rej_uniform_avx(a[i].vec[j].coeffs, buf.arr);
  
        while(ctr < KYBER_N) {
--        aes256ctr_squeezeblocks(buf, 1, &state);
--        ctr += rej_uniform(a[i].vec[j].coeffs + ctr, KYBER_N - ctr, buf,
-+        aes256ctr_squeezeblocks(buf.arr, 1, &state);
-+        ctr += rej_uniform(a[i].vec[j].coeffs + ctr, KYBER_N - ctr, buf.arr,
-                            XOF_BLOCKBYTES);
+         off = buflen % 3;
+         for(k = 0; k < off; k++)
+-          buf[k] = buf[buflen - off + k];
+-        aes256ctr_squeezeblocks(buf + off, 1, &state);
++          buf.arr[k] = buf.arr[buflen - off + k];
++        aes256ctr_squeezeblocks(buf.arr + off, 1, &state);
+         buflen = off + XOF_BLOCKBYTES;
+-        ctr += rej_uniform(a[i].vec[j].coeffs + ctr, KYBER_N - ctr, buf, buflen);
++        ctr += rej_uniform(a[i].vec[j].coeffs + ctr, KYBER_N - ctr, buf.arr, buflen);
        }
  
-@@ -209,57 +208,56 @@
+       poly_nttunpack(&a[i].vec[j]);
+@@ -215,57 +219,56 @@
  void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
  {
    unsigned int ctr0, ctr1, ctr2, ctr3;
 -  __attribute__((aligned(32)))
--  uint8_t buf[4][(GEN_MATRIX_NBLOCKS*XOF_BLOCKBYTES+31)/32*32];
+-  uint8_t buf[4][AVX_REJ_UNIFORM_BUFLEN];
 +  ALIGN32_ARRAY_2D(uint8_t, 4, (GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES + 31) / 32 * 32) buf;
    __m256i f;
    keccakx4_state state;
@@ -135,7 +159,7 @@
                          XOF_BLOCKBYTES);
    }
  
-@@ -272,58 +270,57 @@
+@@ -278,58 +281,57 @@
  void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
  {
    unsigned int ctr0, ctr1, ctr2, ctr3;
@@ -227,7 +251,7 @@
                          XOF_BLOCKBYTES);
    }
  
-@@ -333,51 +330,51 @@
+@@ -339,51 +341,51 @@
    poly_nttunpack(&a[1].vec[0]);
  
    f = _mm256_load_si256((__m256i *)seed);
@@ -310,7 +334,7 @@
                          XOF_BLOCKBYTES);
    }
  
-@@ -387,18 +384,19 @@
+@@ -393,18 +395,19 @@
    poly_nttunpack(&a[2].vec[1]);
  
    f = _mm256_load_si256((__m256i *)seed);
@@ -338,7 +362,7 @@
  
    poly_nttunpack(&a[2].vec[2]);
  }
-@@ -406,58 +404,57 @@
+@@ -412,58 +415,57 @@
  void gen_matrix(polyvec *a, const uint8_t seed[32], int transposed)
  {
    unsigned int i, ctr0, ctr1, ctr2, ctr3;
@@ -429,7 +453,7 @@
                            XOF_BLOCKBYTES);
      }
  
-@@ -485,35 +482,32 @@
+@@ -491,36 +493,34 @@
                      uint8_t sk[KYBER_INDCPA_SECRETKEYBYTES])
  {
    unsigned int i;
@@ -450,38 +474,40 @@
    gen_a(a, publicseed);
  
  #ifdef KYBER_90S
+ #define NBLOCKS ((2*KYBER_ETA1*32)/AES256CTR_BLOCKBYTES ) /* Assumes divisibility */
 -  __attribute__((aligned(16)))
 -  uint64_t nonce = 0;
 +  ALIGN16_TYPE(uint64_t) nonce = {.orig = 0};
    aes256ctr_ctx state;
 -  __attribute__((aligned(32)))
--  uint8_t coins[128];
+-  uint8_t coins[AES256CTR_BLOCKBYTES*NBLOCKS+2]; /* +2 as required by cbd3 */
 -  aes256ctr_init(&state, noiseseed, nonce++);
-+  ALIGN32_ARRAY(uint8_t, 128) coins;
++  /* +2 as required by cbd3 */
++  ALIGN32_ARRAY(uint8_t, AES256CTR_BLOCKBYTES*NBLOCKS+2) coins;
 +  aes256ctr_init(&state, noiseseed, nonce.orig++);
    for(i=0;i<KYBER_K;i++) {
--    aes256ctr_squeezeblocks(coins, 2, &state);
+-    aes256ctr_squeezeblocks(coins, NBLOCKS, &state);
 -    state.n = _mm_loadl_epi64((__m128i *)&nonce);
 -    nonce++;
--    cbd(&skpv.vec[i], coins);
-+    aes256ctr_squeezeblocks(coins.arr, 2, &state);
+-    cbd_eta1(&skpv.vec[i], coins);
++    aes256ctr_squeezeblocks(coins.arr, NBLOCKS, &state);
 +    state.n = _mm_loadl_epi64(&nonce.vec);
 +    nonce.orig++;
-+    cbd(&skpv.vec[i], coins.arr);
++    cbd_eta1(&skpv.vec[i], coins.arr);
    }
    for(i=0;i<KYBER_K;i++) {
--    aes256ctr_squeezeblocks(coins, 2, &state);
+-    aes256ctr_squeezeblocks(coins, NBLOCKS, &state);
 -    state.n = _mm_loadl_epi64((__m128i *)&nonce);
 -    nonce++;
--    cbd(&e.vec[i], coins);
-+    aes256ctr_squeezeblocks(coins.arr, 2, &state);
+-    cbd_eta1(&e.vec[i], coins);
++    aes256ctr_squeezeblocks(coins.arr, NBLOCKS, &state);
 +    state.n = _mm_loadl_epi64(&nonce.vec);
 +    nonce.orig++;
-+    cbd(&e.vec[i], coins.arr);
++    cbd_eta1(&e.vec[i], coins.arr);
    }
  #else
  #if KYBER_K == 2
-@@ -571,38 +565,35 @@
+@@ -587,39 +587,37 @@
                  const uint8_t coins[KYBER_SYMBYTES])
  {
    unsigned int i;
@@ -498,45 +524,47 @@
 +  gen_at(at, seed.arr);
  
  #ifdef KYBER_90S
+ #define NBLOCKS ((2*KYBER_ETA1*32)/AES256CTR_BLOCKBYTES ) /* Assumes divisibility */
 -  __attribute__((aligned(16)))
 -  uint64_t nonce = 0;
 +  ALIGN16_TYPE(uint64_t) nonce = {.orig = 0};
    aes256ctr_ctx state;
 -  __attribute__((aligned(32)))
--  uint8_t buf[128];
+-  uint8_t buf[AES256CTR_BLOCKBYTES*NBLOCKS+2]; /* +2 as required by cbd3 */
 -  aes256ctr_init(&state, coins, nonce++);
-+  ALIGN32_ARRAY(uint8_t, 128) buf;
++  /* +2 as required by cbd3 */
++  ALIGN32_ARRAY(uint8_t, AES256CTR_BLOCKBYTES*NBLOCKS+2) buf;
 +  aes256ctr_init(&state, coins, nonce.orig++);
    for(i=0;i<KYBER_K;i++) {
--    aes256ctr_squeezeblocks(buf, 2, &state);
+-    aes256ctr_squeezeblocks(buf, NBLOCKS, &state);
 -    state.n = _mm_loadl_epi64((__m128i *)&nonce);
 -    nonce++;
--    cbd(&sp.vec[i], buf);
-+    aes256ctr_squeezeblocks(buf.arr, 2, &state);
+-    cbd_eta1(&sp.vec[i], buf);
++    aes256ctr_squeezeblocks(buf.arr, NBLOCKS, &state);
 +    state.n = _mm_loadl_epi64(&nonce.vec);
 +    nonce.orig++;
-+    cbd(&sp.vec[i], buf.arr);
++    cbd_eta1(&sp.vec[i], buf.arr);
    }
    for(i=0;i<KYBER_K;i++) {
 -    aes256ctr_squeezeblocks(buf, 2, &state);
 -    state.n = _mm_loadl_epi64((__m128i *)&nonce);
 -    nonce++;
--    cbd(&ep.vec[i], buf);
+-    cbd_eta2(&ep.vec[i], buf);
 -  }
 -  aes256ctr_squeezeblocks(buf, 2, &state);
 -  state.n = _mm_loadl_epi64((__m128i *)&nonce);
 -  nonce++;
--  cbd(&epp, buf);
+-  cbd_eta2(&epp, buf);
 +    aes256ctr_squeezeblocks(buf.arr, 2, &state);
 +    state.n = _mm_loadl_epi64(&nonce.vec);
 +    nonce.orig++;
-+    cbd(&ep.vec[i], buf.arr);
++    cbd_eta2(&ep.vec[i], buf.arr);
 +  }
 +  aes256ctr_squeezeblocks(buf.arr, 2, &state);
 +  state.n = _mm_loadl_epi64(&nonce.vec);
 +  nonce.orig++;
-+  cbd(&epp, buf.arr);
++  cbd_eta2(&epp, buf.arr);
  #else
  #if KYBER_K == 2
-   poly_getnoise4x(sp.vec+0, sp.vec+1, ep.vec+0, ep.vec+1, coins,
+   poly_getnoise_eta1122_4x(sp.vec+0, sp.vec+1, ep.vec+0, ep.vec+1, coins, 0, 1, 2, 3);
 

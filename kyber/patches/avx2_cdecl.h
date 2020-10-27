@@ -1,6 +1,6 @@
 --- upstream/avx2/cdecl.h
 +++ upstream-patched/avx2/cdecl.h
-@@ -0,0 +1,22 @@
+@@ -0,0 +1,24 @@
 +#define _16XQ            0
 +#define _16XQINV        16
 +#define _16XV           32
@@ -9,8 +9,10 @@
 +#define _16XMONTSQLO    80
 +#define _16XMONTSQHI    96
 +#define _16XMASK       112
-+#define _ZETAS_EXP     128
-+#define _ZETAS_INV_EXP 528
++#define _REVIDXB       128
++#define _REVIDXD       144
++#define _ZETAS_EXP     160
++#define _16XSHIFT      624
 +
 +
 +/* The C ABI on MacOS exports all symbols with a leading

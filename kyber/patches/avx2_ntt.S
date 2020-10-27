@@ -4,16 +4,16 @@
 -#include "consts.h"
 +#include "cdecl.h"
  .include "shuffle.inc"
- .include "fq.inc"
  
-@@ -203,7 +203,9 @@
- ret
+ .macro mul rh0,rh1,rh2,rh3,zl0=15,zl1=15,zh0=2,zh1=2
+@@ -177,7 +177,9 @@
  
+ .text
  .global cdecl(ntt_avx)
 +.global _cdecl(ntt_avx)
  cdecl(ntt_avx):
 +_cdecl(ntt_avx):
- #consts
  vmovdqa		_16XQ*2(%rsi),%ymm0
- mov		%rsi,%rdx
+ 
+ level0		0
 

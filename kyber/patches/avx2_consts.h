@@ -1,6 +1,6 @@
 --- upstream/avx2/consts.h
 +++ upstream-patched/avx2/consts.h
-@@ -1,40 +1,21 @@
+@@ -1,42 +1,21 @@
  #ifndef CONSTS_H
  #define CONSTS_H
  
@@ -18,8 +18,10 @@
 -#define _16XMONTSQLO    80
 -#define _16XMONTSQHI    96
 -#define _16XMASK       112
--#define _ZETAS_EXP     128
--#define _ZETAS_INV_EXP 528
+-#define _REVIDXB       128
+-#define _REVIDXD       144
+-#define _ZETAS_EXP     160
+-#define	_16XSHIFT      624
 -
 -/* The C ABI on MacOS exports all symbols with a leading
 - * underscore. This means that any symbols we refer to from
@@ -37,18 +39,18 @@
 -#define cdecl(s) KYBER_NAMESPACE(_##s)
 -#endif
 -#endif
-+#define ALIGNED_UINT16_T(N) \
++#define ALIGNED_INT16_T(N) \
 +    union   {                   \
 +        __m256i as_vec;         \
-+        uint16_t as_arr[(N)];     \
++        int16_t as_arr[(N)];     \
 +    }
  
 -#ifndef __ASSEMBLER__
 -#include <stdint.h>
 -#define qdata KYBER_NAMESPACE(_qdata)
--extern const uint16_t qdata[];
+-extern const int16_t qdata[];
 -#endif
-+typedef ALIGNED_UINT16_T(928) qdata_t;
++typedef ALIGNED_INT16_T(928) qdata_t;
 +
 +#define qdata KYBER_NAMESPACE(qdata)
 +extern const qdata_t qdata;

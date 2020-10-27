@@ -27,6 +27,14 @@
 -void poly_tomsg(uint8_t msg[KYBER_INDCPA_MSGBYTES], poly *r);
 +void poly_tomsg(uint8_t msg[KYBER_INDCPA_MSGBYTES], poly *a);
  
- #define poly_getnoise KYBER_NAMESPACE(_poly_getnoise)
- void poly_getnoise(poly *r, const uint8_t seed[KYBER_SYMBYTES], uint8_t nonce);
+ #define poly_getnoise_eta2 KYBER_NAMESPACE(_poly_getnoise_eta2)
+ void poly_getnoise_eta2(poly *r, const uint8_t seed[KYBER_SYMBYTES], uint8_t nonce);
+@@ -52,6 +54,7 @@
+                      uint8_t nonce1,
+                      uint8_t nonce2,
+                      uint8_t nonce3);
++#define poly_getnoise_eta1122_4x KYBER_NAMESPACE(_poly_getnoise_eta1122_4x)
+ void poly_getnoise_eta1122_4x(poly *r0,
+                      poly *r1,
+                      poly *r2,
 

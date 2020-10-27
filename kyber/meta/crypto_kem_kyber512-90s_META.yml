@@ -3,10 +3,10 @@ type: kem
 claimed-nist-level: 1
 claimed-security: IND-CCA2
 length-public-key: 800
-length-ciphertext: 736
+length-ciphertext: 768
 length-secret-key: 1632
 length-shared-secret: 32
-nistkat-sha256: d081dafce242de5d2a9b1cfe2b304cf5ebaed71b7a91f028fefd569693307d45
+nistkat-sha256: 7bfe0653b63b3fac7ee300a6e4801046c1a3d8d445b271633b6c9d81ed125e5b
 principal-submitters:
   - Peter Schwabe
 auxiliary-submitters:

@@ -6,14 +6,14 @@
  .include "shuffle.inc"
  .include "fq.inc"
  
-@@ -210,7 +210,9 @@
- ret
+@@ -178,7 +178,9 @@
  
+ .text
  .global cdecl(invntt_avx)
 +.global _cdecl(invntt_avx)
  cdecl(invntt_avx):
 +_cdecl(invntt_avx):
- #consts
  vmovdqa         _16XQ*2(%rsi),%ymm0
- mov		%rsi,%rdx
+ 
+ intt_levels0t5	0
 

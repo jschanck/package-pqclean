@@ -1,14 +1,17 @@
 --- upstream/avx2/rejsample.c
 +++ upstream-patched/avx2/rejsample.c
-@@ -1,267 +1,268 @@
+@@ -1,6 +1,7 @@
  #include <stdint.h>
  #include <immintrin.h>
+ #include <string.h>
 +#include "align.h"
  #include "params.h"
  #include "consts.h"
  #include "rejsample.h"
+@@ -8,263 +9,264 @@
+ //#define BMI
  
--__attribute__((aligned(64)))
+ #ifndef BMI
 -static const uint8_t idx[256][8] = {
 -  {-1, -1, -1, -1, -1, -1, -1, -1},
 -  { 0, -1, -1, -1, -1, -1, -1, -1},
@@ -525,23 +528,12 @@
 +    { 0,  2,  4,  6,  8, 10, 12, 14}
 +  }
  };
+ #endif
  
- #define _mm256_cmpge_epu16(a, b) _mm256_cmpeq_epi16(_mm256_max_epu16(a, b), a)
-@@ -280,8 +281,8 @@
-   uint32_t good;
-   const __m256i bound  = _mm256_set1_epi16((int16_t)(19*KYBER_Q-1));
-   const __m256i ones   = _mm256_set1_epi8(1);
--  const __m256i kyberq = _mm256_load_si256((__m256i *)&qdata[_16XQ]);
--  const __m256i v = _mm256_load_si256((__m256i *)&qdata[_16XV]);
-+  const __m256i kyberq = _mm256_load_si256((__m256i *)&qdata.as_arr[_16XQ]);
-+  const __m256i v = _mm256_load_si256((__m256i *)&qdata.as_arr[_16XV]);
-   __m256i f0, f1, g0, g1, g2, g3;
-   __m128i f, t, pilo, pihi;
- 
-@@ -296,13 +297,13 @@
-     g0 = _mm256_packs_epi16(g0, g1);
-     good = _mm256_movemask_epi8(g0);
- 
+@@ -331,10 +333,10 @@
+     g0 = _mm256_inserti128_si256(g0, _mm_cvtsi64_si128(idx2), 1);
+     g1 = _mm256_inserti128_si256(g1, _mm_cvtsi64_si128(idx3), 1);
+ #else
 -    g0 = _mm256_castsi128_si256(_mm_loadl_epi64((__m128i *)&idx[(good >>  0) & 0xFF]));
 -    g1 = _mm256_castsi128_si256(_mm_loadl_epi64((__m128i *)&idx[(good >>  8) & 0xFF]));
 -    g0 = _mm256_inserti128_si256(g0, _mm_loadl_epi64((__m128i *)&idx[(good >> 16) & 0xFF]), 1);
@@ -550,20 +542,16 @@
 +    g1 = _mm256_castsi128_si256(_mm_loadl_epi64((__m128i *)&idx.arr[(good >>  8) & 0xFF]));
 +    g0 = _mm256_inserti128_si256(g0, _mm_loadl_epi64((__m128i *)&idx.arr[(good >> 16) & 0xFF]), 1);
 +    g1 = _mm256_inserti128_si256(g1, _mm_loadl_epi64((__m128i *)&idx.arr[(good >> 24) & 0xFF]), 1);
+ #endif
  
-     //g0 = _mm256_cvtepu8_epi64(_mm_loadl_epi64((__m128i *)&good));
--    //g1 = _mm256_i64gather_epi64((long long *)idx, g0, 8);
-+    //g1 = _mm256_i64gather_epi64((long long *)idx.arr, g0, 8);
- 
-     /* Barrett reduction of (still unsigned) values */
-     g2 = _mm256_mulhi_epu16(f0, v);
-@@ -337,7 +338,7 @@
-     t = _mm_cmpge_epu16(_mm256_castsi256_si128(bound), f);
-     good = _mm_movemask_epi8(t);
+     g2 = _mm256_add_epi8(g0, ones);
+@@ -374,7 +376,7 @@
+     pilo = _mm_cvtsi64_si128(idx0);
+ #else
      good = _pext_u32(good, 0x5555);
 -    pilo = _mm_loadl_epi64((__m128i *)&idx[good]);
 +    pilo = _mm_loadl_epi64((__m128i *)&idx.arr[good]);
-     pihi = _mm_add_epi8(pilo, _mm256_castsi256_si128(ones));
-     pilo = _mm_unpacklo_epi8(pilo, pihi);
+ #endif
  
+     pihi = _mm_add_epi8(pilo, _mm256_castsi256_si128(ones));
 
