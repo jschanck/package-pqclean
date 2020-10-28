@@ -1,5 +1,11 @@
 --- upstream/Reference_Implementation_KEM/poly_mul.c
 +++ upstream-patched/Reference_Implementation_KEM/poly_mul.c
+@@ -1,4 +1,4 @@
+-#include "poly_mul.h"
++#include "poly.h"
+ #include <stdint.h>
+ #include <string.h>
+ 
 @@ -11,13 +11,13 @@
  #define OVERFLOWING_MUL(X, Y) ((uint16_t)((uint32_t)(X) * (uint32_t)(Y)))
  
@@ -46,20 +52,37 @@
  
      // INTERPOLATION
      for (i = 0; i < N_SB_RES; ++i) {
-@@ -229,12 +229,12 @@
+@@ -229,16 +229,26 @@
  }
  
  /* res += a*b */
 -void poly_mul_acc(const uint16_t a[SABER_N], const uint16_t b[SABER_N], uint16_t res[SABER_N])
-+void poly_mul_acc(uint16_t res[SABER_N], const uint16_t a[SABER_N], const uint16_t b[SABER_N])
++void poly_mul(poly *c, const poly *a, const poly *b, const int accumulate)
  {
- 	uint16_t c[2 * SABER_N] = {0};
+-	uint16_t c[2 * SABER_N] = {0};
 -	int i;
++	uint16_t C[2 * SABER_N] = {0};
 +	size_t i;
  
 -	toom_cook_4way(a, b, c);
-+	toom_cook_4way(c, a, b);
++	toom_cook_4way(C, a->coeffs, b->coeffs);
  
  	/* reduction */
- 	for (i = SABER_N; i < 2 * SABER_N; i++)
+-	for (i = SABER_N; i < 2 * SABER_N; i++)
++	if(accumulate == 0)
+ 	{
+-		res[i - SABER_N] += (c[i - SABER_N] - c[i]);
++		for (i = SABER_N; i < 2 * SABER_N; i++)
++		{
++			c->coeffs[i - SABER_N] = (C[i - SABER_N] - C[i]);
++		}
++	}
++	else
++	{
++		for (i = SABER_N; i < 2 * SABER_N; i++)
++		{
++			c->coeffs[i - SABER_N] += (C[i - SABER_N] - C[i]);
++		}
+ 	}
+ }
 

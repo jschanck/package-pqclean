@@ -1,12 +1,29 @@
 --- upstream/AVX_Implementation_KEM/SABER_indcpa.c
 +++ upstream-patched/AVX_Implementation_KEM/SABER_indcpa.c
-@@ -17,101 +17,37 @@
- #define h2 ( (1<<(SABER_EP-2)) - (1<<(SABER_EP-SABER_ET-1)) + (1<<(SABER_EQ-SABER_EP-1)) )
+@@ -1,581 +1,130 @@
+-#include <stdint.h>
+-#include <stdio.h>
+ #include <string.h>
+-#include "api.h"
++#include <stdint.h>
+ #include "SABER_indcpa.h"
++#include "poly.h"
+ #include "pack_unpack.h"
+-//#include "randombytes.h"
+ #include "rng.h"
+-#include "cbd.h"
+-#include "SABER_params.h"
+-//#include "./polymul/toom_cook_4/toom-cook_4way.c"
+-#include "./polymul/toom-cook_4way.c"
+ #include "fips202.h"
++#include "SABER_params.h"
  
- 
-+static void POL2MSG(uint8_t *message_dec, const uint16_t *message_dec_unpacked){
-+	int32_t i,j;
- 
+-#define h1 4 //2^(EQ-EP-1)
+-
+-#define h2 ( (1<<(SABER_EP-2)) - (1<<(SABER_EP-SABER_ET-1)) + (1<<(SABER_EQ-SABER_EP-1)) )
+-
+-
+-
 -uint64_t mask_ar[4]={~(0UL)};
 -__m256i mask_load;
 -__m256i floor_round;
@@ -49,20 +66,14 @@
 -	int30_avx = _mm256_loadu_si256 ((__m256i const *) (&int30_avx_load));
 -	int0_avx = _mm256_loadu_si256 ((__m256i const *) (&int0_avx_load));
 -	mask = _mm256_loadu_si256 ((__m256i const *)mask_ar);	
-+	for(j=0; j<SABER_KEYBYTES; j++)
-+	{
-+		message_dec[j] = 0;
-+		for(i=0; i<8; i++)
-+		message_dec[j] = message_dec[j] | (message_dec_unpacked[j*8 + i] <<i);
-+	} 
- }
- 
+-}
 -
 -
- /*-----------------------------------------------------------------------------------
- 	This routine generates a=[Matrix K x K] of 256-coefficient polynomials 
- -------------------------------------------------------------------------------------*/
- 
+-
+-/*-----------------------------------------------------------------------------------
+-	This routine generates a=[Matrix K x K] of 256-coefficient polynomials 
+--------------------------------------------------------------------------------------*/
+-
 -
 -
 -void BS2POLq(const unsigned char *bytes, uint16_t data[SABER_N]){
@@ -90,289 +101,341 @@
 -
 -
 -void GenMatrix(polyvec *a, const unsigned char *seed) 
-+static void GenMatrix(polyvec *a, const uint8_t *seed) 
- {
+-{
 -  unsigned int one_vector=13*SABER_N/8;
 -  unsigned int byte_bank_length=SABER_K*SABER_K*one_vector;
 -  unsigned char buf[byte_bank_length];
-+  uint8_t buf[SABER_K*SABER_K*13*SABER_N/8];
- 
-   uint16_t temp_ar[SABER_N];
- 
-   int i,j,k;
-   uint16_t mod = (SABER_Q-1);
- 
+-
+-  uint16_t temp_ar[SABER_N];
+-
+-  int i,j,k;
+-  uint16_t mod = (SABER_Q-1);
+-
 -  shake128(buf,byte_bank_length,seed,SABER_SEEDBYTES);
-+  shake128(buf,sizeof(buf),seed,SABER_SEEDBYTES);
-   
-   for(i=0;i<SABER_K;i++)
-   {
-     for(j=0;j<SABER_K;j++)
-     {
+-  
+-  for(i=0;i<SABER_K;i++)
+-  {
+-    for(j=0;j<SABER_K;j++)
+-    {
 -	BS2POLq(buf+(i*SABER_K+j)*one_vector,temp_ar);
-+	BS2POLq(temp_ar, buf+(i*SABER_K+j)*13*SABER_N/8);
- 	for(k=0;k<SABER_N;k++){
- 		a[i].vec[j].coeffs[k] = (temp_ar[k])& mod ;
- 	}
-@@ -119,16 +55,13 @@
-   }
- }
- 
+-	for(k=0;k<SABER_N;k++){
+-		a[i].vec[j].coeffs[k] = (temp_ar[k])& mod ;
+-	}
+-    }
+-  }
+-}
+-
 -void GenSecret(uint16_t r[SABER_K][SABER_N],const unsigned char *seed){
 -
-+static void GenSecret(uint16_t r[SABER_K][SABER_N],const uint8_t *seed){
- 
- 		uint32_t i;
- 
+-
+-		uint32_t i;
+-
 -		int32_t buf_size= SABER_MU*SABER_N*SABER_K/8;
-+		uint8_t buf[SABER_MU*SABER_N*SABER_K/8];
- 
+-
 -		uint8_t buf[buf_size];
 -
 -		shake128(buf, buf_size, seed,SABER_NOISESEEDBYTES);
-+		shake128(buf, sizeof(buf), seed,SABER_NOISESEEDBYTES);
- 
- 		for(i=0;i<SABER_K;i++)
- 		{
-@@ -137,12 +70,42 @@
- }
- 
- //********************************matrix-vector mul routines*****************************************************
+-
+-		for(i=0;i<SABER_K;i++)
+-		{
+-			cbd(r[i],buf+i*SABER_MU*SABER_N/8);
+-		}
+-}
+-
+-//********************************matrix-vector mul routines*****************************************************
 -void matrix_vector_mul(__m256i a1_avx_combined[NUM_POLY][NUM_POLY][AVX_N1], __m256i b_bucket[NUM_POLY][SCHB_N*4], __m256i res_avx[NUM_POLY][AVX_N1], int isTranspose);
 -void vector_vector_mul(__m256i a_avx[NUM_POLY][AVX_N1], __m256i b_bucket[NUM_POLY][SCHB_N*4], __m256i res_avx[AVX_N1]);
-+static void matrix_vector_mul(__m256i res_avx[NUM_POLY][AVX_N1], __m256i a1_avx_combined[NUM_POLY][NUM_POLY][AVX_N1], __m256i b_bucket[NUM_POLY][SCHB_N*4], int isTranspose){
-+	int64_t i,j;
-+
-+	__m256i c_bucket[2*SCM_SIZE*4]; //Holds results for 9 Karatsuba at a time
-+
-+	for(i=0;i<NUM_POLY;i++){
-+		for(j=0;j<NUM_POLY;j++){
-+
-+			if(isTranspose==0){
-+				toom_cook_4way_avx_n1(a1_avx_combined[i][j], b_bucket[j], c_bucket, j);
-+			}
-+			else{
-+				toom_cook_4way_avx_n1(a1_avx_combined[j][i], b_bucket[j], c_bucket, j);
-+			}
-+		}
-+
-+		TC_interpol(c_bucket, res_avx[i]);
-+	}
-+
-+}
-+
-+static void vector_vector_mul(__m256i res_avx[AVX_N1], __m256i a_avx[NUM_POLY][AVX_N1], __m256i b_bucket[NUM_POLY][SCHB_N*4]){
-+
-+	int64_t i;
-+
-+	__m256i c_bucket[2*SCM_SIZE*4]; //Holds results for 9 Karatsuba at a time
-+
-+	for(i=0;i<NUM_POLY;i++){
-+		toom_cook_4way_avx_n1(a_avx[i], b_bucket[i], c_bucket, i);		
-+	}
-+	TC_interpol(c_bucket, res_avx);
-+}
- 
- //********************************matrix-vector mul routines*****************************************************
+-
+-//********************************matrix-vector mul routines*****************************************************
++#define h1 (1 << (SABER_EQ - SABER_EP - 1))
++#define h2 ((1 << (SABER_EP - 2)) - (1 << (SABER_EP - SABER_ET - 1)) + (1 << (SABER_EQ - SABER_EP - 1)))
  
 -void indcpa_kem_keypair(unsigned char *pk, unsigned char *sk)
-+void indcpa_kem_keypair(uint8_t *pk, uint8_t *sk)
++void indcpa_kem_keypair(uint8_t pk[SABER_INDCPA_PUBLICKEYBYTES], uint8_t sk[SABER_INDCPA_SECRETKEYBYTES])
  {
-  
-   polyvec a[SABER_K];
-@@ -151,8 +114,8 @@
- 
-   
-  
+- 
+-  polyvec a[SABER_K];
+-
+-  uint16_t skpv1[SABER_K][SABER_N];
+-
+-  
+- 
 -  unsigned char seed[SABER_SEEDBYTES];
 -  unsigned char noiseseed[SABER_COINBYTES];
-+  uint8_t seed[SABER_SEEDBYTES];
-+  uint8_t noiseseed[SABER_COINBYTES];
-   int32_t i,j,k;
- 
- 
-@@ -164,22 +127,12 @@
-   __m256i a_avx[SABER_K][SABER_K][SABER_N/16];
-   //__m256i acc[2*SABER_N/16];
- 
+-  int32_t i,j,k;
+-
+-
+-//--------------AVX declaration------------------
+-	
+-  __m256i sk_avx[SABER_K][SABER_N/16];
+-  __m256i mod;
+-  __m256i res_avx[SABER_K][SABER_N/16];
+-  __m256i a_avx[SABER_K][SABER_K][SABER_N/16];
+-  //__m256i acc[2*SABER_N/16];
+-
 -
 -  mask_ar[0]=~(0UL);mask_ar[1]=~(0UL);mask_ar[2]=~(0UL);mask_ar[3]=~(0UL);
 -  mask_load = _mm256_loadu_si256 ((__m256i const *)mask_ar);
 -
-   mod=_mm256_set1_epi16(SABER_Q-1);
+-  mod=_mm256_set1_epi16(SABER_Q-1);
 -  floor_round=_mm256_set1_epi16(4);
 -
 -  H1_avx=_mm256_set1_epi16(h1);
++	size_t i, j;
  
-   __m256i b_bucket[NUM_POLY][SCHB_N*4];
+-  __m256i b_bucket[NUM_POLY][SCHB_N*4];
++	poly A[SABER_L][SABER_L];
++	poly *skpv1=A[0]; // use first row of A to hold sk temporarily
++	toom4_points skpv1_eval[SABER_L];
++	poly res[SABER_L];
  
- //--------------AVX declaration ends------------------
+-//--------------AVX declaration ends------------------
++	uint8_t rand[SABER_NOISESEEDBYTES];
++	uint8_t *seed_A = pk + SABER_POLYVECCOMPRESSEDBYTES;
  
 -   load_values();
++	randombytes(seed_A, SABER_SEEDBYTES);
++	shake128(seed_A, SABER_SEEDBYTES, seed_A, SABER_SEEDBYTES); // for not revealing system RNG state
+ 
++	randombytes(rand, SABER_NOISESEEDBYTES);
++	GenSecret(skpv1, rand);
++	POLVECq2BS(sk, skpv1); // pack secret key
+ 
+-  randombytes(seed, SABER_SEEDBYTES);
+- 
+-  shake128(seed, SABER_SEEDBYTES, seed, SABER_SEEDBYTES); // for not revealing system RNG state
+-  randombytes(noiseseed, SABER_COINBYTES);
 -
 -
-   randombytes(seed, SABER_SEEDBYTES);
-  
-   shake128(seed, SABER_SEEDBYTES, seed, SABER_SEEDBYTES); // for not revealing system RNG state
-@@ -216,14 +169,14 @@
- 	for(j=0;j<NUM_POLY;j++){
- 		TC_eval(sk_avx[j], b_bucket[j]);
+-  GenMatrix(a, seed); //sample matrix A
+-
+-  GenSecret(skpv1,noiseseed);
+-
+-
+- // Load sk into avx vectors		
+- for(i=0;i<SABER_K;i++)
+- {
+-	for(j=0; j<SABER_N/16; j++){
+-            sk_avx[i][j] = _mm256_loadu_si256 ((__m256i const *) (&skpv1[i][j*16]));
++	for(j=0;j<SABER_L;j++){
++		toom4_eval(&skpv1_eval[j], &skpv1[j]);
  	}
+ 
+-  }
+-
+-  // Load a into avx vectors	
+-  for(i=0;i<SABER_K;i++){ 
+-	  for(j=0;j<SABER_K;j++){
+-		  for(k=0;k<SABER_N/16;k++){
+-			a_avx[i][j][k]=_mm256_loadu_si256 ((__m256i const *) (&a[i].vec[j].coeffs[k*16]));
+-		  }
+-	  }
+-  }	
+-
+-
+-
+-  //------------------------do the matrix vector multiplication and rounding------------
++	GenMatrix(A, seed_A); // sample matrix A
++	MatrixVectorMul(res, (const poly (*)[SABER_L])A, (const toom4_points *)skpv1_eval, 1); // Matrix in transposed order
+ 
+-	for(j=0;j<NUM_POLY;j++){
+-		TC_eval(sk_avx[j], b_bucket[j]);
+-	}
 -	matrix_vector_mul(a_avx, b_bucket, res_avx, 1);// Matrix-vector multiplication; Matrix in transposed order
-+	matrix_vector_mul(res_avx, a_avx, b_bucket, 1);// Matrix-vector multiplication; Matrix in transposed order
- 	
- 	// Now truncation
- 
- 		
- 	for(i=0;i<SABER_K;i++){ //shift right EQ-EP bits
- 		for(j=0;j<SABER_N/16;j++){
+-	
+-	// Now truncation
+-
+-		
+-	for(i=0;i<SABER_K;i++){ //shift right EQ-EP bits
+-		for(j=0;j<SABER_N/16;j++){
 -			res_avx[i][j]=_mm256_add_epi16 (res_avx[i][j], H1_avx);
-+			res_avx[i][j]=_mm256_add_epi16 (res_avx[i][j], _mm256_set1_epi16(h1));
- 			res_avx[i][j]=_mm256_srli_epi16 (res_avx[i][j], (SABER_EQ-SABER_EP) );
- 			res_avx[i][j]=_mm256_and_si256 (res_avx[i][j], mod);			
+-			res_avx[i][j]=_mm256_srli_epi16 (res_avx[i][j], (SABER_EQ-SABER_EP) );
+-			res_avx[i][j]=_mm256_and_si256 (res_avx[i][j], mod);			
++	// rounding
++	for(i=0;i<SABER_L;i++) {
++		for(j=0;j<SABER_N;j++) {
++			res[i].coeffs[j] += h1;
++			res[i].coeffs[j] >>= SABER_EQ-SABER_EP;
++			res[i].coeffs[j] &= SABER_Q-1;
  		}
-@@ -231,16 +184,16 @@
+ 	}
  
- 	//------------------Pack sk into byte string-------
- 		
+-	//------------------Pack sk into byte string-------
+-		
 -	POLVEC2BS(sk,skpv1,SABER_Q);
-+	POLVEC2BS(sk, (const uint16_t (*)[SABER_N])skpv1, SABER_Q);
- 
- 	//------------------Pack pk into byte string-------
- 	
- 	for(i=0;i<SABER_K;i++){ // reuses skpv1[] for unpacking avx of public-key
- 		  for(j=0;j<SABER_N/16;j++){
+-
+-	//------------------Pack pk into byte string-------
+-	
+-	for(i=0;i<SABER_K;i++){ // reuses skpv1[] for unpacking avx of public-key
+-		  for(j=0;j<SABER_N/16;j++){
 -		  	_mm256_maskstore_epi32 ((int *) (skpv1[i]+j*16), mask_load, res_avx[i][j]);
-+		  	_mm256_maskstore_epi32 ((int *) (skpv1[i]+j*16), _mm256_set1_epi32(-1), res_avx[i][j]);
- 		  }
- 	  }
+-		  }
+-	  }
 -	POLVEC2BS(pk,skpv1,SABER_P); // load the public-key into pk byte string 	
-+	POLVEC2BS(pk, (const uint16_t (*)[SABER_N])skpv1, SABER_P); // load the public-key into pk byte string 	
- 
- 
- 	for(i=0;i<SABER_SEEDBYTES;i++){ // now load the seedbytes in PK. Easy since seed bytes are kept in byte format.
-@@ -250,13 +203,13 @@
+-
+-
+-	for(i=0;i<SABER_SEEDBYTES;i++){ // now load the seedbytes in PK. Easy since seed bytes are kept in byte format.
+-		pk[SABER_POLYVECCOMPRESSEDBYTES + i]=seed[i]; 
+-	}
+-
++	POLVECp2BS(pk, res); // pack public key
  }
  
  
 -void indcpa_kem_enc(unsigned char *message_received, unsigned char *noiseseed, const unsigned char *pk, unsigned char *ciphertext)
-+void indcpa_kem_enc(uint8_t ciphertext[SABER_BYTES_CCA_DEC], const uint8_t m[SABER_KEYBYTES], const uint8_t noiseseed[SABER_NOISESEEDBYTES], const uint8_t pk[SABER_INDCPA_PUBLICKEYBYTES])
- { 
- 
- 
- 	uint32_t i,j,k;
- 	polyvec a[SABER_K];		// skpv;
+-{ 
+-
+-
+-	uint32_t i,j,k;
+-	polyvec a[SABER_K];		// skpv;
 -	unsigned char seed[SABER_SEEDBYTES];
-+	uint8_t seed[SABER_SEEDBYTES];
- 	uint16_t pkcl[SABER_K][SABER_N]; 	//public key of received by the client
- 
- 
-@@ -264,9 +217,8 @@
- 	uint16_t temp[SABER_K][SABER_N];
- 	uint16_t message[SABER_KEYBYTES*8];
- 
+-	uint16_t pkcl[SABER_K][SABER_N]; 	//public key of received by the client
+-
+-
+-	uint16_t skpv1[SABER_K][SABER_N];
+-	uint16_t temp[SABER_K][SABER_N];
+-	uint16_t message[SABER_KEYBYTES*8];
+-
 -	unsigned char msk_c[SABER_SCALEBYTES_KEM];
-+	uint8_t msk_c[SABER_SCALEBYTES_KEM];
- 
+-
 -	uint64_t CLOCK1, CLOCK2;
- 	//--------------AVX declaration------------------
- 	
- 	  __m256i sk_avx[SABER_K][SABER_N/16];
-@@ -280,45 +232,27 @@
- 
-           __m256i message_avx[SABER_N/16];
- 		
+-	//--------------AVX declaration------------------
+-	
+-	  __m256i sk_avx[SABER_K][SABER_N/16];
+-	  __m256i mod, mod_p;
+-	  __m256i res_avx[SABER_K][SABER_N/16];
+-	  __m256i vprime_avx[SABER_N/16];
+-	  __m256i a_avx[SABER_K][SABER_K][SABER_N/16];
+-	  //__m256i acc[2*SABER_N/16];
+-
+-	  __m256i pkcl_avx[SABER_K][SABER_N/16];
+-
+-          __m256i message_avx[SABER_N/16];
+-		
 -	  mask_ar[0]=~(0UL);mask_ar[1]=~(0UL);mask_ar[2]=~(0UL);mask_ar[3]=~(0UL);
 -	  mask_load = _mm256_loadu_si256 ((__m256i const *)mask_ar);
 -
- 	  mod=_mm256_set1_epi16(SABER_Q-1);
- 	  mod_p=_mm256_set1_epi16(SABER_P-1);
- 
- 	  
- 
+-	  mod=_mm256_set1_epi16(SABER_Q-1);
+-	  mod_p=_mm256_set1_epi16(SABER_P-1);
+-
+-	  
+-
 -	floor_round=_mm256_set1_epi16(4);
 -
 -	H1_avx=_mm256_set1_epi16(h1);
 - 
- 	__m256i b_bucket[NUM_POLY][SCHB_N*4];
+-	__m256i b_bucket[NUM_POLY][SCHB_N*4];
++void indcpa_kem_enc(uint8_t ciphertext[SABER_BYTES_CCA_DEC], const uint8_t m[SABER_KEYBYTES], const uint8_t noiseseed[SABER_NOISESEEDBYTES], const uint8_t pk[SABER_INDCPA_PUBLICKEYBYTES])
++{
++	size_t i,j;
  
- 	//--------------AVX declaration ends------------------
+-	//--------------AVX declaration ends------------------
 -	load_values();
 -      
- 	for(i=0;i<SABER_SEEDBYTES;i++){ // Load the seedbytes in the client seed from PK.
- 		seed[i]=pk[ SABER_POLYVECCOMPRESSEDBYTES + i]; 
- 	}
+-	for(i=0;i<SABER_SEEDBYTES;i++){ // Load the seedbytes in the client seed from PK.
+-		seed[i]=pk[ SABER_POLYVECCOMPRESSEDBYTES + i]; 
+-	}
++	poly A[SABER_L][SABER_L];
++	poly res[SABER_L];
++	toom4_points skpv1_eval[SABER_L];
  
 -	count_enc++;
 -	CLOCK1=cpucycles();
- 	GenMatrix(a, seed);
+-	GenMatrix(a, seed);
 -	CLOCK2=cpucycles();
 -	clock_matrix=clock_matrix+(CLOCK2-CLOCK1);
 -				
 -	CLOCK1=cpucycles();
- 	GenSecret(skpv1,noiseseed);
+-	GenSecret(skpv1,noiseseed);
 -	CLOCK2=cpucycles();
 -	clock_secret=clock_secret+(CLOCK2-CLOCK1);
 -
- 
- 	// ----------- Load skpv1 into avx vectors ---------- 
- 	for(i=0;i<SABER_K;i++){ 
- 		for(j=0; j<SABER_N/16; j++){
- 		    sk_avx[i][j] = _mm256_loadu_si256 ((__m256i const *) (&skpv1[i][j*16]));
- 		}
+-
+-	// ----------- Load skpv1 into avx vectors ---------- 
+-	for(i=0;i<SABER_K;i++){ 
+-		for(j=0; j<SABER_N/16; j++){
+-		    sk_avx[i][j] = _mm256_loadu_si256 ((__m256i const *) (&skpv1[i][j*16]));
+-		}
 -  	}
-+	}
++	poly *temp = A[0]; // re-use stack space
++	poly *vprime = &A[0][0];
++	poly *message = &A[0][1];
  
- 	// ----------- Load skpv1 into avx vectors ---------- 
- 	  for(i=0;i<SABER_K;i++){ 
-@@ -330,19 +264,16 @@
-  	 }
- 	//-----------------matrix-vector multiplication and rounding
- 
+-	// ----------- Load skpv1 into avx vectors ---------- 
+-	  for(i=0;i<SABER_K;i++){ 
+-		  for(j=0;j<SABER_K;j++){
+-			  for(k=0;k<SABER_N/16;k++){
+-				a_avx[i][j][k]=_mm256_loadu_si256 ((__m256i const *) (&a[i].vec[j].coeffs[k*16]));
+-			  }
+-		  }
+- 	 }
+-	//-----------------matrix-vector multiplication and rounding
+-
 -	CLOCK1=cpucycles();
- 	for(j=0;j<NUM_POLY;j++){
- 		TC_eval(sk_avx[j], b_bucket[j]);
- 	}
+-	for(j=0;j<NUM_POLY;j++){
+-		TC_eval(sk_avx[j], b_bucket[j]);
+-	}
 -	matrix_vector_mul(a_avx, b_bucket, res_avx, 0);// Matrix-vector multiplication; Matrix in normal order
 -	CLOCK2=cpucycles();
 -	clock_mv_vv_mul= clock_mv_vv_mul + (CLOCK2-CLOCK1);
 -	
-+	matrix_vector_mul(res_avx, a_avx, b_bucket, 0);// Matrix-vector multiplication; Matrix in normal order
-+
- 	// Now truncation
- 
- 	for(i=0;i<SABER_K;i++){ //shift right EQ-EP bits
- 		for(j=0;j<SABER_N/16;j++){
+-	// Now truncation
+-
+-	for(i=0;i<SABER_K;i++){ //shift right EQ-EP bits
+-		for(j=0;j<SABER_N/16;j++){
 -			res_avx[i][j]=_mm256_add_epi16 (res_avx[i][j], H1_avx);
-+			res_avx[i][j]=_mm256_add_epi16 (res_avx[i][j], _mm256_set1_epi16(h1));
- 			res_avx[i][j]=_mm256_srli_epi16 (res_avx[i][j], (SABER_EQ-SABER_EP) );
- 			res_avx[i][j]=_mm256_and_si256 (res_avx[i][j], mod);			
+-			res_avx[i][j]=_mm256_srli_epi16 (res_avx[i][j], (SABER_EQ-SABER_EP) );
+-			res_avx[i][j]=_mm256_and_si256 (res_avx[i][j], mod);			
++	const uint8_t *seed_A = pk + SABER_POLYVECCOMPRESSEDBYTES;
++	uint8_t *msk_c = ciphertext + SABER_POLYVECCOMPRESSEDBYTES;
  
-@@ -353,18 +284,18 @@
- 	//-----this result should be put in b_prime for later use in server.
- 	for(i=0;i<SABER_K;i++){ // first store in 16 bit arrays
- 		  for(j=0;j<SABER_N/16;j++){
+-		}
++	GenSecret(temp, noiseseed);
++	for(j=0;j<SABER_L;j++){
++		toom4_eval(&skpv1_eval[j], &temp[j]);
+ 	}
+ 
++	GenMatrix(A, seed_A);
++	MatrixVectorMul(res, (const poly (*)[SABER_L])A, (const toom4_points *)skpv1_eval, 0); // 0 => not transposed
+ 
+-	//-----this result should be put in b_prime for later use in server.
+-	for(i=0;i<SABER_K;i++){ // first store in 16 bit arrays
+-		  for(j=0;j<SABER_N/16;j++){
 -			_mm256_maskstore_epi32 ((int *)(temp[i]+j*16), mask_load, res_avx[i][j]);
-+			_mm256_maskstore_epi32 ((int *)(temp[i]+j*16), _mm256_set1_epi32(-1), res_avx[i][j]);
- 		  }
- 	  }
- 	
+-		  }
+-	  }
+-	
 -	POLVEC2BS(ciphertext,temp, SABER_P); // Pack b_prime into ciphertext byte string
-+	POLVEC2BS(ciphertext, (const uint16_t (*)[SABER_N])temp, SABER_P); // Pack b_prime into ciphertext byte string
- 
- //**************client matrix-vector multiplication ends******************//
- 
- 	//------now calculate the v'
- 
- 	//-------unpack the public_key
+-
+-//**************client matrix-vector multiplication ends******************//
+-
+-	//------now calculate the v'
+-
+-	//-------unpack the public_key
 -	BS2POLVEC(pk, pkcl, SABER_P);
-+	BS2POLVEC(pkcl, pk, SABER_P);
- 
- 	for(i=0;i<SABER_K;i++){
- 		for(j=0; j<SABER_N/16; j++){
-@@ -379,24 +310,19 @@
+-
+-	for(i=0;i<SABER_K;i++){
+-		for(j=0; j<SABER_N/16; j++){
+-		    pkcl_avx[i][j] = _mm256_loadu_si256 ((__m256i const *) (&pkcl[i][j*16]));
++	// rounding
++	for(i=0;i<SABER_L;i++){ //shift right EQ-EP bits
++		for(j=0;j<SABER_N;j++){
++			res[i].coeffs[j] += h1;
++			res[i].coeffs[j] >>= SABER_EQ-SABER_EP;
++			res[i].coeffs[j] &= SABER_Q-1;
+ 		}
+ 	}
+-
+-	// InnerProduct
+-	//for(k=0;k<SABER_N/16;k++){
+-	//	vprime_avx[k]=_mm256_xor_si256(vprime_avx[k],vprime_avx[k]);
+-	//}
++	POLVECp2BS(ciphertext, res);
  
  	// vector-vector scalar multiplication with mod p
++	BS2POLVECp(temp, pk);
++	InnerProd(vprime, temp, skpv1_eval);
++	BS2POLmsg(message, m);
  
 -	CLOCK1=cpucycles();
 -	vector_vector_mul(pkcl_avx, b_bucket, vprime_avx);
@@ -380,121 +443,166 @@
 -	clock_mv_vv_mul= clock_mv_vv_mul + (CLOCK2-CLOCK1);
 -
 -
-+	vector_vector_mul(vprime_avx, pkcl_avx, b_bucket);
- 
- 	// Computation of v'+h1 
- 	for(i=0;i<SABER_N/16;i++){//adding h1
+-
+-	// Computation of v'+h1 
+-	for(i=0;i<SABER_N/16;i++){//adding h1
 - 		vprime_avx[i]=_mm256_add_epi16(vprime_avx[i], H1_avx);
-+ 		vprime_avx[i]=_mm256_add_epi16(vprime_avx[i], _mm256_set1_epi16(h1));
+-	}
+-
+-	// unpack message_received;
+-	for(j=0; j<SABER_KEYBYTES; j++)
++	for(i=0;i<SABER_N;i++)
+ 	{
+-		for(i=0; i<8; i++)
+-		{
+-			message[8*j+i] = ((message_received[j]>>i) & 0x01);
+-		}
+-	}
+-	// message encoding
+-	for(i=0; i<SABER_N/16; i++)
+-	{
+-		message_avx[i] = _mm256_loadu_si256 ((__m256i const *) (&message[i*16]));
+-		message_avx[i] = _mm256_slli_epi16 (message_avx[i], (SABER_EP-1) );
+-	}	
+-
+-	// SHIFTRIGHT(v'+h1-m mod p, EP-ET)
+-	for(k=0;k<SABER_N/16;k++)
+-	{
+-		vprime_avx[k]=_mm256_sub_epi16(vprime_avx[k], message_avx[k]);
+-		vprime_avx[k]=_mm256_and_si256(vprime_avx[k], mod_p);
+-		vprime_avx[k]=_mm256_srli_epi16 (vprime_avx[k], (SABER_EP-SABER_ET) );
+-	}
+-
+-	// Unpack avx
+-	for(j=0;j<SABER_N/16;j++)
+-	{
+-			_mm256_maskstore_epi32 ((int *) (temp[0]+j*16), mask_load, vprime_avx[j]);
+-	}
+-	
+-	#if Saber_type == 1
+-		SABER_pack_3bit(msk_c, temp[0]);
+-	#elif Saber_type == 2
+-		SABER_pack_4bit(msk_c, temp[0]);
+-	#elif Saber_type == 3
+-		SABER_pack_6bit(msk_c, temp[0]);
+-	#endif
+-
+-
+-	for(j=0;j<SABER_SCALEBYTES_KEM;j++){
+-		ciphertext[SABER_CIPHERTEXTBYTES + j] = msk_c[j];
++		vprime->coeffs[i] += h1 - (message->coeffs[i] << (SABER_EP-1));
++		vprime->coeffs[i] &= SABER_P-1;
++		vprime->coeffs[i] >>= SABER_EP-SABER_ET;
  	}
  
--	// unpack message_received;
-+	// unpack m;
- 	for(j=0; j<SABER_KEYBYTES; j++)
- 	{
- 		for(i=0; i<8; i++)
- 		{
--			message[8*j+i] = ((message_received[j]>>i) & 0x01);
-+			message[8*j+i] = ((m[j]>>i) & 0x01);
- 		}
- 	}
- 	// message encoding
-@@ -417,7 +343,7 @@
- 	// Unpack avx
- 	for(j=0;j<SABER_N/16;j++)
- 	{
--			_mm256_maskstore_epi32 ((int *) (temp[0]+j*16), mask_load, vprime_avx[j]);
-+			_mm256_maskstore_epi32 ((int *) (temp[0]+j*16), _mm256_set1_epi32(-1), vprime_avx[j]);
- 	}
- 	
- 	#if Saber_type == 1
-@@ -436,7 +362,7 @@
++	POLT2BS(msk_c, vprime);
  }
  
  
 -void indcpa_kem_dec(const unsigned char *sk, const unsigned char *ciphertext, unsigned char message_dec[])
 +void indcpa_kem_dec(uint8_t m[SABER_KEYBYTES], const uint8_t sk[SABER_INDCPA_SECRETKEYBYTES], const uint8_t ciphertext[SABER_BYTES_CCA_DEC])
  {
++	size_t i;
  
- 	uint32_t i,j;
-@@ -446,8 +372,6 @@
- 	uint8_t scale_ar[SABER_SCALEBYTES_KEM];
- 	uint16_t op[SABER_N];
- 
+-	uint32_t i,j;
+-	uint16_t sksv[SABER_K][SABER_N]; //secret key of the server
+-	uint16_t pksv[SABER_K][SABER_N];
+-	uint16_t message_dec_unpacked[SABER_KEYBYTES*8];	// one element containes on decrypted bit;
+-	uint8_t scale_ar[SABER_SCALEBYTES_KEM];
+-	uint16_t op[SABER_N];
+-
 -	uint64_t CLOCK1, CLOCK2;
 -
- 	//--------------AVX declaration------------------
- 	
- 
-@@ -459,23 +383,16 @@
- 
- 	  __m256i sksv_avx[SABER_K][SABER_N/16];
- 	  __m256i pksv_avx[SABER_K][SABER_N/16];
+-	//--------------AVX declaration------------------
+-	
+-
+-	  //__m256i mod_p;
+-	  
+-	  __m256i v_avx[SABER_N/16];
+-	  
+-	  //__m256i acc[2*SABER_N/16];
+-
+-	  __m256i sksv_avx[SABER_K][SABER_N/16];
+-	  __m256i pksv_avx[SABER_K][SABER_N/16];
 -	  
 -	  mask_ar[0]=~(0UL);mask_ar[1]=~(0UL);mask_ar[2]=~(0UL);mask_ar[3]=~(0UL);
 -	  mask_load = _mm256_loadu_si256 ((__m256i const *)mask_ar);
- 
- 	  //mod_p=_mm256_set1_epi16(SABER_P-1);
- 
+-
+-	  //mod_p=_mm256_set1_epi16(SABER_P-1);
+-
 -	  H2_avx=_mm256_set1_epi16(h2);
 -
- 	  __m256i b_bucket[NUM_POLY][SCHB_N*4];
- 	//--------------AVX declaration ends------------------
+-	  __m256i b_bucket[NUM_POLY][SCHB_N*4];
+-	//--------------AVX declaration ends------------------
 -	
 - 	load_values();
- 
- 	//-------unpack the public_key
- 
+-
+-	//-------unpack the public_key
+-
 -	BS2POLVEC(sk, sksv, SABER_Q); //sksv is the secret-key
 -	BS2POLVEC(ciphertext, pksv, SABER_P); //pksv is the ciphertext
-+	BS2POLVEC(sksv, sk, SABER_Q); //sksv is the secret-key
-+	BS2POLVEC(pksv, ciphertext, SABER_P); //pksv is the ciphertext
+-
+-	for(i=0;i<SABER_K;i++){
+-		for(j=0; j<SABER_N/16; j++){
+-		    sksv_avx[i][j] = _mm256_loadu_si256 ((__m256i const *) (&sksv[i][j*16]));
+-		    pksv_avx[i][j] = _mm256_loadu_si256 ((__m256i const *) (&pksv[i][j*16]));
+-		}
+-	}
+-
+-	for(i=0;i<SABER_N/16;i++){
+-		v_avx[i]=_mm256_xor_si256(v_avx[i],v_avx[i]);
+-	}
++	poly temp[SABER_L];
++	toom4_points sksv_eval[SABER_L];
  
- 	for(i=0;i<SABER_K;i++){
- 		for(j=0; j<SABER_N/16; j++){
-@@ -490,21 +407,15 @@
++	const uint8_t *packed_cm = ciphertext+SABER_POLYVECCOMPRESSEDBYTES;
++	poly *v = &temp[0];
++	poly *cm = &temp[1];
  
- 
- 	// InnerProduct(b', s, mod p)
+-	// InnerProduct(b', s, mod p)
 -	CLOCK1=cpucycles();
 -	count_mul++;
- 
- 	for(j=0;j<NUM_POLY;j++){
- 		TC_eval(sksv_avx[j], b_bucket[j]);
- 	}
- 
+-
+-	for(j=0;j<NUM_POLY;j++){
+-		TC_eval(sksv_avx[j], b_bucket[j]);
+-	}
+-
 -	vector_vector_mul(pksv_avx, b_bucket, v_avx);
 -
 -	CLOCK2=cpucycles();
 -	clock_mul=clock_mul+(CLOCK2-CLOCK1);
 -
-+	vector_vector_mul(v_avx, pksv_avx, b_bucket);
- 
- 	for(i=0; i<SABER_N/16; i++){
+-
+-	for(i=0; i<SABER_N/16; i++){
 -		_mm256_maskstore_epi32 ((int *)(message_dec_unpacked+i*16), mask_load, v_avx[i]);
-+		_mm256_maskstore_epi32 ((int *)(message_dec_unpacked+i*16), _mm256_set1_epi32(-1), v_avx[i]);
+-	}
+-
+-
+-	for(i=0;i<SABER_SCALEBYTES_KEM;i++){
+-		scale_ar[i]=ciphertext[SABER_CIPHERTEXTBYTES+i];
++	BS2POLVECq(temp, sk);
++	for(i=0;i<SABER_L;i++){
++		toom4_eval(&sksv_eval[i], &temp[i]);
  	}
  
- 
-@@ -513,11 +424,11 @@
- 	}
- 
- 	#if Saber_type == 1
+-	#if Saber_type == 1
 -		SABER_un_pack3bit(scale_ar, op);
-+		SABER_un_pack3bit(op, scale_ar);
- 	#elif Saber_type == 2
+-	#elif Saber_type == 2
 -		SABER_un_pack4bit(scale_ar, op);
-+		SABER_un_pack4bit(op, scale_ar);
- 	#elif Saber_type == 3
+-	#elif Saber_type == 3
 -		SABER_un_pack6bit(scale_ar, op);
-+		SABER_un_pack6bit(op, scale_ar);
- 	#endif
+-	#endif
++	BS2POLVECp(temp, ciphertext);
++	InnerProd(v, temp, sksv_eval);
  
++	BS2POLT(cm, packed_cm);
  
-@@ -527,55 +438,6 @@
- 	}
- 
- 
+-	//addition of h2
+ 	for(i=0;i<SABER_N;i++){
+-		message_dec_unpacked[i]= ( ( message_dec_unpacked[i] + h2 - (op[i]<<(SABER_EP-SABER_ET)) ) & (SABER_P-1) ) >> (SABER_EP-1);
+-	}
+-
+-
 -	POL2MSG(message_dec_unpacked, message_dec);
 -}
 -
@@ -531,8 +639,11 @@
 -		}
 -
 -		TC_interpol(c_bucket, res_avx[i]);
--	}
--
++		v->coeffs[i] += h2 - (cm->coeffs[i]<<(SABER_EP-SABER_ET));
++		v->coeffs[i] &= SABER_P-1;
++		v->coeffs[i] >>= SABER_EP-1;
+ 	}
+ 
 -}
 -
 -void vector_vector_mul(__m256i a_avx[NUM_POLY][AVX_N1], __m256i b_bucket[NUM_POLY][SCHB_N*4], __m256i res_avx[AVX_N1]){
@@ -545,7 +656,7 @@
 -		toom_cook_4way_avx_n1(a_avx[i], b_bucket[i], c_bucket, i);		
 -	}
 -	TC_interpol(c_bucket, res_avx);
-+	POL2MSG(m, message_dec_unpacked);
++	POLmsg2BS(m, v);
  }
  
 

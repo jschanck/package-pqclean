@@ -17,5 +17,4 @@
 +void cmov(uint8_t *r, const uint8_t *x, size_t len, uint8_t b);
  
  #endif
-Only in upstream: .gitignore
 
