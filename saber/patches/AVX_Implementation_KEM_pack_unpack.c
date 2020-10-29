@@ -59,9 +59,9 @@
  	{
 -		offset_data=2*j;
 -		bytes[j]= (data[offset_data] & 0x0f) | ( (data[offset_data + 1] & 0x0f)<<4 );
-+		out[0] = (in[0] & 0x7) | ((in[1] & 0x7) << 3) | (in[2] << 6);
-+		out[1] = ((in[2] >> 2) & 0x01) | ((in[3] & 0x7) << 1) | ((in[4] & 0x7) << 4) | (in[5] << 7);
-+		out[2] = ((in[5] >> 1) & 0x03) | ((in[6] & 0x7) << 2) | (in[7] << 5);
++		out[0] = (uint8_t) ((in[0] & 0x7) | ((in[1] & 0x7) << 3) | (in[2] << 6));
++		out[1] = (uint8_t) (((in[2] >> 2) & 0x01) | ((in[3] & 0x7) << 1) | ((in[4] & 0x7) << 4) | (in[5] << 7));
++		out[2] = (uint8_t) (((in[5] >> 1) & 0x03) | ((in[6] & 0x7) << 2) | (in[7] << 5));
 +		in += 8;
 +		out += 3;
  	}
@@ -111,7 +111,7 @@
 -		data[offset_data + 1] = ((bytes[offset_byte+0]>>6)&0x03) |  ((bytes[offset_byte+1]&0x0f)<<2)  ;
 -		data[offset_data + 2] = ((bytes[offset_byte+1]&0xff)>>4) | ((bytes[offset_byte+2]&0x03)<<4) ;
 -		data[offset_data + 3] = ((bytes[offset_byte+2]&0xff)>>2);
-+		out[0] = (in[0] & 0x0f) | (in[1] << 4);
++		out[0] = (uint8_t) ((in[0] & 0x0f) | (in[1] << 4));
 +		in += 2;
 +		out += 1;
  	}
@@ -142,9 +142,9 @@
 +#elif SABER_ET == 6
 +	for (j = 0; j < SABER_N / 4; j++)
 +	{
-+		out[0] = (in[0] & 0x3f) | (in[1] << 6);
-+		out[1] = ((in[1] >> 2) & 0x0f) | (in[2] << 4);
-+		out[2] = ((in[2] >> 4) & 0x03) | (in[3] << 2);
++		out[0] = (uint8_t) ((in[0] & 0x3f) | (in[1] << 6));
++		out[1] = (uint8_t) (((in[1] >> 2) & 0x0f) | (in[2] << 4));
++		out[2] = (uint8_t) (((in[2] >> 4) & 0x03) | (in[3] << 2));
 +		in += 4;
 +		out += 3;
 +	}
@@ -266,19 +266,19 @@
 +	uint8_t *out = bytes;
 +	for (j = 0; j < SABER_N / 8; j++)
 +	{
-+		out[0] = in[0];
-+		out[1] = ((in[0] >> 8) & 0x1f) | (in[1] << 5);
-+		out[2] = in[1] >> 3;
-+		out[3] = ((in[1] >> 11) & 0x03) | (in[2] << 2);
-+		out[4] = ((in[2] >> 6) & 0x7f) | (in[3] << 7);
-+		out[5] = in[3] >> 1;
-+		out[6] = ((in[3] >> 9) & 0x0f) | (in[4] << 4);
-+		out[7] = in[4] >> 4;
-+		out[8] = ((in[4] >> 12) & 0x01) | (in[5] << 1);
-+		out[9] = ((in[5] >> 7) & 0x3f) | (in[6] << 6);
-+		out[10] = in[6] >> 2;
-+		out[11] = ((in[6] >> 10) & 0x07) | (in[7] << 3);
-+		out[12] = in[7] >> 5;
++		out[0] = (uint8_t) (in[0]);
++		out[1] = (uint8_t) (((in[0] >> 8) & 0x1f) | (in[1] << 5));
++		out[2] = (uint8_t) (in[1] >> 3);
++		out[3] = (uint8_t) (((in[1] >> 11) & 0x03) | (in[2] << 2));
++		out[4] = (uint8_t) (((in[2] >> 6) & 0x7f) | (in[3] << 7));
++		out[5] = (uint8_t) (in[3] >> 1);
++		out[6] = (uint8_t) (((in[3] >> 9) & 0x0f) | (in[4] << 4));
++		out[7] = (uint8_t) (in[4] >> 4);
++		out[8] = (uint8_t) (((in[4] >> 12) & 0x01) | (in[5] << 1));
++		out[9] = (uint8_t) (((in[5] >> 7) & 0x3f) | (in[6] << 6));
++		out[10] = (uint8_t) (in[6] >> 2);
++		out[11] = (uint8_t) (((in[6] >> 10) & 0x07) | (in[7] << 3));
++		out[12] = (uint8_t) (in[7] >> 5);
 +		in += 8;
 +		out += 13;
  	}
@@ -351,11 +351,11 @@
 +	uint8_t *out = bytes;
 +	for (j = 0; j < SABER_N / 4; j++)
 +	{
-+		out[0] = in[0];
-+		out[1] = ((in[0] >> 8) & 0x03) | (in[1] << 2);
-+		out[2] = ((in[1] >> 6) & 0x0f) | (in[2] << 4);
-+		out[3] = ((in[2] >> 4) & 0x3f) | (in[3] << 6);
-+		out[4] = in[3] >> 2;
++		out[0] = (uint8_t) (in[0]);
++		out[1] = (uint8_t) (((in[0] >> 8) & 0x03) | (in[1] << 2));
++		out[2] = (uint8_t) (((in[1] >> 6) & 0x0f) | (in[2] << 4));
++		out[3] = (uint8_t) (((in[2] >> 4) & 0x3f) | (in[3] << 6));
++		out[4] = (uint8_t) (in[3] >> 2);
 +		in += 4;
 +		out += 5;
  	}
