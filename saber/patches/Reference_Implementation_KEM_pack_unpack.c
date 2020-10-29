@@ -1,6 +1,6 @@
 --- upstream/Reference_Implementation_KEM/pack_unpack.c
 +++ upstream-patched/Reference_Implementation_KEM/pack_unpack.c
-@@ -1,199 +1,212 @@
+@@ -1,199 +1,214 @@
  #include "pack_unpack.h"
 -#include "api.h"
 +#include "poly.h"
@@ -22,9 +22,9 @@
 -		bytes[offset_byte + 0] = (data[offset_data + 0] & 0x7) | ((data[offset_data + 1] & 0x7) << 3) | ((data[offset_data + 2] & 0x3) << 6);
 -		bytes[offset_byte + 1] = ((data[offset_data + 2] >> 2) & 0x01) | ((data[offset_data + 3] & 0x7) << 1) | ((data[offset_data + 4] & 0x7) << 4) | (((data[offset_data + 5]) & 0x01) << 7);
 -		bytes[offset_byte + 2] = ((data[offset_data + 5] >> 1) & 0x03) | ((data[offset_data + 6] & 0x7) << 2) | ((data[offset_data + 7] & 0x7) << 5);
-+		out[0] = (in[0] & 0x7) | ((in[1] & 0x7) << 3) | ((in[2] & 0x3) << 6);
-+		out[1] = ((in[2] >> 2) & 0x01) | ((in[3] & 0x7) << 1) | ((in[4] & 0x7) << 4) | (((in[5]) & 0x01) << 7);
-+		out[2] = ((in[5] >> 1) & 0x03) | ((in[6] & 0x7) << 2) | ((in[7] & 0x7) << 5);
++		out[0] = (in[0] & 0x7) | ((in[1] & 0x7) << 3) | (in[2] << 6);
++		out[1] = ((in[2] >> 2) & 0x01) | ((in[3] & 0x7) << 1) | ((in[4] & 0x7) << 4) | (in[5] << 7);
++		out[2] = ((in[5] >> 1) & 0x03) | ((in[6] & 0x7) << 2) | (in[7] << 5);
 +		in += 8;
 +		out += 3;
  	}
@@ -34,7 +34,7 @@
 -		offset_byte = j;
 -		offset_data = 2 * j;
 -		bytes[offset_byte] = (data[offset_data] & 0x0f) | ((data[offset_data + 1] & 0x0f) << 4);
-+		out[0] = (in[0] & 0x0f) | ((in[1] & 0x0f) << 4);
++		out[0] = (in[0] & 0x0f) | (in[1] << 4);
 +		in += 2;
 +		out += 1;
  	}
@@ -46,9 +46,9 @@
 -		bytes[offset_byte + 0] = (data[offset_data + 0] & 0x3f) | ((data[offset_data + 1] & 0x03) << 6);
 -		bytes[offset_byte + 1] = ((data[offset_data + 1] >> 2) & 0x0f) | ((data[offset_data + 2] & 0x0f) << 4);
 -		bytes[offset_byte + 2] = ((data[offset_data + 2] >> 4) & 0x03) | ((data[offset_data + 3] & 0x3f) << 2);
-+		out[0] = (in[0] & 0x3f) | ((in[1] & 0x03) << 6);
-+		out[1] = ((in[1] >> 2) & 0x0f) | ((in[2] & 0x0f) << 4);
-+		out[2] = ((in[2] >> 4) & 0x03) | ((in[3] & 0x3f) << 2);
++		out[0] = (in[0] & 0x3f) | (in[1] << 6);
++		out[1] = ((in[1] >> 2) & 0x0f) | (in[2] << 4);
++		out[2] = ((in[2] >> 4) & 0x03) | (in[3] << 2);
 +		in += 4;
 +		out += 3;
  	}
@@ -61,6 +61,7 @@
 +void BS2POLT(poly *data, const uint8_t bytes[SABER_SCALEBYTES_KEM])
  {
 -	size_t j, offset_byte, offset_data;
++	/* This function does not reduce its output mod T */
 +	size_t j;
 +	const uint8_t *in = bytes;
 +	uint16_t *out = data->coeffs;
@@ -77,14 +78,14 @@
 -		data[offset_data + 5] = (((bytes[offset_byte + 1]) >> 7) & 0x01) | (((bytes[offset_byte + 2]) & 0x03) << 1);
 -		data[offset_data + 6] = ((bytes[offset_byte + 2] >> 2) & 0x07);
 -		data[offset_data + 7] = ((bytes[offset_byte + 2] >> 5) & 0x07);
-+		out[0] = (in[0]) & 0x07;
-+		out[1] = ((in[0]) >> 3) & 0x07;
-+		out[2] = (((in[0]) >> 6) & 0x03) | (((in[1]) & 0x01) << 2);
-+		out[3] = ((in[1]) >> 1) & 0x07;
-+		out[4] = ((in[1]) >> 4) & 0x07;
-+		out[5] = (((in[1]) >> 7) & 0x01) | (((in[2]) & 0x03) << 1);
-+		out[6] = ((in[2] >> 2) & 0x07);
-+		out[7] = ((in[2] >> 5) & 0x07);
++		out[0] = in[0];
++		out[1] = in[0] >> 3;
++		out[2] = (in[0] >> 6) | (in[1] << 2);
++		out[3] = in[1] >> 1;
++		out[4] = in[1] >> 4;
++		out[5] = (in[1] >> 7) | (in[2] << 1);
++		out[6] = in[2] >> 2;
++		out[7] = in[2] >> 5;
 +		in += 3;
 +		out += 8;
  	}
@@ -95,8 +96,8 @@
 -		offset_data = 2 * j;
 -		data[offset_data] = bytes[offset_byte] & 0x0f;
 -		data[offset_data + 1] = (bytes[offset_byte] >> 4) & 0x0f;
-+		out[0] = in[0] & 0x0f;
-+		out[1] = (in[0] >> 4) & 0x0f;
++		out[0] = in[0];
++		out[1] = in[0] >> 4;
 +		in += 1;
 +		out += 2;
  	}
@@ -109,10 +110,10 @@
 -		data[offset_data + 1] = ((bytes[offset_byte + 0] >> 6) & 0x03) | ((bytes[offset_byte + 1] & 0x0f) << 2);
 -		data[offset_data + 2] = ((bytes[offset_byte + 1] & 0xff) >> 4) | ((bytes[offset_byte + 2] & 0x03) << 4);
 -		data[offset_data + 3] = ((bytes[offset_byte + 2] & 0xff) >> 2);
-+		out[0] = in[0] & 0x3f;
-+		out[1] = ((in[0] >> 6) & 0x03) | ((in[1] & 0x0f) << 2);
-+		out[2] = ((in[1] & 0xff) >> 4) | ((in[2] & 0x03) << 4);
-+		out[3] = ((in[2] & 0xff) >> 2);
++		out[0] = in[0];
++		out[1] = (in[0] >> 6) | (in[1] << 2);
++		out[2] = (in[1] >> 4) | (in[2] << 4);
++		out[3] = (in[2] >> 2);
 +		in += 3;
 +		out += 4;
  	}
@@ -145,19 +146,19 @@
 -		bytes[offset_byte + 10] = ((data[offset_data + 6] >> 2) & 0xff);
 -		bytes[offset_byte + 11] = ((data[offset_data + 6] >> 10) & 0x07) | ((data[offset_data + 7] & 0x1f) << 3);
 -		bytes[offset_byte + 12] = ((data[offset_data + 7] >> 5) & 0xff);
-+		out[0] = (in[0] & (0xff));
-+		out[1] = ((in[0] >> 8) & 0x1f) | ((in[1] & 0x07) << 5);
-+		out[2] = ((in[1] >> 3) & 0xff);
-+		out[3] = ((in[1] >> 11) & 0x03) | ((in[2] & 0x3f) << 2);
-+		out[4] = ((in[2] >> 6) & 0x7f) | ((in[3] & 0x01) << 7);
-+		out[5] = ((in[3] >> 1) & 0xff);
-+		out[6] = ((in[3] >> 9) & 0x0f) | ((in[4] & 0x0f) << 4);
-+		out[7] = ((in[4] >> 4) & 0xff);
-+		out[8] = ((in[4] >> 12) & 0x01) | ((in[5] & 0x7f) << 1);
-+		out[9] = ((in[5] >> 7) & 0x3f) | ((in[6] & 0x03) << 6);
-+		out[10] = ((in[6] >> 2) & 0xff);
-+		out[11] = ((in[6] >> 10) & 0x07) | ((in[7] & 0x1f) << 3);
-+		out[12] = ((in[7] >> 5) & 0xff);
++		out[0] = in[0];
++		out[1] = ((in[0] >> 8) & 0x1f) | (in[1] << 5);
++		out[2] = in[1] >> 3;
++		out[3] = ((in[1] >> 11) & 0x03) | (in[2] << 2);
++		out[4] = ((in[2] >> 6) & 0x7f) | (in[3] << 7);
++		out[5] = in[3] >> 1;
++		out[6] = ((in[3] >> 9) & 0x0f) | (in[4] << 4);
++		out[7] = in[4] >> 4;
++		out[8] = ((in[4] >> 12) & 0x01) | (in[5] << 1);
++		out[9] = ((in[5] >> 7) & 0x3f) | (in[6] << 6);
++		out[10] = in[6] >> 2;
++		out[11] = ((in[6] >> 10) & 0x07) | (in[7] << 3);
++		out[12] = in[7] >> 5;
 +		in += 8;
 +		out += 13;
  	}
@@ -168,6 +169,7 @@
 -	size_t j, offset_byte, offset_data;
 +static void BS2POLq(poly *data, const uint8_t bytes[SABER_POLYBYTES])
 +{
++	/* This function does not reduce its output mod Q */
 +	size_t j;
 +	const uint8_t *in = bytes;
 +	uint16_t *out = data->coeffs;
@@ -183,14 +185,14 @@
 -		data[offset_data + 5] = (bytes[offset_byte + 8] >> 1 & (0x7f)) | ((bytes[offset_byte + 9] & 0x3f) << 7);
 -		data[offset_data + 6] = (bytes[offset_byte + 9] >> 6 & (0x03)) | ((bytes[offset_byte + 10] & 0xff) << 2) | ((bytes[offset_byte + 11] & 0x07) << 10);
 -		data[offset_data + 7] = (bytes[offset_byte + 11] >> 3 & (0x1f)) | ((bytes[offset_byte + 12] & 0xff) << 5);
-+		out[0] = (in[0] & (0xff)) | ((in[1] & 0x1f) << 8);
-+		out[1] = (in[1] >> 5 & (0x07)) | ((in[2] & 0xff) << 3) | ((in[3] & 0x03) << 11);
-+		out[2] = (in[3] >> 2 & (0x3f)) | ((in[4] & 0x7f) << 6);
-+		out[3] = (in[4] >> 7 & (0x01)) | ((in[5] & 0xff) << 1) | ((in[6] & 0x0f) << 9);
-+		out[4] = (in[6] >> 4 & (0x0f)) | ((in[7] & 0xff) << 4) | ((in[8] & 0x01) << 12);
-+		out[5] = (in[8] >> 1 & (0x7f)) | ((in[9] & 0x3f) << 7);
-+		out[6] = (in[9] >> 6 & (0x03)) | ((in[10] & 0xff) << 2) | ((in[11] & 0x07) << 10);
-+		out[7] = (in[11] >> 3 & (0x1f)) | ((in[12] & 0xff) << 5);
++		out[0] = (in[0]) | (in[1] << 8);
++		out[1] = (in[1] >> 5) | (in[2] << 3) | (in[3] << 11);
++		out[2] = (in[3] >> 2) | (in[4] << 6);
++		out[3] = (in[4] >> 7) | (in[5] << 1) | (in[6] << 9);
++		out[4] = (in[6] >> 4) | (in[7] << 4) | (in[8] << 12);
++		out[5] = (in[8] >> 1) | (in[9] << 7);
++		out[6] = (in[9] >> 6) | (in[10] << 2) | (in[11] << 10);
++		out[7] = (in[11] >> 3) | (in[12] << 5);
 +		in += 13;
 +		out += 8;
  	}
@@ -213,11 +215,11 @@
 -		bytes[offset_byte + 2] = ((data[offset_data + 1] >> 6) & 0x0f) | ((data[offset_data + 2] & 0x0f) << 4);
 -		bytes[offset_byte + 3] = ((data[offset_data + 2] >> 4) & 0x3f) | ((data[offset_data + 3] & 0x03) << 6);
 -		bytes[offset_byte + 4] = ((data[offset_data + 3] >> 2) & 0xff);
-+		out[0] = (in[0] & (0xff));
-+		out[1] = ((in[0] >> 8) & 0x03) | ((in[1] & 0x3f) << 2);
-+		out[2] = ((in[1] >> 6) & 0x0f) | ((in[2] & 0x0f) << 4);
-+		out[3] = ((in[2] >> 4) & 0x3f) | ((in[3] & 0x03) << 6);
-+		out[4] = ((in[3] >> 2) & 0xff);
++		out[0] = in[0];
++		out[1] = ((in[0] >> 8) & 0x03) | (in[1] << 2);
++		out[2] = ((in[1] >> 6) & 0x0f) | (in[2] << 4);
++		out[3] = ((in[2] >> 4) & 0x3f) | (in[3] << 6);
++		out[4] = in[3] >> 2;
 +		in += 4;
 +		out += 5;
  	}
@@ -238,10 +240,10 @@
 -		data[offset_data + 1] = ((bytes[offset_byte + 1] >> 2) & (0x3f)) | ((bytes[offset_byte + 2] & 0x0f) << 6);
 -		data[offset_data + 2] = ((bytes[offset_byte + 2] >> 4) & (0x0f)) | ((bytes[offset_byte + 3] & 0x3f) << 4);
 -		data[offset_data + 3] = ((bytes[offset_byte + 3] >> 6) & (0x03)) | ((bytes[offset_byte + 4] & 0xff) << 2);
-+		out[0] = (in[0] & (0xff)) | ((in[1] & 0x03) << 8);
-+		out[1] = ((in[1] >> 2) & (0x3f)) | ((in[2] & 0x0f) << 6);
-+		out[2] = ((in[2] >> 4) & (0x0f)) | ((in[3] & 0x3f) << 4);
-+		out[3] = ((in[3] >> 6) & (0x03)) | ((in[4] & 0xff) << 2);
++		out[0] = in[0] | (in[1] << 8);
++		out[1] = (in[1] >> 2) | (in[2] << 6);
++		out[2] = (in[2] >> 4) | (in[3] << 4);
++		out[3] = (in[3] >> 6) | (in[4] << 2);
 +		in += 5;
 +		out += 4;
  	}
@@ -310,7 +312,7 @@
  {
  	size_t i, j;
  	memset(bytes, 0, SABER_KEYBYTES);
-@@ -202,7 +215,8 @@
+@@ -202,7 +217,8 @@
  	{
  		for (i = 0; i < 8; i++)
  		{

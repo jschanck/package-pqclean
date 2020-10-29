@@ -69,7 +69,7 @@ for PARAM in lightsaber saber firesaber; do
 
   task "Copying AVX_Implementation_KEM"
   ( cd ${BUILD_UPSTREAM}/AVX_Implementation_KEM/
-    cp -Lp api.h cbd.h kem.h pack_unpack.h poly.h SABER_indcpa.h SABER_params.h verify.h ${BUILD_CRYPTO_KEM}/${PARAM}/avx2/
+    cp -Lp api.h cbd.h pack_unpack.h poly.h SABER_indcpa.h SABER_params.h verify.h ${BUILD_CRYPTO_KEM}/${PARAM}/avx2/
     cp -Lp cbd.c kem.c pack_unpack.c poly.c poly_mul.c SABER_indcpa.c verify.c ${BUILD_CRYPTO_KEM}/${PARAM}/avx2/ )
   endtask
 
