@@ -8,7 +8,7 @@
  #include "rng.h"
  #include "fips202.h"
  #include "SABER_params.h"
-@@ -13,90 +12,107 @@
+@@ -13,90 +12,105 @@
  
  void indcpa_kem_keypair(uint8_t pk[SABER_INDCPA_PUBLICKEYBYTES], uint8_t sk[SABER_INDCPA_SECRETKEYBYTES])
  {
@@ -53,7 +53,6 @@
 +		for(j=0;j<SABER_N;j++) {
 +			res[i].coeffs[j] += h1;
 +			res[i].coeffs[j] >>= SABER_EQ-SABER_EP;
-+			res[i].coeffs[j] &= SABER_Q-1;
  		}
  	}
  
@@ -103,7 +102,6 @@
 +		for(j=0;j<SABER_N;j++){
 +			res[i].coeffs[j] += h1;
 +			res[i].coeffs[j] >>= SABER_EQ-SABER_EP;
-+			res[i].coeffs[j] &= SABER_Q-1;
  		}
  	}
 +	POLVECp2BS(ciphertext, res);

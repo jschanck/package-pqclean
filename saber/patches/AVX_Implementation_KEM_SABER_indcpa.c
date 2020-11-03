@@ -1,6 +1,6 @@
 --- upstream/AVX_Implementation_KEM/SABER_indcpa.c
 +++ upstream-patched/AVX_Implementation_KEM/SABER_indcpa.c
-@@ -1,581 +1,130 @@
+@@ -1,581 +1,128 @@
 -#include <stdint.h>
 -#include <stdio.h>
  #include <string.h>
@@ -256,7 +256,6 @@
 +		for(j=0;j<SABER_N;j++) {
 +			res[i].coeffs[j] += h1;
 +			res[i].coeffs[j] >>= SABER_EQ-SABER_EP;
-+			res[i].coeffs[j] &= SABER_Q-1;
  		}
  	}
  
@@ -422,7 +421,6 @@
 +		for(j=0;j<SABER_N;j++){
 +			res[i].coeffs[j] += h1;
 +			res[i].coeffs[j] >>= SABER_EQ-SABER_EP;
-+			res[i].coeffs[j] &= SABER_Q-1;
  		}
  	}
 -
