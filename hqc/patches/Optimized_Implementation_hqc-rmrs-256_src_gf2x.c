@@ -1,6 +1,6 @@
 --- upstream/Optimized_Implementation/hqc-rmrs-256/src/gf2x.c
 +++ upstream-patched/Optimized_Implementation/hqc-rmrs-256/src/gf2x.c
-@@ -7,42 +7,34 @@
+@@ -7,42 +7,31 @@
  #include "parameters.h"
  #include <stdint.h>
  #include <string.h>
@@ -31,9 +31,9 @@
 -uint64_t a1_times_a2[VEC_N_256_SIZE_64 << 1];
 -uint64_t tmp_reduce[VEC_N_ARRAY_SIZE_VEC << 2];
 -__m256i *o256 = (__m256i *) tmp_reduce;
- uint64_t bloc64[PARAM_OMEGA_R]; // Allocation with the biggest possible weight
- uint64_t bit64[PARAM_OMEGA_R]; // Allocation with the biggest possible weight
- 
+-uint64_t bloc64[PARAM_OMEGA_R]; // Allocation with the biggest possible weight
+-uint64_t bit64[PARAM_OMEGA_R]; // Allocation with the biggest possible weight
+-
 -inline static void reduce(uint64_t *o, uint64_t *a);
 -inline static void karat_mult_1(__m128i *C, __m128i *A, __m128i *B);
 -inline static void karat_mult_2(__m256i *C, __m256i *A, __m256i *B);
@@ -55,7 +55,7 @@
  
  
  /**
-@@ -53,40 +45,39 @@
+@@ -53,40 +42,39 @@
   * @param[out] o Pointer to the result
   * @param[in] a Pointer to the polynomial a(x)
   */
@@ -117,7 +117,7 @@
   * A(x) and B(x) are stored in 128-bit registers
   * This function computes A(x)*B(x) using Karatsuba
   *
-@@ -94,7 +85,7 @@
+@@ -94,7 +82,7 @@
   * @param[in] A Pointer to the polynomial A(x)
   * @param[in] B Pointer to the polynomial B(x)
   */
@@ -126,7 +126,7 @@
  	__m128i D1[2];
  	__m128i D0[2], D2[2];
  	__m128i Al = _mm_loadu_si128(A);
-@@ -102,7 +93,7 @@
+@@ -102,7 +90,7 @@
  	__m128i Bl = _mm_loadu_si128(B);
  	__m128i Bh = _mm_loadu_si128(B + 1);
  
@@ -135,7 +135,7 @@
  	__m128i DD0 = _mm_clmulepi64_si128(Al, Bl, 0);
  	__m128i DD2 = _mm_clmulepi64_si128(Al, Bl, 0x11);
  	__m128i AAlpAAh = _mm_xor_si128(Al, _mm_shuffle_epi32(Al, 0x4e));
-@@ -111,7 +102,7 @@
+@@ -111,7 +99,7 @@
  	D0[0] = _mm_xor_si128(DD0, _mm_unpacklo_epi64(_mm_setzero_si128(), DD1));
  	D0[1] = _mm_xor_si128(DD2, _mm_unpackhi_epi64(DD1, _mm_setzero_si128()));
  
@@ -144,7 +144,7 @@
  	DD0 = _mm_clmulepi64_si128(Ah, Bh, 0);
  	DD2 = _mm_clmulepi64_si128(Ah, Bh, 0x11);
  	AAlpAAh = _mm_xor_si128(Ah, _mm_shuffle_epi32(Ah, 0x4e));
-@@ -120,11 +111,10 @@
+@@ -120,11 +108,10 @@
  	D2[0] = _mm_xor_si128(DD0, _mm_unpacklo_epi64(_mm_setzero_si128(), DD1));
  	D2[1] = _mm_xor_si128(DD2, _mm_unpackhi_epi64(DD1, _mm_setzero_si128()));
  
@@ -160,7 +160,7 @@
  	DD0 = _mm_clmulepi64_si128(AlpAh, BlpBh, 0);
  	DD2 = _mm_clmulepi64_si128(AlpAh, BlpBh, 0x11);
  	AAlpAAh = _mm_xor_si128(AlpAh, _mm_shuffle_epi32(AlpAh, 0x4e));
-@@ -133,9 +123,8 @@
+@@ -133,9 +120,8 @@
  	D1[0] = _mm_xor_si128(DD0, _mm_unpacklo_epi64(_mm_setzero_si128(), DD1));
  	D1[1] = _mm_xor_si128(DD2, _mm_unpackhi_epi64(DD1, _mm_setzero_si128()));
  
@@ -171,7 +171,7 @@
  	C[0] = D0[0];
  	C[1] = middle ^ D0[0] ^ D1[0];
  	C[2] = middle ^ D1[1] ^ D2[1];
-@@ -145,7 +134,7 @@
+@@ -145,7 +131,7 @@
  
  
  /**
@@ -180,7 +180,7 @@
   *
   * This function computes A(x)*B(x) using Karatsuba
   * A(x) and B(x) are stored in 256-bit registers
-@@ -153,28 +142,29 @@
+@@ -153,28 +139,29 @@
   * @param[in] A Pointer to the polynomial A(x)
   * @param[in] B Pointer to the polynomial B(x)
   */
@@ -216,7 +216,7 @@
   *
   * This function computes A(x)*B(x) using Karatsuba
   * A(x) and B(x) are stored in 256-bit registers
-@@ -182,20 +172,24 @@
+@@ -182,20 +169,24 @@
   * @param[in] A Pointer to the polynomial A(x)
   * @param[in] B Pointer to the polynomial B(x)
   */
@@ -248,7 +248,7 @@
  	C[0] = D0[0];
  	C[1] = D0[1];
  	C[2] = middle0 ^ D0[0] ^ D1[0];
-@@ -204,12 +198,12 @@
+@@ -204,12 +195,12 @@
  	C[5] = middle1 ^ D1[3] ^ D2[3];
  	C[6] = D2[2];
  	C[7] = D2[3];
@@ -263,7 +263,7 @@
   *
   * This function computes A(x)*B(x) using Karatsuba
   * A(x) and B(x) are stored in 256-bit registers
-@@ -217,26 +211,29 @@
+@@ -217,26 +208,29 @@
   * @param[in] A Pointer to the polynomial A(x)
   * @param[in] B Pointer to the polynomial B(x)
   */
@@ -304,7 +304,7 @@
  		C[i]   = D0[i];
  		C[is]  = middle ^ D0[i] ^ D1[i];
  		C[is2] = middle ^ D1[is] ^ D2[is];
-@@ -247,7 +244,7 @@
+@@ -247,7 +241,7 @@
  
  
  /**
@@ -313,7 +313,7 @@
   *
   * This function computes A(x)*B(x) using Karatsuba
   * A(x) and B(x) are stored in 256-bit registers
-@@ -255,27 +252,29 @@
+@@ -255,27 +249,29 @@
   * @param[in] A Pointer to the polynomial A(x)
   * @param[in] B Pointer to the polynomial B(x)
   */
@@ -354,7 +354,7 @@
  		C[i]   = D0[i];
  		C[is]  = middle ^ D0[i] ^ D1[i];
  		C[is2] = middle ^ D1[is] ^ D2[is];
-@@ -284,9 +283,8 @@
+@@ -284,9 +280,8 @@
  }
  
  
@@ -365,7 +365,7 @@
   *
   * This function computes A(x)*B(x) using Karatsuba
   * A(x) and B(x) are stored in 256-bit registers
-@@ -294,15 +292,15 @@
+@@ -294,15 +289,15 @@
   * @param[in] A Pointer to the polynomial A(x)
   * @param[in] B Pointer to the polynomial B(x)
   */
@@ -385,7 +385,7 @@
  			D01[T2_5W_256], D02[T2_5W_256], D03[T2_5W_256], D04[T2_5W_256],
  			D12[T2_5W_256], D13[T2_5W_256], D14[T2_5W_256],
  			D23[T2_5W_256], D24[T2_5W_256],
-@@ -387,7 +385,7 @@
+@@ -387,7 +382,7 @@
  	}
  
  	for(int32_t i = 0 ; i < T_5W_256 * 10 ; i++) {
@@ -394,7 +394,7 @@
  	}
  }
  
-@@ -418,22 +416,22 @@
+@@ -418,22 +413,22 @@
   * @param[in] A Pointer to the polynomial A(x)
   * @param[in] B Pointer to the polynomial B(x)
   */
@@ -429,7 +429,7 @@
  	}
  
  	for (int32_t i = T_TM3R_3W_256 ; i < T_TM3R_3W_256 + 2 ; i++)	{
-@@ -599,14 +597,8 @@
+@@ -599,14 +594,8 @@
   * @param[in] a1 Pointer to a polynomial
   * @param[in] a2 Pointer to a polynomial
   */
