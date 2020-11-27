@@ -68,7 +68,7 @@ do
     cp -Lp cbd.c indcpa.c kem.c ntt.c poly.c polyvec.c reduce.c verify.c ${OUT}
     cp -Lp api.h cbd.h indcpa.h kem.h ntt.h params.h poly.h polyvec.h reduce.h symmetric.h verify.h ${OUT}
     [[ ${PARAM} =~ "90s" ]] && 
-      cp -Lp symmetric-aes.c aes256ctr.c aes256ctr.h ${OUT} ||
+      cp -Lp symmetric-aes.{c,h} ${OUT} ||
       cp -Lp symmetric-shake.c ${OUT} )
   endtask
 

@@ -36,6 +36,19 @@
    uint16_t t0, t1;
  
    for(i=0;i<KYBER_N/2;i++) {
+@@ -119,9 +119,9 @@
+     t0 += ((int16_t)t0 >> 15) & KYBER_Q;
+     t1 = a->coeffs[2*i+1];
+     t1 += ((int16_t)t1 >> 15) & KYBER_Q;
+-    r[3*i+0] = (t0 >> 0);
+-    r[3*i+1] = (t0 >> 8) | (t1 << 4);
+-    r[3*i+2] = (t1 >> 4);
++    r[3*i+0] = (uint8_t)(t0 >> 0);
++    r[3*i+1] = (uint8_t)((t0 >> 8) | (t1 << 4));
++    r[3*i+2] = (uint8_t)(t1 >> 4);
+   }
+ }
+ 
 @@ -137,7 +137,7 @@
  **************************************************/
  void poly_frombytes(poly *r, const uint8_t a[KYBER_POLYBYTES])

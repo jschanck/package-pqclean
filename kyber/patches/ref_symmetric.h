@@ -1,14 +1,42 @@
 --- upstream/ref/symmetric.h
 +++ upstream-patched/ref/symmetric.h
-@@ -28,6 +28,7 @@
+@@ -7,38 +7,39 @@
+ 
+ #ifdef KYBER_90S
+ 
+-#include "aes256ctr.h"
++#include "symmetric-aes.h"
+ #include "sha2.h"
+ 
+ #if (KYBER_SSBYTES != 32)
+ #error "90s variant of Kyber can only generate keys of length 256 bits"
+ #endif
+ 
+-typedef aes256ctr_ctx xof_state;
++typedef aes256xof_ctx xof_state;
+ 
+ #define kyber_aes256xof_absorb KYBER_NAMESPACE(_kyber_aes256xof_absorb)
+-void kyber_aes256xof_absorb(aes256ctr_ctx *state, const uint8_t seed[32], uint8_t x, uint8_t y);
++void kyber_aes256xof_absorb(aes256xof_ctx *state, const uint8_t seed[32], uint8_t x, uint8_t y);
+ 
+ #define kyber_aes256ctr_prf KYBER_NAMESPACE(_kyber_aes256ctr_prf)
+ void kyber_aes256ctr_prf(uint8_t *out, size_t outlen, const uint8_t key[32], uint8_t nonce);
+ 
+-#define XOF_BLOCKBYTES AES256CTR_BLOCKBYTES
++#define XOF_BLOCKBYTES 64
+ 
+ #define hash_h(OUT, IN, INBYTES) sha256(OUT, IN, INBYTES)
  #define hash_g(OUT, IN, INBYTES) sha512(OUT, IN, INBYTES)
- #define xof_absorb(STATE, SEED, X, Y) kyber_aes256xof_absorb(STATE, SEED, X, Y)
- #define xof_squeezeblocks(OUT, OUTBLOCKS, STATE) aes256ctr_squeezeblocks(OUT, OUTBLOCKS, STATE)
-+#define xof_ctx_release(STATE)
- #define prf(OUT, OUTBYTES, KEY, NONCE) kyber_aes256ctr_prf(OUT, OUTBYTES, KEY, NONCE)
+-#define xof_absorb(STATE, SEED, X, Y) kyber_aes256xof_absorb(STATE, SEED, X, Y)
+-#define xof_squeezeblocks(OUT, OUTBLOCKS, STATE) aes256ctr_squeezeblocks(OUT, OUTBLOCKS, STATE)
+-#define prf(OUT, OUTBYTES, KEY, NONCE) kyber_aes256ctr_prf(OUT, OUTBYTES, KEY, NONCE)
++#define xof_absorb(STATE, SEED, X, Y) aes256xof_absorb(STATE, SEED, X, Y)
++#define xof_squeezeblocks(OUT, OUTBLOCKS, STATE) aes256xof_squeezeblocks(OUT, OUTBLOCKS, STATE)
++#define xof_ctx_release(STATE) aes256xof_ctx_release(STATE)
++#define prf(OUT, OUTBYTES, KEY, NONCE) aes256ctr_prf(OUT, OUTBYTES, KEY, NONCE)
  #define kdf(OUT, IN, INBYTES) sha256(OUT, IN, INBYTES)
  
-@@ -35,10 +36,10 @@
+ #else
  
  #include "fips202.h"
  
