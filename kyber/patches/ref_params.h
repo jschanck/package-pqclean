@@ -32,7 +32,7 @@
  #define KYBER_N 256
  #define KYBER_Q 3329
  
-@@ -41,14 +16,17 @@
+@@ -40,14 +15,17 @@
  #define KYBER_POLYVECBYTES	(KYBER_K * KYBER_POLYBYTES)
  
  #if KYBER_K == 2

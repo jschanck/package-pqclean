@@ -1,6 +1,6 @@
 --- upstream/avx2/symmetric.h
 +++ upstream-patched/avx2/symmetric.h
-@@ -7,36 +7,32 @@
+@@ -7,55 +7,45 @@
  
  #ifdef KYBER_90S
  
@@ -18,15 +18,19 @@
  
 -#define hash_h(OUT, IN, INBYTES) SHA256(IN, INBYTES, OUT)
 -#define hash_g(OUT, IN, INBYTES) SHA512(IN, INBYTES, OUT)
+-#define xof_absorb(STATE, SEED, X, Y) \
+-        aes256ctr_init(STATE, SEED, (X) | ((uint16_t)(Y) << 8))
+-#define xof_squeezeblocks(OUT, OUTBLOCKS, STATE) \
+-        aes256ctr_squeezeblocks(OUT, OUTBLOCKS, STATE)
+-#define prf(OUT, OUTBYTES, KEY, NONCE) \
+-        aes256ctr_prf(OUT, OUTBYTES, KEY, NONCE)
+-#define kdf(OUT, IN, INBYTES) SHA256(IN, INBYTES, OUT)
 +#define hash_h(OUT, IN, INBYTES) sha256(OUT, IN, INBYTES)
 +#define hash_g(OUT, IN, INBYTES) sha512(OUT, IN, INBYTES)
- #define xof_absorb(STATE, SEED, X, Y) \
-         aes256ctr_init(STATE, SEED, (X) | ((uint16_t)(Y) << 8))
- #define xof_squeezeblocks(OUT, OUTBLOCKS, STATE) \
-         aes256ctr_squeezeblocks(OUT, OUTBLOCKS, STATE)
- #define prf(OUT, OUTBYTES, KEY, NONCE) \
-         aes256ctr_prf(OUT, OUTBYTES, KEY, NONCE)
--#define kdf(OUT, IN, INBYTES) SHA256(IN, INBYTES, OUT)
++#define xof_absorb(STATE, SEED, X, Y) aes256ctr_init(STATE, SEED, (X) | ((uint16_t)(Y) << 8))
++#define xof_squeezeblocks(OUT, OUTBLOCKS, STATE) aes256ctr_squeezeblocks(OUT, OUTBLOCKS, STATE)
++#define xof_ctx_release(STATE)
++#define prf(OUT, OUTBYTES, KEY, NONCE) aes256ctr_prf(OUT, OUTBYTES, KEY, NONCE)
 +#define kdf(OUT, IN, INBYTES) sha256(OUT, IN, INBYTES)
  
  #else
@@ -43,12 +47,27 @@
                             const uint8_t seed[KYBER_SYMBYTES],
                             uint8_t x,
                             uint8_t y);
-@@ -54,6 +50,7 @@
+ 
+ #define kyber_shake256_prf KYBER_NAMESPACE(_kyber_shake256_prf)
+-void kyber_shake256_prf(uint8_t *out,
+-                        size_t outlen,
+-                        const uint8_t key[KYBER_SYMBYTES],
+-                        uint8_t nonce);
++void kyber_shake256_prf(uint8_t *out, size_t outlen, const uint8_t key[KYBER_SYMBYTES], uint8_t nonce);
+ 
+ #define XOF_BLOCKBYTES SHAKE128_RATE
+ 
+ #define hash_h(OUT, IN, INBYTES) sha3_256(OUT, IN, INBYTES)
+ #define hash_g(OUT, IN, INBYTES) sha3_512(OUT, IN, INBYTES)
  #define xof_absorb(STATE, SEED, X, Y) kyber_shake128_absorb(STATE, SEED, X, Y)
- #define xof_squeezeblocks(OUT, OUTBLOCKS, STATE) \
-         shake128_squeezeblocks(OUT, OUTBLOCKS, STATE)
+-#define xof_squeezeblocks(OUT, OUTBLOCKS, STATE) \
+-        shake128_squeezeblocks(OUT, OUTBLOCKS, STATE)
+-#define prf(OUT, OUTBYTES, KEY, NONCE) \
+-        kyber_shake256_prf(OUT, OUTBYTES, KEY, NONCE)
++#define xof_squeezeblocks(OUT, OUTBLOCKS, STATE) shake128_squeezeblocks(OUT, OUTBLOCKS, STATE)
 +#define xof_ctx_release(STATE) shake128_ctx_release(STATE)
- #define prf(OUT, OUTBYTES, KEY, NONCE) \
-         kyber_shake256_prf(OUT, OUTBYTES, KEY, NONCE)
++#define prf(OUT, OUTBYTES, KEY, NONCE) kyber_shake256_prf(OUT, OUTBYTES, KEY, NONCE)
  #define kdf(OUT, IN, INBYTES) shake256(OUT, KYBER_SSBYTES, IN, INBYTES)
+ 
+ #endif /* KYBER_90S */
 

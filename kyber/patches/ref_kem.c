@@ -1,6 +1,6 @@
 --- upstream/ref/kem.c
 +++ upstream-patched/ref/kem.c
-@@ -118,7 +118,7 @@
+@@ -119,7 +119,7 @@
    hash_h(kr+KYBER_SYMBYTES, ct, KYBER_CIPHERTEXTBYTES);
  
    /* Overwrite pre-k with z on re-encryption failure */

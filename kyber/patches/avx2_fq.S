@@ -19,16 +19,6 @@
 @@ -77,7 +79,9 @@
  ret
  
- .global cdecl(csubq_avx)
-+.global _cdecl(csubq_avx)
- cdecl(csubq_avx):
-+_cdecl(csubq_avx):
- #consts
- vmovdqa		_16XQ*2(%rsi),%ymm0
- call		csubq128_avx
-@@ -118,7 +122,9 @@
- ret
- 
  .global cdecl(tomont_avx)
 +.global _cdecl(tomont_avx)
  cdecl(tomont_avx):

@@ -6,7 +6,7 @@
  .include "shuffle.inc"
  .include "fq.inc"
  
-@@ -178,7 +178,9 @@
+@@ -182,7 +182,9 @@
  
  .text
  .global cdecl(invntt_avx)

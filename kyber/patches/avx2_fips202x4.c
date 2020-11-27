@@ -8,8 +8,8 @@
 +#define KeccakF1600_StatePermute4x KeccakP1600times4_PermuteAll_24rounds
  extern void KeccakF1600_StatePermute4x(__m256i *s);
  
- static inline void store64(uint8_t x[8], uint64_t u) {
-@@ -55,14 +55,14 @@
+ static void keccakx4_absorb_once(__m256i s[25],
+@@ -45,14 +45,14 @@
  
    if(inlen) {
      t = _mm256_i64gather_epi64((long long *)pos, idx, 1);

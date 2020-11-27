@@ -1,6 +1,6 @@
 --- upstream/ref/reduce.c
 +++ upstream-patched/ref/reduce.c
-@@ -19,11 +19,11 @@
+@@ -18,11 +18,11 @@
    int32_t t;
    int16_t u;
  

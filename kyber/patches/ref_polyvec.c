@@ -1,14 +1,8 @@
 --- upstream/ref/polyvec.c
 +++ upstream-patched/ref/polyvec.c
-@@ -22,21 +22,22 @@
-   uint16_t t[8];
-   for(i=0;i<KYBER_K;i++) {
-     for(j=0;j<KYBER_N/8;j++) {
--      for(k=0;k<8;k++)
-+      for(k=0;k<8;k++) {
-         t[k] = ((((uint32_t)a->vec[i].coeffs[8*j+k] << 11) + KYBER_Q/2)
-                 /KYBER_Q) & 0x7ff;
-+      }
+@@ -26,17 +26,17 @@
+         t[k]  = ((((uint32_t)t[k] << 11) + KYBER_Q/2)/KYBER_Q) & 0x7ff;
+       }
  
 -      r[ 0] = (t[0] >>  0);
 -      r[ 1] = (t[0] >>  8) | (t[1] << 3);
@@ -35,15 +29,9 @@
        r += 11;
      }
    }
-@@ -44,15 +45,16 @@
-   uint16_t t[4];
-   for(i=0;i<KYBER_K;i++) {
-     for(j=0;j<KYBER_N/4;j++) {
--      for(k=0;k<4;k++)
-+      for(k=0;k<4;k++) {
-         t[k] = ((((uint32_t)a->vec[i].coeffs[4*j+k] << 10) + KYBER_Q/2)
-                 / KYBER_Q) & 0x3ff;
-+      }
+@@ -50,11 +50,11 @@
+         t[k]  = ((((uint32_t)t[k] << 10) + KYBER_Q/2)/ KYBER_Q) & 0x3ff;
+       }
  
 -      r[0] = (t[0] >> 0);
 -      r[1] = (t[0] >> 8) | (t[1] << 2);
@@ -58,7 +46,7 @@
        r += 5;
      }
    }
-@@ -90,8 +92,9 @@
+@@ -91,8 +91,9 @@
        t[7] = (a[9] >> 5) | ((uint16_t)a[10] << 3);
        a += 11;
  

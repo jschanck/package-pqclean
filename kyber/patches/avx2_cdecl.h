@@ -1,6 +1,9 @@
 --- upstream/avx2/cdecl.h
 +++ upstream-patched/avx2/cdecl.h
-@@ -0,0 +1,24 @@
+@@ -0,0 +1,28 @@
++#ifndef CDECL_H
++#define CDECL_H
++
 +#define _16XQ            0
 +#define _16XQINV        16
 +#define _16XV           32
@@ -14,7 +17,6 @@
 +#define _ZETAS_EXP     160
 +#define _16XSHIFT      624
 +
-+
 +/* The C ABI on MacOS exports all symbols with a leading
 + * underscore. This means that any symbols we refer to from
 + * C files (functions) can't be found, and all symbols we
@@ -25,4 +27,6 @@
 +
 +#define _cdecl(s) _##s
 +#define cdecl(s) s
++
++#endif
 

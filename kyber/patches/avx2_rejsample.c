@@ -530,7 +530,7 @@
  };
  #endif
  
-@@ -331,10 +333,10 @@
+@@ -330,10 +332,10 @@
      g0 = _mm256_inserti128_si256(g0, _mm_cvtsi64_si128(idx2), 1);
      g1 = _mm256_inserti128_si256(g1, _mm_cvtsi64_si128(idx3), 1);
  #else
@@ -545,7 +545,7 @@
  #endif
  
      g2 = _mm256_add_epi8(g0, ones);
-@@ -374,7 +376,7 @@
+@@ -373,7 +375,7 @@
      pilo = _mm_cvtsi64_si128(idx0);
  #else
      good = _pext_u32(good, 0x5555);

@@ -1,6 +1,6 @@
 --- upstream/avx2/aes256ctr.c
 +++ upstream-patched/avx2/aes256ctr.c
-@@ -126,14 +126,14 @@
+@@ -122,14 +122,14 @@
  
  void aes256ctr_prf(uint8_t *out,
                     size_t outlen,

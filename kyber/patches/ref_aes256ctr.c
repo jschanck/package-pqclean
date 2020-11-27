@@ -11,4 +11,9 @@
  	} while (0)
  
  #define SWAP2(x, y)    SWAPN(0x5555555555555555, 0xAAAAAAAAAAAAAAAA,  1, x, y)
+@@ -584,3 +584,4 @@
+     nblocks--;
+   }
+ }
++
 
