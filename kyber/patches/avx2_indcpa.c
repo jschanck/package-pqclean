@@ -1,6 +1,6 @@
 --- upstream/avx2/indcpa.c
 +++ upstream-patched/avx2/indcpa.c
-@@ -273,7 +273,7 @@
+@@ -270,7 +270,7 @@
    ALIGNED_UINT8(REJ_UNIFORM_AVX_NBLOCKS*SHAKE128_RATE) buf[4];
    __m256i f;
    keccakx4_state state;
@@ -9,7 +9,7 @@
  
    f = _mm256_loadu_si256((__m256i *)seed);
    _mm256_store_si256(buf[0].vec, f);
-@@ -377,14 +377,14 @@
+@@ -374,14 +374,14 @@
    _mm256_store_si256(buf[0].vec, f);
    buf[0].coeffs[32] = 2;
    buf[0].coeffs[33] = 2;

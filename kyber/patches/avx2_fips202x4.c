@@ -9,7 +9,7 @@
  extern void KeccakF1600_StatePermute4x(__m256i *s);
  
  static void keccakx4_absorb_once(__m256i s[25],
-@@ -45,14 +45,14 @@
+@@ -46,14 +46,14 @@
  
    if(inlen) {
      t = _mm256_i64gather_epi64((long long *)pos, idx, 1);

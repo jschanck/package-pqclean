@@ -1,6 +1,6 @@
 --- upstream/ref/symmetric-shake.c
 +++ upstream-patched/ref/symmetric-shake.c
-@@ -9,12 +9,12 @@
+@@ -10,12 +10,12 @@
  *
  * Description: Absorb step of the SHAKE128 specialized for the Kyber context.
  *
@@ -15,7 +15,7 @@
                             const uint8_t seed[KYBER_SYMBYTES],
                             uint8_t x,
                             uint8_t y)
-@@ -27,7 +27,7 @@
+@@ -26,7 +26,7 @@
    extseed[KYBER_SYMBYTES+0] = x;
    extseed[KYBER_SYMBYTES+1] = y;
  
