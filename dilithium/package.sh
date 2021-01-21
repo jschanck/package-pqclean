@@ -110,7 +110,6 @@ implementations:
           required_flags:
               - aes
               - avx2
-              - bmi1
               - popcnt" >> META.yml
 
   echo "\
@@ -171,7 +170,7 @@ $(basename -a avx2/*.S | sed 's/\.S/.o/' | tr '\n' ' ')" > avx2/Makefile
   if [[ ${PARAM} =~ "aes" ]] 
   then
     echo "\
-CFLAGS=-mavx2 -maes -mbmi2 -mpopcnt -O3 -Wall -Wextra -Wpedantic -Werror \\
+CFLAGS=-mavx2 -maes -mpopcnt -O3 -Wall -Wextra -Wpedantic -Werror \\
           -Wmissing-prototypes -Wredundant-decls -std=c99 \\
           -I../../../common \$(EXTRAFLAGS)
 
@@ -197,7 +196,7 @@ KECCAK4XDIR=../../../common/keccak4x
 KECCAK4XOBJ=KeccakP-1600-times4-SIMD256.o
 KECCAK4X=\$(KECCAK4XDIR)/\$(KECCAK4XOBJ)
 
-CFLAGS=-mavx2 -mbmi2 -mpopcnt -O3 -Wall -Wextra -Wpedantic -Werror \\
+CFLAGS=-mavx2 -mpopcnt -O3 -Wall -Wextra -Wpedantic -Werror \\
           -Wmissing-prototypes -Wredundant-decls \\
           -Wpointer-arith -Wshadow \\
           -std=c99 -I../../../common \$(EXTRAFLAGS)

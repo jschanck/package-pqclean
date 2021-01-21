@@ -1,17 +1,21 @@
 --- upstream/ref/packing.c
 +++ upstream-patched/ref/packing.c
-@@ -174,9 +174,10 @@
+@@ -174,11 +174,12 @@
  
    k = 0;
    for(i = 0; i < K; ++i) {
 -    for(j = 0; j < N; ++j)
 +    for(j = 0; j < N; ++j) {
        if(h->vec[i].coeffs[j] != 0)
-         sig[k++] = j;
+-        sig[k++] = j;
++        sig[k++] = (uint8_t) j;
 +    }
  
-     sig[OMEGA + i] = k;
+-    sig[OMEGA + i] = k;
++    sig[OMEGA + i] = (uint8_t) k;
    }
+ }
+ 
 @@ -213,8 +214,9 @@
    /* Decode h */
    k = 0;

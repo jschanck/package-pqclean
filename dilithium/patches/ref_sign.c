@@ -97,4 +97,13 @@
  
    return 0;
  }
+@@ -326,7 +332,7 @@
+ 
+ badsig:
+   /* Signature verification failed */
+-  *mlen = -1;
++  *mlen = (size_t) -1;
+   for(i = 0; i < smlen; ++i)
+     m[i] = 0;
+ 
 
