@@ -220,7 +220,7 @@
  	inner_shake256_flip(&sc);
 -	falcon1024dyn_avx2_hash_to_point_vartime(
 -		&sc, r.hm, 10);
-+	falcon1024dyn_ref_hash_to_point_ct(&sc, r.hm, 10);
++	falcon1024dyn_ref_hash_to_point_ct(&sc, r.hm, 10, tmp.b);
 +	inner_shake256_ctx_release(&sc);
  
  	/*
