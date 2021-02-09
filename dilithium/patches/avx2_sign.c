@@ -14,12 +14,12 @@
  
    /* Compute CRH(tr, msg) */
 -  shake256_init(&state);
--  shake256_absorb(&state, tr, CRHBYTES);
+-  shake256_absorb(&state, tr, SEEDBYTES);
 -  shake256_absorb(&state, m, mlen);
 -  shake256_finalize(&state);
 -  shake256_squeeze(mu, CRHBYTES, &state);
 +  shake256_inc_init(&state);
-+  shake256_inc_absorb(&state, tr, CRHBYTES);
++  shake256_inc_absorb(&state, tr, SEEDBYTES);
 +  shake256_inc_absorb(&state, m, mlen);
 +  shake256_inc_finalize(&state);
 +  shake256_inc_squeeze(mu, CRHBYTES, &state);
@@ -55,15 +55,15 @@
    if(siglen != CRYPTO_BYTES)
      return -1;
  
-   /* Compute CRH(CRH(rho, t1), msg) */
-   crh(mu, pk, CRYPTO_PUBLICKEYBYTES);
+   /* Compute CRH(H(rho, t1), msg) */
+   shake256(mu, SEEDBYTES, pk, CRYPTO_PUBLICKEYBYTES);
 -  shake256_init(&state);
--  shake256_absorb(&state, mu, CRHBYTES);
+-  shake256_absorb(&state, mu, SEEDBYTES);
 -  shake256_absorb(&state, m, mlen);
 -  shake256_finalize(&state);
 -  shake256_squeeze(mu, CRHBYTES, &state);
 +  shake256_inc_init(&state);
-+  shake256_inc_absorb(&state, mu, CRHBYTES);
++  shake256_inc_absorb(&state, mu, SEEDBYTES);
 +  shake256_inc_absorb(&state, m, mlen);
 +  shake256_inc_finalize(&state);
 +  shake256_inc_squeeze(mu, CRHBYTES, &state);

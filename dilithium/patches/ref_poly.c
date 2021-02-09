@@ -9,10 +9,10 @@
  
  /*************************************************
 @@ -468,6 +469,7 @@
-     stream128_squeezeblocks(buf, 1, &state);
-     ctr += rej_eta(a->coeffs + ctr, N - ctr, buf, STREAM128_BLOCKBYTES);
+     stream256_squeezeblocks(buf, 1, &state);
+     ctr += rej_eta(a->coeffs + ctr, N - ctr, buf, STREAM256_BLOCKBYTES);
    }
-+  stream128_release(&state);
++  stream256_release(&state);
  }
  
  /*************************************************

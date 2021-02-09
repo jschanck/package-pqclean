@@ -7,7 +7,7 @@
 -#include "config.h"
 -
  #define SEEDBYTES 32
- #define CRHBYTES 48
+ #define CRHBYTES 64
  #define N 256
 @@ -19,6 +17,15 @@
  #define GAMMA1 (1 << 17)

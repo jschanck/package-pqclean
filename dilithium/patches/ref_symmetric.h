@@ -1,6 +1,6 @@
 --- upstream/ref/symmetric.h
 +++ upstream-patched/ref/symmetric.h
-@@ -25,25 +25,27 @@
+@@ -24,25 +24,27 @@
          dilithium_aes256ctr_init(STATE, SEED, NONCE)
  #define stream128_squeezeblocks(OUT, OUTBLOCKS, STATE) \
          aes256ctr_squeezeblocks(OUT, OUTBLOCKS, STATE)
@@ -32,7 +32,7 @@
                                      const uint8_t seed[CRHBYTES],
                                      uint16_t nonce);
  
-@@ -54,11 +56,13 @@
+@@ -52,11 +54,13 @@
  #define stream128_init(STATE, SEED, NONCE) \
          dilithium_shake128_stream_init(STATE, SEED, NONCE)
  #define stream128_squeezeblocks(OUT, OUTBLOCKS, STATE) \
