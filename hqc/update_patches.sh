@@ -25,7 +25,7 @@ fi
 rm -rf ${PATCHES}
 mkdir -p ${PATCHES}/tmp/
 
-diff -ru --no-dereference ${V1} ${V2} > ${PATCHES}/tmp/p
+diff -ruN --no-dereference ${V1} ${V2} > ${PATCHES}/tmp/p
 
 ( cd ${PATCHES}/tmp/
   splitpatch ${PATCHES}/tmp/p

@@ -365,14 +365,20 @@
  		}
  		delta_counter += found;
  	}
-@@ -747,23 +715,20 @@
+@@ -747,23 +715,25 @@
   * @param[out] msg Array of size VEC_K_SIZE_64 receiving the decoded message
   * @param[in] cdw Array of size VEC_N1_SIZE_64 storing the received word
   */
 -void reed_solomon_decode(uint64_t* msg, uint64_t* cdw) {
 -	uint8_t cdw_bytes[PARAM_N1] = {0};
+-	uint16_t syndromes[2 * PARAM_DELTA] = {0};
 +void reed_solomon_decode(uint8_t* msg, uint8_t* cdw) {
- 	uint16_t syndromes[2 * PARAM_DELTA] = {0};
++	union {
++		uint16_t arr16[16*CEIL_DIVIDE(2*PARAM_DELTA,16)];
++		__m256i dummy;
++	} syndromes_aligned = {0};
++	uint16_t *syndromes = syndromes_aligned.arr16;
++
  	uint16_t sigma[1 << PARAM_FFT] = {0};
  	uint8_t error[1 << PARAM_M] = {0};
  	uint16_t z[PARAM_N1] = {0};
@@ -393,7 +399,7 @@
  
  	// Compute the error polynomial error
  	compute_roots(error, sigma);
-@@ -775,10 +740,10 @@
+@@ -775,10 +745,10 @@
  	compute_error_values(error_values, z, error);
  
  	// Correct the errors
