@@ -436,7 +436,7 @@
 -void vect_mul(uint64_t *o, const uint64_t *a1, const uint64_t *a2) {	
 -	toom_3_mult(a1_times_a2, a1, a2);
 +void vect_mul(uint64_t *o, const aligned_vec_t *a1, const aligned_vec_t *a2) {
-+	__m256i a1_times_a2[VEC_N_256_SIZE_64 << 1] = {0};
++	__m256i a1_times_a2[CEIL_DIVIDE(2*PARAM_N_MULT + 1,256)] = {0};
 +	toom_3_mult((uint64_t *)a1_times_a2, a1, a2);
  	reduce(o, a1_times_a2);
 -
