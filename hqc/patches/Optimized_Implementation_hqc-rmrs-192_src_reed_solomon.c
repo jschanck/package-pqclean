@@ -153,16 +153,7 @@
  }
  
  
-@@ -254,8 +202,6 @@
- 		syndromes256[0] ^= gf_mul_vect(_mm256_set1_epi16(cdw[i + 1]), alpha_ij256_1[i]);
- 	}
- 
--	syndromes256[1] = _mm256_set1_epi16(cdw[0]);
--
- 	for (size_t i = 0 ; i < PARAM_N1 - 1 ; ++i) {
- 		syndromes256[1] ^= gf_mul_vect(_mm256_set1_epi16(cdw[i + 1]), alpha_ij256_2[i]);
- 	}
-@@ -279,55 +225,62 @@
+@@ -279,55 +227,62 @@
   * @param[out] sigma Array of size (at least) PARAM_DELTA receiving the ELP
   * @param[in] syndromes Array of size (at least) 2*PARAM_DELTA storing the syndromes
   */
@@ -245,7 +236,7 @@
  			d ^= gf_mul(sigma[i], syndromes[mu + 1 - i]);
  		}
  	}
-@@ -365,22 +318,25 @@
+@@ -365,22 +320,25 @@
   * @param[in] degree Integer that is the degree of polynomial sigma
   * @param[in] syndromes Array of 2 * PARAM_DELTA storing the syndromes
   */
@@ -280,7 +271,7 @@
  		}
  	}
  }
-@@ -401,17 +357,25 @@
+@@ -401,17 +359,25 @@
  	uint16_t beta_j[PARAM_DELTA] = {0};
  	uint16_t e_j[PARAM_DELTA] = {0};
  
@@ -312,7 +303,7 @@
  		}
  		delta_counter += found;
  	}
-@@ -419,10 +383,10 @@
+@@ -419,10 +385,10 @@
  
  	// Compute the e_{j_i} page 31 of the documentation
  	for (size_t i = 0 ; i < PARAM_DELTA ; ++i) {
@@ -327,7 +318,7 @@
  
  		for (size_t j = 1 ; j <= PARAM_DELTA ; ++j) {
  			inverse_power_j = gf_mul(inverse_power_j, inverse);
-@@ -431,19 +395,19 @@
+@@ -431,19 +397,19 @@
  		for (size_t k = 1 ; k < PARAM_DELTA ; ++k) {
  			tmp2 = gf_mul(tmp2, (1 ^ gf_mul(inverse, beta_j[(i+k) % PARAM_DELTA])));
  		}
@@ -354,7 +345,7 @@
  		}
  		delta_counter += found;
  	}
-@@ -483,23 +447,25 @@
+@@ -483,23 +449,25 @@
   * @param[out] msg Array of size VEC_K_SIZE_64 receiving the decoded message
   * @param[in] cdw Array of size VEC_N1_SIZE_64 storing the received word
   */
@@ -388,7 +379,7 @@
  
  	// Compute the error polynomial error
  	compute_roots(error, sigma);
-@@ -511,10 +477,10 @@
+@@ -511,10 +479,10 @@
  	compute_error_values(error_values, z, error);
  
  	// Correct the errors
