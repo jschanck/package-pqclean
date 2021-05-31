@@ -1,16 +1,16 @@
-VERSION=$(cat VERSION)
+#!/bin/sh
 
-PYTHON=/usr/bin/python3
+BASE=$(dirname "${0}")
+BASE=$(cd "${BASE}" && pwd)
 
-WORKDIR=`dirname $0`
-WORKDIR=`cd ${WORKDIR} && pwd`
-PATCHES=${WORKDIR}/patches
-SCRIPTS=${WORKDIR}/scripts
+VERSION=$(cat "${BASE}"/VERSION)
+V1=upstream
+V2=upstream-patched
 
-ARCHIVE=${VERSION}.tar.xz
+ARCHIVE="${VERSION}".tar.xz
+PATCHES="${BASE}"/patches
 
-cd ${WORKDIR}
-
+cd "${BASE}" || exit
 
 if [ ! -e "${V1}" ]
 then

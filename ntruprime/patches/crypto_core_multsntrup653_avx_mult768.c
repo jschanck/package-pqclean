@@ -5,9 +5,9 @@
  #define signmask_x16(x) _mm256_srai_epi16((x),15)
  
 +typedef union {
-+  int16 v[3][512];
++  int16 v[6][512];
 +  int16x16 _dummy;
-+} vec3x512;
++} vec6x512;
 +
 +typedef union {
 +  int16 v[768];
@@ -22,29 +22,38 @@
  static inline int16x16 squeeze_4621_x16(int16x16 x)
  {
    return sub_x16(x,mullo_x16(mulhrs_x16(x,const_x16(7)),const_x16(4621)));
-@@ -156,15 +171,15 @@
+@@ -156,22 +171,22 @@
    }
  }
  
--#define ALIGNED __attribute((aligned(32)))
+-#define ALIGNED __attribute((aligned(512)))
 -
  static void mult768(int16 h[1536],const int16 f[768],const int16 g[768])
  {
--  ALIGNED int16 fpad[3][512];
--  ALIGNED int16 gpad[3][512];
-+  vec3x512 x1, x2;
-+  vec1536 x3, x4;
-+#define fpad (x1.v)
-+#define gpad (x2.v)
+-  ALIGNED int16 fgpad[6][512];
+-#define fpad fgpad
+-#define gpad (fgpad+3)
++  vec6x512 fgpad;
++#define fpad (fgpad.v)
++#define gpad (fgpad.v+3)
  #define hpad fpad
 -  ALIGNED int16 h_7681[1536];
 -  ALIGNED int16 h_10753[1536];
-+#define h_7681 (x3.v)
-+#define h_10753 (x4.v)
++  vec1536 aligned_h_7681;
++  vec1536 aligned_h_10753;
++#define h_7681 (aligned_h_7681.v)
++#define h_10753 (aligned_h_10753.v)
    int i;
  
    good(fpad,f);
-@@ -193,7 +208,7 @@
+   good(gpad,g);
+ 
+-  ntt512_7681(fgpad[0],6);
++  ntt512_7681(fgpad.v[0],6);
+ 
+   for (i = 0;i < 512;i += 16) {
+     int16x16 f0 = squeeze_7681_x16(load_x16(&fpad[0][i]));
+@@ -193,12 +208,12 @@
    }
  
    invntt512_7681(hpad[0],3);
@@ -52,8 +61,14 @@
 +  ungood(h_7681,(const int16(*)[512]) hpad);
  
    good(fpad,f);
-   ntt512_10753(fpad[0],3);
-@@ -221,7 +236,7 @@
+   good(gpad,g);
+ 
+-  ntt512_10753(fgpad[0],6);
++  ntt512_10753(fgpad.v[0],6);
+ 
+   for (i = 0;i < 512;i += 16) {
+     int16x16 f0 = squeeze_10753_x16(load_x16(&fpad[0][i]));
+@@ -220,7 +235,7 @@
    }
  
    invntt512_10753(hpad[0],3);
@@ -62,7 +77,7 @@
  
    for (i = 0;i < 1536;i += 16) {
      int16x16 u1 = load_x16(&h_10753[i]);
-@@ -256,9 +271,11 @@
+@@ -255,9 +270,11 @@
  
  int crypto_core(unsigned char *outbytes,const unsigned char *inbytes,const unsigned char *kbytes,const unsigned char *cbytes)
  {
@@ -77,7 +92,7 @@
  #define h f
    int i;
    int16x16 x;
-@@ -275,14 +292,14 @@
+@@ -274,14 +291,14 @@
      store_x16(&f[i],x);
    }
    for (i = 0;i < p;++i) {

@@ -1,6 +1,6 @@
 --- upstream/crypto_kem/sntrup761/factored/kem.c
 +++ upstream-patched/crypto_kem/sntrup761/factored/kem.c
-@@ -74,7 +74,7 @@
+@@ -75,7 +75,7 @@
  {
    unsigned char h[64];
    int i;
@@ -9,7 +9,7 @@
    for (i = 0;i < 32;++i) out[i] = h[i];
  }
  
-@@ -91,7 +91,7 @@
+@@ -92,7 +92,7 @@
    for (i = w;i < p;++i) L[i] = (L[i]&(uint32)-3)|1;
    for (i = p;i < ppadsort;++i) L[i] = 0xffffffff;
    crypto_sort_uint32(L,ppadsort);
@@ -18,7 +18,7 @@
  }
  
  static void Small_random(small *out)
-@@ -101,7 +101,7 @@
+@@ -102,7 +102,7 @@
  
    randombytes((unsigned char *) L,sizeof L);
    crypto_decode_pxint32(L,(unsigned char *) L);
@@ -27,7 +27,7 @@
  }
  
  /* ----- Streamlined NTRU Prime */
-@@ -229,10 +229,10 @@
+@@ -233,10 +233,10 @@
  
      Hide(x,cnew,r_enc,r,pk,cache);
      mask = crypto_verify_clen(c,cnew);

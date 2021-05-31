@@ -1,6 +1,6 @@
 --- upstream/crypto_kem/ntrulpr761/factored/kem.c
 +++ upstream-patched/crypto_kem/ntrulpr761/factored/kem.c
-@@ -24,7 +24,7 @@
+@@ -25,7 +25,7 @@
  /* return -1 if x<0; otherwise return 0 */
  static int int16_negative_mask(int16 x)
  {
@@ -9,7 +9,7 @@
    u >>= 15;
    return -(int) u;
    /* alternative with gcc -fwrapv: */
-@@ -45,26 +45,26 @@
+@@ -46,26 +46,26 @@
  /* assumes twos complement; use, e.g., gcc -fwrapv */
  static Fq Fq_freeze(int32 x)
  {
@@ -44,7 +44,7 @@
  }
  
  static Fq Right(int8 T)
-@@ -93,7 +93,7 @@
+@@ -94,7 +94,7 @@
    for (i = w;i < p;++i) L[i] = (in[i]&(uint32)-3)|1;
    for (i = p;i < ppadsort;++i) L[i] = 0xffffffff;
    crypto_sort_uint32(L,ppadsort);
@@ -53,7 +53,7 @@
  }
  
  /* ----- underlying hash function */
-@@ -104,7 +104,7 @@
+@@ -105,7 +105,7 @@
  {
    unsigned char h[64];
    int i;
@@ -62,7 +62,7 @@
    for (i = 0;i < 32;++i) out[i] = h[i];
  }
  
-@@ -258,7 +258,7 @@
+@@ -259,7 +259,7 @@
        int8 T[I];
        Top_decode(T,c+Rounded_bytes);
        for (i = 0;i < I;++i)
@@ -71,7 +71,7 @@
      }
    }
    {
-@@ -267,9 +267,9 @@
+@@ -268,9 +268,9 @@
      unsigned char x[1+Inputs_bytes+Ciphertexts_bytes+Confirm_bytes];
      Hide(cnew,x,r,pk,cache);
      mask = crypto_verify_clen(c,cnew);

@@ -5,9 +5,9 @@
  #define signmask_x16(x) _mm256_srai_epi16((x),15)
  
 +typedef union {
-+  int16 v[3][512];
++  int16 v[6][512];
 +  int16x16 _dummy;
-+} vec3x512;
++} vec6x512;
 +
 +typedef union {
 +  int16 v[768];
@@ -22,7 +22,7 @@
  static int16x16 squeeze_3_x16(int16x16 x)
  {
    return sub_x16(x,mullo_x16(mulhrs_x16(x,const_x16(10923)),const_x16(3)));
-@@ -133,14 +148,14 @@
+@@ -133,21 +148,20 @@
    }
  }
  
@@ -30,19 +30,27 @@
 -
  static void mult768(int16 h[1536],const int16 f[768],const int16 g[768])
  {
--  ALIGNED int16 fpad[3][512];
--  ALIGNED int16 gpad[3][512];
-+  vec3x512 x1, x2;
-+  vec1536 x3;
-+#define fpad (x1.v)
-+#define gpad (x2.v)
+-  ALIGNED int16 fgpad[6][512];
+-#define fpad fgpad
+-#define gpad (fgpad+3)
++  vec6x512 fgpad;
++#define fpad (fgpad.v)
++#define gpad (fgpad.v+3)
  #define hpad fpad
 -  ALIGNED int16 h_7681[1536];
-+#define h_7681 (x3.v)
++  vec1536 aligned_h_7681;
++#define h_7681 (aligned_h_7681.v)
    int i;
  
    good(fpad,f);
-@@ -169,7 +184,7 @@
+   good(gpad,g);
+ 
+-  ntt512_7681(fgpad[0],6);
++  ntt512_7681(fgpad.v[0],6);
+ 
+   for (i = 0;i < 512;i += 16) {
+     int16x16 f0 = squeeze_7681_x16(load_x16(&fpad[0][i]));
+@@ -169,7 +183,7 @@
    }
  
    invntt512_7681(hpad[0],3);
@@ -51,7 +59,7 @@
  
    for (i = 0;i < 1536;i += 16) {
      int16x16 u = load_x16(&h_7681[i]);
-@@ -198,9 +213,11 @@
+@@ -198,9 +212,11 @@
  
  int crypto_core(unsigned char *outbytes,const unsigned char *inbytes,const unsigned char *kbytes,const unsigned char *cbytes)
  {
@@ -66,7 +74,7 @@
  #define h f
    int i;
    int16x16 x;
-@@ -210,19 +227,19 @@
+@@ -210,19 +226,19 @@
    for (i = p&~15;i < 768;i += 16) store_x16(&g[i],x);
  
    for (i = 0;i < p;++i) {
@@ -91,7 +99,7 @@
    for (i = 0;i < 768;i += 16) {
      int16x16 fgi = load_x16(&fg[i]);
      int16x16 fgip = load_x16(&fg[i + p]);
-@@ -232,7 +249,7 @@
+@@ -232,7 +248,7 @@
      store_x16(&h[i],x);
    }
  

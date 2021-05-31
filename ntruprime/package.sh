@@ -1,4 +1,5 @@
 VERSION=$(cat VERSION)
+PACKAGER=$(git rev-parse HEAD)
 
 PYTHON=/usr/bin/python3
 
@@ -162,7 +163,6 @@ do
         cp -Lp ${F} ${BUILD_CRYPTO_KEM}/${PARAM}/${OUT}/${X}_${F}
         sed -i -s "s/\"${F}/\"${X}_${F}/" ${BUILD_CRYPTO_KEM}/${PARAM}/${OUT}/*
       done
-
       [ -e "params.h" ] && cp -Lp params.h ${BUILD_CRYPTO_KEM}/${PARAM}/${OUT}/DELETEME${X}_params.h
       )
       endtask
@@ -194,7 +194,7 @@ ${PROTOTYPE};
     done
   done
 
-  # Remove some unnecessary files
+  # The "mod q" and "mod 3" ntt.{c,h} are identical
   (cd ${BUILD_CRYPTO_KEM}/${PARAM}/avx2/
   [ -e "crypto_core_mult3${PARAM}_ntt.c" ] && rm crypto_core_mult3${PARAM}_ntt.c
   [ -e "crypto_core_mult3${PARAM}_ntt.h" ] && rm crypto_core_mult3${PARAM}_ntt.h
@@ -221,7 +221,7 @@ void crypto_decode_int16(void *x,const unsigned char *s);
   endtask
 done
 
-for PARAM in {sntrup,ntrulpr}{653,761,857}
+for PARAM in ntrulpr{653,761,857}
 do
   task "Writing PQClean compatible crypto_stream_aes256ctr for ${PARAM}"
 
@@ -259,13 +259,26 @@ int crypto_stream_aes256ctr(
   endtask
 done
 
+for PARAM in {sntrup,ntrulpr}{653,761,857}
+do
+  task "Writing dummy crypto_declassify.h for ${PARAM}"
+
+echo '#ifndef crypto_declassify_h
+#define crypto_declassify_h
+
+#define crypto_declassify(BUF,SIZE)
+
+#endif' | tee ${BUILD_CRYPTO_KEM}/${PARAM}/{clean,avx2}/crypto_declassify.h >/dev/null
+  endtask
+done
+
 task 'Adding #defines from dependencies'
 for PARAM in {sntrup,ntrulpr}{653,761,857}
 do
   for OUT in clean avx2
   do
     ( cd ${BUILD_CRYPTO_KEM}/${PARAM}/${OUT}/
-    grep "define \(ppad\|qinv\|q18\|q27\|qinvvec\|crypto_core_weight\) " DELETEME*_params.h 2>/dev/null \
+    grep "define \(ppad\|qinv\|q14\|q18\|q27\|q31\|qinvvec\|crypto_core_weight\|endingmask\) " DELETEME*_params.h 2>/dev/null \
       | cut -d":" -f 2 \
       | sort -u \
       | while read Y
@@ -379,6 +392,7 @@ do
     NAMESPACE=$(echo PQCLEAN_${PARAM}_${IMPL} | tr [:lower:] [:upper:])
     for X in $(grep CRYPTO_NAMESPACE *.{c,h} | cut -f2 -d' ' | sort -u); do
       sed -i -s "s/ ${X}/ ${NAMESPACE}_${X}/g" *.c *.h
+      sed -i -s "s/(${X}/(${NAMESPACE}_${X}/g" *.c *.h
     done
     sed -i -s '/CRYPTO_NAMESPACE/d' *.{c,h}
     sed -i -s "s/CRYPTO_/${NAMESPACE}_CRYPTO_/" *.h
@@ -443,9 +457,9 @@ principal-submitters:
   - Christine van Vredendaal
 implementations:
     - name: clean
-      version: ${VERSION}
+      version: ${VERSION} via https://github.com/jschanck/package-pqclean/tree/${PACKAGER:0:8}/ntruprime
     - name: avx2
-      version: ${VERSION}
+      version: ${VERSION} via https://github.com/jschanck/package-pqclean/tree/${PACKAGER:0:8}/ntruprime
       supported_platforms:
           - architecture: x86_64
             operating_systems:

@@ -1,6 +1,6 @@
 --- upstream/crypto_core/invsntrup761/ref/recip.c
 +++ upstream-patched/crypto_core/invsntrup761/ref/recip.c
-@@ -18,17 +18,17 @@
+@@ -20,17 +20,17 @@
  /* return -1 if x!=0; else return 0 */
  static int int16_nonzero_mask(int16 x)
  {
@@ -22,16 +22,25 @@
    u >>= 15;
    return -(int) u;
    /* alternative with gcc -fwrapv: */
-@@ -47,7 +47,7 @@
- {
+@@ -50,7 +50,7 @@
    x -= q*((q18*x)>>18);
+   x -= q*((q27*x+67108864)>>27);
    x -= q*((q27*x+67108864)>>27);
 -  return x;
 +  return (Fq) x;
  }
  
  static Fq Fq_recip(Fq a1)
-@@ -89,13 +89,13 @@
+@@ -83,7 +83,7 @@
+   r[0] = Fq_recip(3);
+   for (i = 0;i < p;++i) f[i] = 0;
+   f[0] = 1; f[p-1] = f[p] = -1;
+-  for (i = 0;i < p;++i) g[p-1-i] = in[i];
++  for (i = 0;i < p;++i) g[p-1-i] = (Fq) in[i];
+   g[p] = 0;
+ 
+   delta = 1;
+@@ -92,13 +92,13 @@
      for (i = p;i > 0;--i) v[i] = v[i-1];
      v[0] = 0;
  
@@ -48,8 +57,8 @@
      }
  
      f0 = f[0];
-@@ -111,6 +111,6 @@
-   for (i = 0;i < p;++i) out[i] = Fq_freeze(scale*(int32)v[p-1-i]);
+@@ -114,6 +114,6 @@
+   for (i = 0;i < p;++i) out[i] = Fq_bigfreeze(scale*(int32)v[p-1-i]);
  
    crypto_encode_pxint16(outbytes,out);
 -  outbytes[2*p] = int16_nonzero_mask(delta);
