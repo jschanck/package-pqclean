@@ -58,11 +58,12 @@
    
 -    for (i = 0;i < p+1;++i) g[i] = F3_freeze(g[i]+sign*f[i]);
 -    for (i = 0;i < p+1;++i) r[i] = F3_freeze(r[i]+sign*v[i]);
-+    for (i = 0;i < p+1;++i) g[i] = F3_freeze((int16) g[i]+sign*f[i]);
-+    for (i = 0;i < p+1;++i) r[i] = F3_freeze((int16) r[i]+sign*v[i]);
++    for (i = 0;i < p+1;++i) g[i] = F3_freeze((int16) (g[i]+sign*f[i]));
++    for (i = 0;i < p+1;++i) r[i] = F3_freeze((int16) (r[i]+sign*v[i]));
  
      for (i = 0;i < p;++i) g[i] = g[i+1];
-     g[p] = 0;
+-    g[p] = 0;
++    g[p] = (int16) 0;
    }
    
 -  sign = f[0];
