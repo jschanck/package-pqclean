@@ -72,7 +72,7 @@
 +  for (i = 0;i < p;++i) out[i] = (small) (sign*v[p-1-i]);
    
 -  out[p] = int16_nonzero_mask(delta);
-+  out[p] = (small) int16_nonzero_mask(delta);
++  out[p] = (small) int16_nonzero_mask((int16) delta);
    return 0;
  } 
 
