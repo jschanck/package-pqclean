@@ -1,6 +1,11 @@
 --- upstream/crypto_kem/ntrulpr761/factored/kem.c
 +++ upstream-patched/crypto_kem/ntrulpr761/factored/kem.c
-@@ -25,7 +25,7 @@
+@@ -1,4 +1,3 @@
+-#include <stdlib.h> /* for abort() in case of OpenSSL failures */
+ #include "params.h"
+ 
+ #include "randombytes.h"
+@@ -25,7 +24,7 @@
  /* return -1 if x<0; otherwise return 0 */
  static int int16_negative_mask(int16 x)
  {
@@ -9,7 +14,7 @@
    u >>= 15;
    return -(int) u;
    /* alternative with gcc -fwrapv: */
-@@ -46,26 +46,26 @@
+@@ -46,26 +45,26 @@
  /* assumes twos complement; use, e.g., gcc -fwrapv */
  static Fq Fq_freeze(int32 x)
  {
@@ -44,7 +49,7 @@
  }
  
  static Fq Right(int8 T)
-@@ -94,7 +94,7 @@
+@@ -94,7 +93,7 @@
    for (i = w;i < p;++i) L[i] = (in[i]&(uint32)-3)|1;
    for (i = p;i < ppadsort;++i) L[i] = 0xffffffff;
    crypto_sort_uint32(L,ppadsort);
@@ -53,7 +58,7 @@
  }
  
  /* ----- underlying hash function */
-@@ -105,7 +105,7 @@
+@@ -105,7 +104,7 @@
  {
    unsigned char h[64];
    int i;
@@ -62,7 +67,25 @@
    for (i = 0;i < 32;++i) out[i] = h[i];
  }
  
-@@ -259,7 +259,7 @@
+@@ -132,7 +131,7 @@
+   uint32 L[p];
+   int i;
+ 
+-  if (crypto_stream_aes256ctr_publicinputs((unsigned char *) L,4*p,aes_nonce,pk) != 0) abort();
++  crypto_stream_aes256ctr_publicinputs((unsigned char *) L,4*p,aes_nonce,pk);
+   crypto_decode_pxint32(L,(unsigned char *) L);
+   for (i = 0;i < p;++i) G[i] = Fq_bigfreeze(L[i])-q12;
+ }
+@@ -161,7 +160,7 @@
+       s[0] = 5;
+       Hash(h,s,sizeof s);
+     }
+-    if (crypto_stream_aes256ctr((unsigned char *) L,4*p,aes_nonce,h) != 0) abort();
++    crypto_stream_aes256ctr((unsigned char *) L,4*p,aes_nonce,h);
+     crypto_decode_pxint32(L,(unsigned char *) L);
+     Short_fromlist(b,L);
+   }
+@@ -259,7 +258,7 @@
        int8 T[I];
        Top_decode(T,c+Rounded_bytes);
        for (i = 0;i < I;++i)
@@ -71,7 +94,7 @@
      }
    }
    {
-@@ -268,9 +268,9 @@
+@@ -268,9 +267,9 @@
      unsigned char x[1+Inputs_bytes+Ciphertexts_bytes+Confirm_bytes];
      Hide(cnew,x,r,pk,cache);
      mask = crypto_verify_clen(c,cnew);

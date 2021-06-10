@@ -392,7 +392,6 @@ do
     NAMESPACE=$(echo PQCLEAN_${PARAM}_${IMPL} | tr [:lower:] [:upper:])
     for X in $(grep CRYPTO_NAMESPACE *.{c,h} | cut -f2 -d' ' | sort -u); do
       sed -i -s "s/ ${X}/ ${NAMESPACE}_${X}/g" *.c *.h
-      sed -i -s "s/(${X}/(${NAMESPACE}_${X}/g" *.c *.h
     done
     sed -i -s '/CRYPTO_NAMESPACE/d' *.{c,h}
     sed -i -s "s/CRYPTO_/${NAMESPACE}_CRYPTO_/" *.h
