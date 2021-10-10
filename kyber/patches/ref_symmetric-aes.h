@@ -1,8 +1,10 @@
 --- upstream/ref/symmetric-aes.h
 +++ upstream-patched/ref/symmetric-aes.h
-@@ -0,0 +1,23 @@
+@@ -0,0 +1,25 @@
 +#ifndef SYMMETRIC_AES_H
 +#define SYMMETRIC_AES_H
++
++#define AES256CTR_BLOCKBYTES 64
 +
 +#include "aes.h"
 +#include <stddef.h>

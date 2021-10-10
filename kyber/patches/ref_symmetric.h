@@ -1,6 +1,6 @@
 --- upstream/ref/symmetric.h
 +++ upstream-patched/ref/symmetric.h
-@@ -7,38 +7,39 @@
+@@ -7,17 +7,17 @@
  
  #ifdef KYBER_90S
  
@@ -15,15 +15,13 @@
 -typedef aes256ctr_ctx xof_state;
 +typedef aes256xof_ctx xof_state;
  
- #define kyber_aes256xof_absorb KYBER_NAMESPACE(_kyber_aes256xof_absorb)
+ #define kyber_aes256xof_absorb KYBER_NAMESPACE(kyber_aes256xof_absorb)
 -void kyber_aes256xof_absorb(aes256ctr_ctx *state, const uint8_t seed[32], uint8_t x, uint8_t y);
 +void kyber_aes256xof_absorb(aes256xof_ctx *state, const uint8_t seed[32], uint8_t x, uint8_t y);
  
- #define kyber_aes256ctr_prf KYBER_NAMESPACE(_kyber_aes256ctr_prf)
+ #define kyber_aes256ctr_prf KYBER_NAMESPACE(kyber_aes256ctr_prf)
  void kyber_aes256ctr_prf(uint8_t *out, size_t outlen, const uint8_t key[32], uint8_t nonce);
- 
--#define XOF_BLOCKBYTES AES256CTR_BLOCKBYTES
-+#define XOF_BLOCKBYTES 64
+@@ -26,19 +26,20 @@
  
  #define hash_h(OUT, IN, INBYTES) sha256(OUT, IN, INBYTES)
  #define hash_g(OUT, IN, INBYTES) sha512(OUT, IN, INBYTES)
@@ -43,7 +41,7 @@
 -typedef keccak_state xof_state;
 +typedef shake128ctx xof_state;
  
- #define kyber_shake128_absorb KYBER_NAMESPACE(_kyber_shake128_absorb)
+ #define kyber_shake128_absorb KYBER_NAMESPACE(kyber_shake128_absorb)
 -void kyber_shake128_absorb(keccak_state *s,
 +void kyber_shake128_absorb(xof_state *s,
                             const uint8_t seed[KYBER_SYMBYTES],

@@ -20,7 +20,7 @@
    const __m256i shufbidx = _mm256_set_epi8(11,10,10, 9, 9, 8, 8, 7,
 @@ -156,7 +156,7 @@
  **************************************************/
- void polyvec_compress(uint8_t r[KYBER_POLYVECCOMPRESSEDBYTES+2], polyvec *a)
+ void polyvec_compress(uint8_t r[KYBER_POLYVECCOMPRESSEDBYTES+2], const polyvec *a)
  {
 -  unsigned int i;
 +  size_t i;
@@ -38,7 +38,7 @@
    for(i=0;i<KYBER_K;i++)
 @@ -201,9 +201,10 @@
  **************************************************/
- void polyvec_tobytes(uint8_t r[KYBER_POLYVECBYTES], polyvec *a)
+ void polyvec_tobytes(uint8_t r[KYBER_POLYVECBYTES], const polyvec *a)
  {
 -  unsigned int i;
 -  for(i=0;i<KYBER_K;i++)

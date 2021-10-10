@@ -4,7 +4,7 @@
  #include <stdint.h>
  #include <immintrin.h>
  
--#define FIPS202X4_NAMESPACE(s) pqcrystals_fips202x4_avx2##s
+-#define FIPS202X4_NAMESPACE(s) pqcrystals_kyber_fips202x4_avx2_##s
 -
  typedef struct {
    __m256i s[25];

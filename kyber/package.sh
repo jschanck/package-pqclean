@@ -3,15 +3,15 @@
 VERSION=$(cat VERSION)
 PACKAGER=$(git rev-parse HEAD)
 
-BASE=`dirname $0`
-BASE=`cd $BASE && pwd`
+BASE=$(dirname "${0}")
+BASE=$(cd "${BASE}" && pwd)
 echo ${BASE}
 
-ARCHIVE=${VERSION}.zip
-BUILD=${BASE}/build
-BUILD_CRYPTO_KEM=${BUILD}/crypto_kem
-BUILD_UPSTREAM=${BUILD}/upstream
-BUILD_TEST=${BUILD}/test
+ARCHIVE="${VERSION}.zip"
+BUILD="${BASE}/build"
+BUILD_CRYPTO_KEM="${BUILD}/crypto_kem"
+BUILD_UPSTREAM="${BUILD}/upstream"
+BUILD_TEST="${BUILD}/test"
 
 function task {
   echo -e "[ ]" $1
@@ -22,70 +22,71 @@ function endtask {
 }
 
 function cleanup {
-  rm -rf ${BUILD}
+  rm -rf "${BUILD}"
 }
 trap cleanup EXIT
 
 if [ -e "${BUILD_CRYPTO_KEM}" ]
 then
-  read -p "${BUILD_CRYPTO_KEM} directory already exists. Delete it? " yn
+  printf "%s directory already exists. Delete it (y/n)? " "${BUILD_CRYPTO_KEM}" 
+  read -r yn
   if [ "${yn:-n}" != "y" ]
   then
     exit -1
   fi
-  rm -rf ${BUILD_CRYPTO_KEM} ${BUILD_TEST}
+  rm -rf "${BUILD_CRYPTO_KEM}" "${BUILD_TEST}"
 fi
-mkdir -p ${BUILD_CRYPTO_KEM} ${BUILD_TEST}
+mkdir -p "${BUILD_CRYPTO_KEM}" "${BUILD_TEST}"
 
-if [ ! -f ${BASE}/${ARCHIVE} ]
+if [ ! -f "${BASE}/${ARCHIVE}" ]
 then
-  wget -P ${BASE} https://github.com/pq-crystals/kyber/archive/${VERSION}.zip
+  wget -P "${BASE}" "https://github.com/pq-crystals/kyber/archive/${VERSION}.zip"
 fi
 
 task "Unpacking ${ARCHIVE}"
-unzip -qq -d ${BUILD} ${BASE}/${ARCHIVE}
-mv ${BUILD}/kyber-${VERSION} ${BUILD_UPSTREAM}
+unzip -qq -d "${BUILD}" "${BASE}/${ARCHIVE}"
+mv "${BUILD}/kyber-${VERSION}" "${BUILD_UPSTREAM}"
 endtask
 
 task 'Applying patches to upstream source code'
-( cd ${BUILD_UPSTREAM}
+( cd "${BUILD_UPSTREAM}"
 
-for X in ${BASE}/patches/*
+for X in "${BASE}"/patches/*
 do
-  patch -s -p1 < ${X}
+  patch -s -p1 < "${X}"
 done
 )
 endtask
 
 for PARAM in kyber{512,768,1024}{,-90s}
 do
-  mkdir -p ${BUILD_CRYPTO_KEM}/${PARAM}/avx2
-  mkdir -p ${BUILD_CRYPTO_KEM}/${PARAM}/clean
+  mkdir -p "${BUILD_CRYPTO_KEM}/${PARAM}/avx2"
+  mkdir -p "${BUILD_CRYPTO_KEM}/${PARAM}/clean"
 
   task "Copying upstream/ref to ${PARAM}/clean"
-  ( cd ${BUILD_UPSTREAM}/ref/
-    OUT=${BUILD_CRYPTO_KEM}/${PARAM}/clean/
-    cp -Lp cbd.c indcpa.c kem.c ntt.c poly.c polyvec.c reduce.c verify.c ${OUT}
-    cp -Lp api.h cbd.h indcpa.h kem.h ntt.h params.h poly.h polyvec.h reduce.h symmetric.h verify.h ${OUT}
-    [[ ${PARAM} =~ "90s" ]] && 
-      cp -Lp symmetric-aes.{c,h} ${OUT} ||
-      cp -Lp symmetric-shake.c ${OUT} )
+  ( cd "${BUILD_UPSTREAM}/ref/"
+    OUT="${BUILD_CRYPTO_KEM}/${PARAM}/clean/"
+    cp -Lp cbd.c indcpa.c kem.c ntt.c poly.c polyvec.c reduce.c verify.c "${OUT}"
+    cp -Lp cbd.h indcpa.h kem.h ntt.h params.h poly.h polyvec.h reduce.h symmetric.h verify.h "${OUT}"
+    ([[ "${PARAM}" =~ "90s" ]] && cp -Lp symmetric-aes.{c,h} "${OUT}") || cp -Lp symmetric-shake.c "${OUT}"
+    cp "${BASE}/meta/${PARAM}_clean_api.h" "${OUT}/api.h"
+  )
   endtask
 
   task "Copying upstream/avx2 to ${PARAM}/avx2"
-  ( cd ${BUILD_UPSTREAM}/avx2/
-    OUT=${BUILD_CRYPTO_KEM}/${PARAM}/avx2/
-    cp -Lp cbd.c consts.c fq.inc indcpa.c kem.c poly.c polyvec.c rejsample.c shuffle.inc verify.c ${OUT}
-    cp -Lp align.h api.h cbd.h cdecl.h consts.h indcpa.h kem.h ntt.h params.h poly.h polyvec.h reduce.h rejsample.h symmetric.h verify.h ${OUT}
-    cp -Lp fq.inc shuffle.inc ${OUT}
-    cp -Lp basemul.S fq.S invntt.S ntt.S shuffle.S ${OUT}
-    [[ ${PARAM} =~ "90s" ]] &&
-      cp -Lp aes256ctr.{c,h} ${OUT} ||
-      cp -Lp fips202x4.{c,h} symmetric-shake.c ${OUT} )
+  ( cd "${BUILD_UPSTREAM}/avx2/" || exit
+    OUT="${BUILD_CRYPTO_KEM}/${PARAM}/avx2/"
+    cp -Lp cbd.c consts.c fq.inc indcpa.c kem.c poly.c polyvec.c rejsample.c shuffle.inc verify.c "${OUT}"
+    cp -Lp align.h cbd.h cdecl.h consts.h indcpa.h kem.h ntt.h params.h poly.h polyvec.h reduce.h rejsample.h symmetric.h verify.h "${OUT}"
+    cp -Lp fq.inc shuffle.inc "${OUT}"
+    cp -Lp basemul.S fq.S invntt.S ntt.S shuffle.S "${OUT}"
+    ([[ "${PARAM}" =~ "90s" ]] && cp -Lp aes256ctr.{c,h} "${OUT}") || cp -Lp fips202x4.{c,h} symmetric-shake.c "${OUT}"
+    cp "${BASE}/meta/${PARAM}_avx2_api.h" "${OUT}/api.h"
+  )
   endtask
 
 # Makefiles and other metadata
-( cd ${BUILD_CRYPTO_KEM}/${PARAM}/
+( cd "${BUILD_CRYPTO_KEM}/${PARAM}/"
 
   echo "\
 Public Domain (https://creativecommons.org/share-your-work/public-domain/cc0/)
@@ -95,7 +96,7 @@ code from sources and by authors listed in
 comments on top of the respective files." > clean/LICENSE
 
   cp clean/LICENSE avx2/LICENSE
-  cp -Lp ${BASE}/meta/crypto_kem_${PARAM}_META.yml META.yml
+  cp -Lp "${BASE}/meta/crypto_kem_${PARAM}_META.yml" META.yml
   echo "\
 implementations:
     - name: clean
@@ -168,7 +169,7 @@ $(basename -a avx2/*.inc | tr '\n' ' ')
 OBJECTS=$(basename -a avx2/*.c | sed 's/\.c/.o/' | tr '\n' ' ') \
 $(basename -a avx2/*.S | sed 's/\.S/.o/' | tr '\n' ' ')" > avx2/Makefile
 
-  if [[ ${PARAM} =~ "90s" ]] 
+  if [[ "${PARAM}" =~ "90s" ]] 
   then
     echo "\
 CFLAGS=-mavx2 -maes -mbmi2 -mpopcnt -O3 -Wall -Wextra -Wpedantic -Werror \\
