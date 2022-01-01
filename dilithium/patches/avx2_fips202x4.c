@@ -54,19 +54,30 @@
    s[r/8 - 1] = _mm256_xor_si256(s[r/8 - 1], t);
  }
  
-@@ -68,11 +98,11 @@
+@@ -62,17 +92,22 @@
+                                    __m256i s[25])
+ {
+   unsigned int i;
++  double temp0, temp1;
+   __m128d t;
+ 
+   while(nblocks > 0) {
      f1600x4(s, KeccakF_RoundConstants);
      for(i=0; i < r/8; ++i) {
        t = _mm_castsi128_pd(_mm256_castsi256_si128(s[i]));
 -      _mm_storel_pd((__attribute__((__may_alias__)) double *)&out0[8*i], t);
 -      _mm_storeh_pd((__attribute__((__may_alias__)) double *)&out1[8*i], t);
-+      _mm_storel_pd((double *)&out0[8*i], t);
-+      _mm_storeh_pd((double *)&out1[8*i], t);
++      _mm_storel_pd(&temp0, t);
++      _mm_storeh_pd(&temp1, t);
++      memcpy(&out0[8 * i], &temp0, sizeof(double));
++      memcpy(&out1[8 * i], &temp1, sizeof(double));
        t = _mm_castsi128_pd(_mm256_extracti128_si256(s[i],1));
 -      _mm_storel_pd((__attribute__((__may_alias__)) double *)&out2[8*i], t);
 -      _mm_storeh_pd((__attribute__((__may_alias__)) double *)&out3[8*i], t);
-+      _mm_storel_pd((double *)&out2[8*i], t);
-+      _mm_storeh_pd((double *)&out3[8*i], t);
++      _mm_storel_pd(&temp0, t);
++      _mm_storeh_pd(&temp1, t);
++      memcpy(&out2[8 * i], &temp0, sizeof(double));
++      memcpy(&out3[8 * i], &temp1, sizeof(double));
      }
  
      out0 += r;
