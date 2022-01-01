@@ -112,6 +112,20 @@ implementations:
               - avx2
               - popcnt" >> META.yml
 
+if [[ !(${PARAM} =~ "aes") ]]
+then
+  echo -n "
+    - name: aarch64
+      version: https://github.com/neon-ntt/neon-ntt/tree/014d2a0c21d705a523b3bfd2a740f8f0a2ba7a27
+      supported_platforms:
+        - architecture: arm_8
+          operating_systems:
+              - Linux
+              - Darwin
+          required_flags:
+              - asimd" >> META.yml
+fi
+
   echo "\
 # This Makefile can be used with GNU Make or BSD Make
 

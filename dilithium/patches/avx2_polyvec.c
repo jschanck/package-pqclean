@@ -79,7 +79,7 @@
    poly_uniform_4x(&rowa->vec[3], &rowa->vec[4], &rowa->vec[5], &rowa->vec[6], rho, 1795, 1796, 1797, 1798);
    poly_nttunpack(&rowa->vec[3]);
    poly_nttunpack(&rowa->vec[4]);
-@@ -377,9 +386,10 @@
+@@ -362,9 +371,10 @@
  int polyvecl_chknorm(const polyvecl *v, int32_t bound)  {
    unsigned int i;
  
@@ -91,7 +91,7 @@
  
    return 0;
  }
-@@ -543,9 +553,10 @@
+@@ -513,9 +523,10 @@
  int polyveck_chknorm(const polyveck *v, int32_t bound) {
    unsigned int i;
  

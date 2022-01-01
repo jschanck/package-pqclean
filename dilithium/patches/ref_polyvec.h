@@ -1,6 +1,6 @@
 --- upstream/ref/polyvec.h
 +++ upstream-patched/ref/polyvec.h
-@@ -31,8 +31,7 @@
+@@ -28,8 +28,7 @@
  void polyvecl_invntt_tomont(polyvecl *v);
  #define polyvecl_pointwise_poly_montgomery DILITHIUM_NAMESPACE(polyvecl_pointwise_poly_montgomery)
  void polyvecl_pointwise_poly_montgomery(polyvecl *r, const poly *a, const polyvecl *v);
@@ -10,7 +10,7 @@
  void polyvecl_pointwise_acc_montgomery(poly *w,
                                         const polyvecl *u,
                                         const polyvecl *v);
-@@ -84,7 +83,7 @@
+@@ -79,7 +78,7 @@
                                  const polyveck *v0,
                                  const polyveck *v1);
  #define polyveck_use_hint DILITHIUM_NAMESPACE(polyveck_use_hint)

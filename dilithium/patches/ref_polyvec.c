@@ -24,7 +24,7 @@
  }
  
  void polyvecl_reduce(polyvecl *v) {
-@@ -155,9 +157,10 @@
+@@ -140,9 +142,10 @@
  int polyvecl_chknorm(const polyvecl *v, int32_t bound)  {
    unsigned int i;
  
@@ -36,7 +36,7 @@
  
    return 0;
  }
-@@ -322,9 +325,10 @@
+@@ -292,9 +295,10 @@
  int polyveck_chknorm(const polyveck *v, int32_t bound) {
    unsigned int i;
  

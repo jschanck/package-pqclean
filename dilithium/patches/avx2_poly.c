@@ -1,6 +1,6 @@
 --- upstream/avx2/poly.c
 +++ upstream-patched/avx2/poly.c
-@@ -422,6 +422,7 @@
+@@ -403,6 +403,7 @@
    stream128_state state;
    stream128_init(&state, seed, nonce);
    poly_uniform_preinit(a, &state);
@@ -8,16 +8,7 @@
  }
  
  #ifndef DILITHIUM_USE_AES
-@@ -535,7 +536,7 @@
- *              - const uint8_t seed[]: byte array with seed of length CRHBYTES
- *              - uint16_t nonce: 2-byte nonce
- **************************************************/
--void poly_uniform_eta_preinit(poly *a, stream128_state *state)
-+void poly_uniform_eta_preinit(poly *a, stream256_state *state)
- {
-   unsigned int ctr;
-   ALIGNED_UINT8(REJ_UNIFORM_ETA_BUFLEN) buf;
-@@ -554,6 +555,7 @@
+@@ -535,6 +536,7 @@
    stream256_state state;
    stream256_init(&state, seed, nonce);
    poly_uniform_eta_preinit(a, &state);
@@ -25,7 +16,7 @@
  }
  
  #ifndef DILITHIUM_USE_AES
-@@ -637,6 +639,7 @@
+@@ -618,6 +620,7 @@
    stream256_state state;
    stream256_init(&state, seed, nonce);
    poly_uniform_gamma1_preinit(a, &state);
@@ -33,7 +24,7 @@
  }
  
  #ifndef DILITHIUM_USE_AES
-@@ -698,12 +701,12 @@
+@@ -679,12 +682,12 @@
    unsigned int i, b, pos;
    uint64_t signs;
    ALIGNED_UINT8(SHAKE256_RATE) buf;
@@ -51,7 +42,7 @@
  
    memcpy(&signs, buf.coeffs, 8);
    pos = 8;
-@@ -712,7 +715,7 @@
+@@ -693,7 +696,7 @@
    for(i = N-TAU; i < N; ++i) {
      do {
        if(pos >= SHAKE256_RATE) {
@@ -60,7 +51,7 @@
          pos = 0;
        }
  
-@@ -723,6 +726,7 @@
+@@ -704,6 +707,7 @@
      c->coeffs[b] = 1 - 2*(signs & 1);
      signs >>= 1;
    }

@@ -1,6 +1,6 @@
 --- upstream/ref/poly.c
 +++ upstream-patched/ref/poly.c
-@@ -383,6 +383,7 @@
+@@ -365,6 +365,7 @@
      buflen = STREAM128_BLOCKBYTES + off;
      ctr += rej_uniform(a->coeffs + ctr, N - ctr, buf, buflen);
    }
@@ -8,7 +8,7 @@
  }
  
  /*************************************************
-@@ -468,6 +469,7 @@
+@@ -450,6 +451,7 @@
      stream256_squeezeblocks(buf, 1, &state);
      ctr += rej_eta(a->coeffs + ctr, N - ctr, buf, STREAM256_BLOCKBYTES);
    }
@@ -16,7 +16,7 @@
  }
  
  /*************************************************
-@@ -491,6 +493,7 @@
+@@ -473,6 +475,7 @@
  
    stream256_init(&state, seed, nonce);
    stream256_squeezeblocks(buf, POLY_UNIFORM_GAMMA1_NBLOCKS, &state);
@@ -24,7 +24,7 @@
    polyz_unpack(a, buf);
  }
  
-@@ -508,12 +511,12 @@
+@@ -490,12 +493,12 @@
    unsigned int i, b, pos;
    uint64_t signs;
    uint8_t buf[SHAKE256_RATE];
@@ -42,7 +42,7 @@
  
    signs = 0;
    for(i = 0; i < 8; ++i)
-@@ -525,7 +528,7 @@
+@@ -507,7 +510,7 @@
    for(i = N-TAU; i < N; ++i) {
      do {
        if(pos >= SHAKE256_RATE) {
@@ -51,7 +51,7 @@
          pos = 0;
        }
  
-@@ -536,6 +539,7 @@
+@@ -518,6 +521,7 @@
      c->coeffs[b] = 1 - 2*(signs & 1);
      signs >>= 1;
    }
@@ -59,7 +59,7 @@
  }
  
  /*************************************************
-@@ -554,14 +558,14 @@
+@@ -536,14 +540,14 @@
  
  #if ETA == 2
    for(i = 0; i < N/8; ++i) {
@@ -82,7 +82,7 @@
  
      r[3*i+0]  = (t[0] >> 0) | (t[1] << 3) | (t[2] << 6);
      r[3*i+1]  = (t[2] >> 2) | (t[3] << 1) | (t[4] << 4) | (t[5] << 7);
-@@ -569,8 +573,8 @@
+@@ -551,8 +555,8 @@
    }
  #elif ETA == 4
    for(i = 0; i < N/2; ++i) {
@@ -93,7 +93,7 @@
      r[i] = t[0] | (t[1] << 4);
    }
  #endif
-@@ -637,11 +641,11 @@
+@@ -619,11 +623,11 @@
    DBENCH_START();
  
    for(i = 0; i < N/4; ++i) {
@@ -110,7 +110,7 @@
    }
  
    DBENCH_STOP(*tpack);
-@@ -694,26 +698,26 @@
+@@ -676,26 +680,26 @@
      t[6] = (1 << (D-1)) - a->coeffs[8*i+6];
      t[7] = (1 << (D-1)) - a->coeffs[8*i+7];
  
@@ -157,7 +157,7 @@
    }
  
    DBENCH_STOP(*tpack);
-@@ -803,30 +807,30 @@
+@@ -785,30 +789,30 @@
      t[2] = GAMMA1 - a->coeffs[4*i+2];
      t[3] = GAMMA1 - a->coeffs[4*i+3];
  
@@ -206,7 +206,7 @@
    }
  #endif
  
-@@ -909,16 +913,16 @@
+@@ -891,16 +895,16 @@
  
  #if GAMMA2 == (Q-1)/88
    for(i = 0; i < N/4; ++i) {
